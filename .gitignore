@@ -98,14 +98,9 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 # ==========================
-# Visual Studio Code workspace
+# Visual Studio Code workspace (Unity VSTUC 自动生成的本地配置)
 # ==========================
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/*.code-snippets
+.vscode/
 
 # Local History for Visual Studio Code
 .history/
