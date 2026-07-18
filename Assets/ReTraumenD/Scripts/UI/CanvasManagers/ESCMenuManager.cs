@@ -33,5 +33,23 @@ public class ESCMenuManager : MonoBehaviour
 
         UIManager.instance.ReportCanvasState(MyEnums.CanvasToToggle.ESC, state);
     }
+
+    /// <summary>Resume 按钮的回调：请求 UIManager 关闭 ESC 面板</summary>
+    public void OnResumeButton()
+    {
+        if (UIManager.instance != null)
+            UIManager.instance.RequestCanvasClose(MyEnums.CanvasToToggle.ESC);
+    }
+
+    /// <summary>Menu 按钮的回调：返回主菜单（通过 SceneChanger 触发）</summary>
+    public void OnReturnToMenuButton()
+    {
+        if (UIManager.instance != null)
+            UIManager.instance.RequestCanvasClose(MyEnums.CanvasToToggle.ESC);
+        // 触发场景切换到 StartingMenu（通过 SceneLoadEventSO）
+        var sc = SceneChanger.instance;
+        if (sc != null && sc.loadEventSO != null && sc.initScene != null)
+            sc.loadEventSO.RaiseLoadRequestEvent(sc.initScene, Vector3.zero, true);
+    }
 }
 

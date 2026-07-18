@@ -76,20 +76,53 @@ public class SceneChanger : MonoBehaviour
     }
 
     /// <summary>
-    /// 播放过渡动画
+    /// 播放过渡动画（协程驱动 alpha 渐变）
+    /// 兼容旧的 Animator 方案：若 transitionImagesDuringFade 非空，仍走 Animator；
+    /// 否则用代码对 fadeCanva.alpha 做线性渐变。
     /// </summary>
-    /// <param name="name">动画状态名称（FadeIn/FadeOut）</param>
+    /// <param name="name">动画状态名称（FadeIn: alpha 0→1; FadeOut: alpha 1→0）</param>
     private void PlayLoadingAnimation(string name)
     {
-        if (fadeCanva != null) fadeCanva.alpha = 1;
-        if (transitionImagesDuringFade == null) return;
-        foreach (Animator transitionImage in transitionImagesDuringFade)
+        // 旧 Animator 方案
+        if (transitionImagesDuringFade != null && transitionImagesDuringFade.Length > 0)
         {
-            if (transitionImage != null)
+            if (fadeCanva != null) fadeCanva.alpha = 1;
+            foreach (Animator transitionImage in transitionImagesDuringFade)
             {
-                transitionImage.Play(name);
+                if (transitionImage != null) transitionImage.Play(name);
             }
+            return;
         }
+
+        // 代码方案：协程驱动 alpha
+        if (fadeCanva == null) return;
+        float target = (name == "FadeIn") ? 1f : 0f;
+        StartCoroutine(FadeRoutine(target));
+    }
+
+    /// <summary>
+    /// alpha 渐变协程，持续 fadeDuration 秒（用真实时间，不受 timeScale 影响）
+    /// </summary>
+    private IEnumerator FadeRoutine(float targetAlpha)
+    {
+        if (fadeCanva == null) yield break;
+
+        float startAlpha = fadeCanva.alpha;
+        // 淡入开始时启用 blocksRaycasts 挡住输入；淡出结束时关闭
+        fadeCanva.blocksRaycasts = true;
+
+        float elapsed = 0f;
+        while (elapsed < fadeDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            fadeCanva.alpha = Mathf.Lerp(startAlpha, targetAlpha, elapsed / fadeDuration);
+            yield return null;
+        }
+        fadeCanva.alpha = targetAlpha;
+
+        // 淡出结束后关闭射线阻挡，避免遮挡 UI
+        if (targetAlpha == 0f)
+            fadeCanva.blocksRaycasts = false;
     }
 
     /// <summary>
