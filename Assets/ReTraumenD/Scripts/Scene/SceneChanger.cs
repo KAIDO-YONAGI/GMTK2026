@@ -1,8 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceProviders;
 
 /// <summary>
 /// 场景切换管理器
@@ -83,7 +81,8 @@ public class SceneChanger : MonoBehaviour
     /// <param name="name">动画状态名称（FadeIn/FadeOut）</param>
     private void PlayLoadingAnimation(string name)
     {
-        fadeCanva.alpha = 1;
+        if (fadeCanva != null) fadeCanva.alpha = 1;
+        if (transitionImagesDuringFade == null) return;
         foreach (Animator transitionImage in transitionImagesDuringFade)
         {
             if (transitionImage != null)
@@ -99,6 +98,7 @@ public class SceneChanger : MonoBehaviour
     /// <param name="newPosition">新位置坐标</param>
     private void SetPlayerPostion(Vector3 newPosition)
     {
+        if (player == null) return;
         player.GetComponent<Transform>().position = newPosition;
     }
 
@@ -114,8 +114,8 @@ public class SceneChanger : MonoBehaviour
         TimeManager.instance.PauseGame();
         sceneToLoad = scene;
 
-        StatsManager.instance.Respawn();//回血
-
+        // 注：原 ARPG 的 StatsManager.instance.Respawn() 回血逻辑已移除，
+        // 切场景时的回血/重置应由具体玩法在 sceneLoadedEvent 订阅方里处理。
 
         this.newPosition = newPosition == Vector3.zero ? sceneToLoad.initialPosition : newPosition;
         //如果传入位置为零向量，则使用场景预设的初始位置
@@ -137,8 +137,8 @@ public class SceneChanger : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(fadeDuration);
 
-        if (currentScene != null)
-            yield return currentScene.sceneReference.UnLoadScene();
+        if (currentScene != null && !string.IsNullOrEmpty(currentScene.sceneName))
+            yield return SceneManager.UnloadSceneAsync(currentScene.sceneName);
         LoadScene(sceneToLoad);
         SetPlayerPostion(newPosition);
 
@@ -146,7 +146,7 @@ public class SceneChanger : MonoBehaviour
 
     /// <summary>
     /// 异步加载场景
-    /// 使用 Addressables 加载场景，以 additive 模式添加
+    /// 使用 SceneManager 以 additive 模式加载场景
     /// </summary>
     /// <param name="sceneToLoad">要加载的场景</param>
     private void LoadScene(GameSceneSO sceneToLoad)
@@ -160,12 +160,23 @@ public class SceneChanger : MonoBehaviour
         {
             SetObjects(true);
         }
-        if (sceneToLoad != null)
+        if (sceneToLoad != null && !string.IsNullOrEmpty(sceneToLoad.sceneName))
         {
-            var loadingOption = sceneToLoad.sceneReference.LoadSceneAsync(LoadSceneMode.Additive);
-            loadingOption.Completed += OnLoadCompleted;
+            StartCoroutine(LoadSceneRoutine(sceneToLoad));
         }
     }
+
+    /// <summary>
+    /// 场景加载协程：等待异步加载完成后调用 OnLoadCompleted
+    /// </summary>
+    private IEnumerator LoadSceneRoutine(GameSceneSO sceneToLoad)
+    {
+        var op = SceneManager.LoadSceneAsync(sceneToLoad.sceneName, LoadSceneMode.Additive);
+        while (op != null && !op.isDone)
+            yield return null;
+        OnLoadCompleted();
+    }
+
     private void SetObjects(bool state)
     {
         foreach (Object obj in objectsToUnableWhileGameReset)
@@ -181,11 +192,10 @@ public class SceneChanger : MonoBehaviour
     /// 场景加载完成回调
     /// 更新当前场景引用，播放淡出动画
     /// </summary>
-    /// <param name="handle">异步操作句柄</param>
-    private void OnLoadCompleted(AsyncOperationHandle<SceneInstance> handle)
+    private void OnLoadCompleted()
     {
         currentScene = sceneToLoad;
-        loadedScene = handle.Result.Scene;
+        loadedScene = SceneManager.GetSceneByName(sceneToLoad.sceneName);
         if (isToFade && !isInitialScene)
         {
             PlayLoadingAnimation("FadeOut");

@@ -1,12 +1,15 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
+using UnityEngine.SceneManagement;
 
 public class InitialLoad : MonoBehaviour
 {
-    public AssetReference persistentScene;
-    private void Awake() {
-        Addressables.LoadSceneAsync(persistentScene);
+    [Tooltip("要 Additive 加载的常驻场景名（例如 PersistentScene）")]
+    public string persistentSceneName;
+
+    private void Awake()
+    {
+        if (!string.IsNullOrEmpty(persistentSceneName))
+            SceneManager.LoadSceneAsync(persistentSceneName, LoadSceneMode.Additive);
     }
 }
