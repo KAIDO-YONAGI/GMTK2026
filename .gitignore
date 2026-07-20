@@ -102,6 +102,7 @@ crashlytics-build.properties
 # ==========================
 .vscode/
 .idea/
+.reasonix/
 
 # Local History for Visual Studio Code
 .history/
