@@ -15,10 +15,11 @@
 
 ### 1.2 UI 显示文本用英文
 - 玩家可见的所有 UI 文字（TMP 文本、按钮 label、标题、提示语）**必须用英文**。
+- **Inspector 里显示的文字也用英文**：`[Header("...")]`、`[Tooltip("...")]`、`[CreateAssetMenu(menuName="...")]`、自定义 EditorWindow 标题、菜单路径等。
 - 涉及创建/修改 UI 文本时，默认英文，不要主动用中文。
-- 例：`"已暂停" → "Paused"`，`"继续" → "Resume"`，`"返回主菜单" → "Return to Menu"`。
+- 例：`"已暂停" → "Paused"`，`"继续" → "Resume"`，`"返回主菜单" → "Return to Menu"`，`[Header("移动参数")] → [Header("Movement")]`。
 
-> 区分原则：**给开发者看的东西用中文，给玩家看的东西用英文。**
+> 区分原则：**代码注释和对话用中文；玩家可见文本 + Inspector 显示文本用英文。**
 
 ---
 
