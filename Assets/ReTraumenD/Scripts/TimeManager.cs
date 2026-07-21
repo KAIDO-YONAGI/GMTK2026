@@ -14,24 +14,27 @@ public class TimeManager : MonoBehaviour
     {
         return isGamePaused;
     }
-    public void PauseGame()//需要调用脚本配合使用bool变量保证只能暂停一次，不能重复调用导致时间缩放异常
+    public void PauseGame()
     {
+        pauseCount++;
+        if (pauseCount > 1) return;
+
         Time.timeScale = 0;
         isGamePaused = true;
     }
 
     public void ResumeGame()
     {
+        if (pauseCount == 0) return;
 
         pauseCount--;
-        if (pauseCount < 0) pauseCount = 0;
-        if (pauseCount == 0)
-        {
-            Time.timeScale = 1;
-            isGamePaused = false;
-        }
+        if (pauseCount > 0) return;
+
+        Time.timeScale = 1;
+        isGamePaused = false;
     }
-    public void ForceResumeGame()//强制恢复游戏，重置暂停次数，注意此时要配合画布组的状态变化来调用
+    // 强制清除所有暂停请求，适用于重置游戏或切换场景。
+    public void ForceResumeGame()
     {
         pauseCount = 0;
         Time.timeScale = 1;
