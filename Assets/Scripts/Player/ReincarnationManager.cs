@@ -60,6 +60,8 @@ public class ReincarnationManager : RewindableBase
     private RigidbodyType2D bodyTypeBeforeRewind;
     private Vector2 velocityBeforeRewind;
     private float angularVelocityBeforeRewind;
+    private bool hasFrozenPlayerState;
+    private VoidEventSO subscribedSceneLoadedEvent;
 
     // IRewindable：暴露当前快照数量
     public override int SnapshotCount => snapshots.Count;
@@ -79,6 +81,28 @@ public class ReincarnationManager : RewindableBase
         playerRigidbody = playerTransform.GetComponent<Rigidbody2D>();
     }
 
+    private void OnEnable()
+    {
+        TrySubscribeSceneLoadedEvent();
+    }
+
+    private void Start()
+    {
+        // 所有 Awake 完成后再补订阅，避免 SceneChanger 初始化顺序不确定
+        TrySubscribeSceneLoadedEvent();
+    }
+
+    private void OnDisable()
+    {
+        if (subscribedSceneLoadedEvent != null)
+        {
+            subscribedSceneLoadedEvent.VoidEvent -= OnSceneLoaded;
+            subscribedSceneLoadedEvent = null;
+        }
+
+        ResetRewindHistory();
+    }
+
     private void OnDestroy()
     {
         // 防止被销毁的单例指针悬挂
@@ -86,6 +110,37 @@ public class ReincarnationManager : RewindableBase
         {
             Instance = null;
         }
+    }
+
+    private void TrySubscribeSceneLoadedEvent()
+    {
+        if (Instance != this || subscribedSceneLoadedEvent != null) return;
+        if (SceneChanger.instance == null || SceneChanger.instance.sceneLoadedEvent == null) return;
+
+        subscribedSceneLoadedEvent = SceneChanger.instance.sceneLoadedEvent;
+        subscribedSceneLoadedEvent.VoidEvent += OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded()
+    {
+        ResetRewindHistory();
+    }
+
+    /// <summary>切换场景或禁用玩家时，终止当前回溯并清空旧场景快照。</summary>
+    private void ResetRewindHistory()
+    {
+        if (isRewinding)
+        {
+            StopAllCoroutines();
+        }
+
+        if (hasFrozenPlayerState)
+        {
+            OnUnfreeze();
+        }
+
+        snapshots.Clear();
+        isRewinding = false;
     }
 
     private void Update()
@@ -141,6 +196,8 @@ public class ReincarnationManager : RewindableBase
     // ===== RewindableBase 钩子：冻结/解冻/清理（由 RewindBackwards 内部调用）=====
     protected override void OnFreeze()
     {
+        hasFrozenPlayerState = true;
+
         // 冻结玩家输入
         if (playerMovement != null) playerMovement.enabled = false;
 
@@ -159,6 +216,8 @@ public class ReincarnationManager : RewindableBase
 
     protected override void OnUnfreeze()
     {
+        if (!hasFrozenPlayerState) return;
+
         // 恢复回溯前的物理类型和运动状态
         if (playerRigidbody != null)
         {
@@ -169,6 +228,7 @@ public class ReincarnationManager : RewindableBase
 
         // 倒放结束立即恢复输入（冷却期间玩家可操作，只是不记录新快照）
         if (playerMovement != null) playerMovement.enabled = true;
+        hasFrozenPlayerState = false;
     }
 
     protected override void ClearSnapshots()

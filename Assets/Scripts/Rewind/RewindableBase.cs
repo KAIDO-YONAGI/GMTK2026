@@ -18,8 +18,14 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
     // 回溯进行中标记：播放+冷却期间为 true，期间 FixedUpdate 不记录新快照。
     protected bool isRewinding = false;
 
+    // 当前已倒回的游戏时间量（rewoundGameTime = elapsed × rewindSpeed）。回溯期间每帧更新，非回溯时为 0。
+    protected float currentRewoundGameTime = 0f;
+
     /// <summary>当前是否处于回溯或冷却阶段。</summary>
     public bool IsRewinding => isRewinding;
+
+    /// <summary>当前已倒回的游戏时间量（秒）。回溯期间每帧更新；非回溯时为 0。</summary>
+    public float CurrentRewoundGameTime => currentRewoundGameTime;
 
     /// <summary>当前已记录的快照数量。由子类根据自身队列实现。</summary>
     public abstract int SnapshotCount { get; }
@@ -74,6 +80,7 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
     protected IEnumerator RewindBackwards<T>(T[] snapshots, Action<T> apply, float rewindSpeed, float cooldownSeconds) where T : struct, IRewindSnapshot
     {
         isRewinding = true;
+        currentRewoundGameTime = 0f;
         OnFreeze();
 
         int idx = snapshots.Length - 1;
@@ -94,8 +101,8 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
                 break;
             }
 
-            float rewoundGameTime = (Time.time - rewindStartReal) * rewindSpeed;
-            float targetTime = latestTime - rewoundGameTime;
+            currentRewoundGameTime = (Time.time - rewindStartReal) * rewindSpeed;
+            float targetTime = latestTime - currentRewoundGameTime;
 
             // 跳过所有比 targetTime 更新的快照，应用到第一个 <= targetTime 的
             while (idx > 0 && snapshots[idx - 1].Time >= targetTime)
@@ -111,8 +118,9 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
         OnUnfreeze();
         yield return new WaitForSeconds(cooldownSeconds);
 
-        // 冷却结束：清空已消费的队列、解除回溯冻结
+        // 冷却结束：清空已消费的队列、解除回溯冻结、倒回时间归零
         ClearSnapshots();
+        currentRewoundGameTime = 0f;
         isRewinding = false;
     }
 }
