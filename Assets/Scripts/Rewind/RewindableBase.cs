@@ -15,17 +15,23 @@ using UnityEngine;
 /// </summary>
 public abstract class RewindableBase : MonoBehaviour, IRewindable
 {
-    // 回溯进行中标记：播放+冷却期间为 true，期间 FixedUpdate 不记录新快照。
+    // 回溯倒放进行中标记。倒放结束后立即置 false，供 UI 和外部逻辑准确判断。
     protected bool isRewinding = false;
+
+    // 回溯冷却标记：冷却期间不记录新快照，也不能再次启动回溯。
+    protected bool isRewindCoolingDown = false;
 
     // 当前已倒回的游戏时间量（rewoundGameTime = elapsed × rewindSpeed）。回溯期间每帧更新，非回溯时为 0。
     protected float currentRewoundGameTime = 0f;
 
-    /// <summary>当前是否处于回溯或冷却阶段。</summary>
+    /// <summary>当前是否正在倒放快照。</summary>
     public bool IsRewinding => isRewinding;
 
-    /// <summary>当前已倒回的游戏时间量（秒）。回溯期间每帧更新；非回溯时为 0。</summary>
+    /// <summary>当前已倒回的游戏时间量（秒）。倒放期间每帧更新；非倒放时为 0。</summary>
     public float CurrentRewoundGameTime => currentRewoundGameTime;
+
+    /// <summary>当前是否处于倒放或冷却中。子类用此阻止记录和重复启动。</summary>
+    protected bool IsRewindOperationLocked => isRewinding || isRewindCoolingDown;
 
     /// <summary>当前已记录的快照数量。由子类根据自身队列实现。</summary>
     public abstract int SnapshotCount { get; }
@@ -39,7 +45,7 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
     protected abstract void OnFreeze();
     /// <summary>倒放循环结束时解冻对象（如恢复输入）。在冷却等待前调用。</summary>
     protected abstract void OnUnfreeze();
-    /// <summary>冷却结束后清理已消费的快照队列。在 isRewinding 置 false 前调用。</summary>
+    /// <summary>冷却结束后清理已消费的快照队列。</summary>
     protected abstract void ClearSnapshots();
     /// <summary>当前是否应继续倒放。默认一直播放到最早快照，子类可按输入状态提前结束。</summary>
     protected virtual bool ShouldContinueRewind()
@@ -69,15 +75,21 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
 
     /// <summary>
     /// 按真实时间倒放的回溯协程。从最新快照向最早快照逐帧还原，rewindSpeed=1 时为 1:1 实时倒放。
-    /// 倒放完成后进入冷却（cooldownSeconds），冷却期间不记录新快照。
+    /// 倒放完成后立即结束回溯状态，再进入冷却（cooldownSeconds）。冷却期间不记录新快照。
     /// 时间参数（倍速、冷却）由子类传入，基类不持有任何时间窗口字段——机关等其它子类可传自己的常量。
     /// 子类在 StartRewind 里调 StartCoroutine(RewindBackwards(...))。
     /// </summary>
     /// <param name="snapshots">已转为数组的快照（通常 snapshots.ToArray()），按时间升序。</param>
     /// <param name="apply">把单个快照应用回对象的方法（通常是 ApplySnapshot）。</param>
     /// <param name="rewindSpeed">回溯播放倍速。1 = 1:1 实时倒放。</param>
+    /// <param name="getMaxRewindSeconds">倒放期间实时获取当前可回溯上限的函数。</param>
     /// <param name="cooldownSeconds">倒放结束后、恢复记录前的冷却秒数。</param>
-    protected IEnumerator RewindBackwards<T>(T[] snapshots, Action<T> apply, float rewindSpeed, float cooldownSeconds) where T : struct, IRewindSnapshot
+    protected IEnumerator RewindBackwards<T>(
+        T[] snapshots,
+        Action<T> apply,
+        float rewindSpeed,
+        Func<float> getMaxRewindSeconds,
+        float cooldownSeconds) where T : struct, IRewindSnapshot
     {
         isRewinding = true;
         currentRewoundGameTime = 0f;
@@ -103,26 +115,70 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
                 break;
             }
 
-            currentRewoundGameTime = (Time.time - rewindStartReal) * rewindSpeed;
-            float targetTime = latestTime - currentRewoundGameTime;
+            float maxRewindSeconds = Mathf.Max(0f, getMaxRewindSeconds());
+            float elapsedRewoundGameTime = (Time.time - rewindStartReal) * rewindSpeed;
+            float desiredTargetTime = latestTime - elapsedRewoundGameTime;
 
-            // 跳过所有比 targetTime 更新的快照，应用到第一个 <= targetTime 的
-            while (idx > 0 && snapshots[idx - 1].Time >= targetTime)
+            // 快照的有效范围相对当前时刻计算，倒放期间旧快照会持续过期。
+            float oldestAllowedTime = Time.time - maxRewindSeconds;
+            float targetTime = Mathf.Max(desiredTargetTime, oldestAllowedTime);
+            currentRewoundGameTime = Mathf.Max(0f, latestTime - targetTime);
+
+            // 每帧从完整快照数组定位，窗口缩短时可回到较新的有效快照。
+            int targetIndex = FindFirstSnapshotAtOrAfter(snapshots, targetTime);
+            if (targetIndex != idx)
             {
-                idx--;
+                idx = targetIndex;
                 apply(snapshots[idx]);
+            }
+
+            // 当前窗口已用尽，不再访问任何更早的快照。
+            if (desiredTargetTime <= oldestAllowedTime)
+            {
+                break;
             }
         }
 
         // ===== 倒放完成，进入冷却 =====
 
-        // 倒放结束立即恢复输入；冷却期间只暂停记录新快照。
-        OnUnfreeze();
-        yield return new WaitForSeconds(cooldownSeconds);
-
-        // 冷却结束：清空已消费的队列、解除回溯冻结、倒回时间归零
-        ClearSnapshots();
+        // 倒放结束当帧解除回溯状态，避免 UI 和外部逻辑继续显示一秒的回溯。
         currentRewoundGameTime = 0f;
         isRewinding = false;
+
+        // 倒放结束立即恢复输入；冷却期间只暂停记录新快照和重复触发。
+        OnUnfreeze();
+        isRewindCoolingDown = true;
+        if (cooldownSeconds > 0f)
+        {
+            yield return new WaitForSeconds(cooldownSeconds);
+        }
+
+        // 冷却结束：清空已消费的队列，解除冷却锁。
+        ClearSnapshots();
+        isRewindCoolingDown = false;
+    }
+
+    /// <summary>返回时间戳不早于目标时间的第一个快照索引。</summary>
+    private static int FindFirstSnapshotAtOrAfter<T>(T[] snapshots, float targetTime) where T : struct, IRewindSnapshot
+    {
+        int low = 0;
+        int high = snapshots.Length - 1;
+        int result = high;
+
+        while (low <= high)
+        {
+            int middle = low + (high - low) / 2;
+            if (snapshots[middle].Time >= targetTime)
+            {
+                result = middle;
+                high = middle - 1;
+            }
+            else
+            {
+                low = middle + 1;
+            }
+        }
+
+        return result;
     }
 }

@@ -20,9 +20,10 @@ public class ReincarnationManager : RewindableBase
     [Tooltip("完全衰老（agingRate=0）时的可回溯秒数。即使老到极致也保留最小窗口。")]
     [SerializeField] private float minRewindBaseSeconds = 1f;
 
-    // 外部只读访问：回溯窗口上下限（UI 显示、外部系统查询用）
+    // 外部只读访问：回溯窗口及当前实时上限（UI 显示、外部系统查询用）
     public float MaxRewindBaseSeconds => maxRewindBaseSeconds;
     public float MinRewindBaseSeconds => minRewindBaseSeconds;
+    public float CurrentRewindableSeconds => CalculateCurrentRewindableSeconds();
 
     [Header("Rewind Playback")]
     [Tooltip("回溯播放倍速。1 = 与记录时 1:1 实时倒放；数值越大倒带越快。按真实流逝时间驱动，非固定步长。")]
@@ -30,12 +31,6 @@ public class ReincarnationManager : RewindableBase
 
     [Tooltip("回溯播放结束后、恢复记录新快照前的冷却秒数。期间输入立即恢复，只是不记录。")]
     [SerializeField] private float rewindCooldownSeconds = 1f;
-
-    // 当前衰老速率：年轻→1，老→0。每物理帧从 AgeManager 更新。
-    private float agingRate = 1f;
-
-    // 当前可回溯秒数：按 agingRate 在 [min, max] 之间线性插值。
-    private float RewindableSeconds => Mathf.Lerp(minRewindBaseSeconds, maxRewindBaseSeconds, agingRate);
 
     // 玩家位置 + 血量快照（值类型，避免 GC 压力）
     private struct PlayerSnapshot : IRewindSnapshot
@@ -129,7 +124,7 @@ public class ReincarnationManager : RewindableBase
     /// <summary>切换场景或禁用玩家时，终止当前回溯并清空旧场景快照。</summary>
     private void ResetRewindHistory()
     {
-        if (isRewinding)
+        if (IsRewindOperationLocked)
         {
             StopAllCoroutines();
         }
@@ -141,12 +136,14 @@ public class ReincarnationManager : RewindableBase
 
         snapshots.Clear();
         isRewinding = false;
+        isRewindCoolingDown = false;
+        currentRewoundGameTime = 0f;
     }
 
     private void Update()
     {
-        // 回溯期间（播放+冷却）不接受新的触发
-        if (isRewinding) return;
+        // 倒放和冷却期间不接受新的触发。
+        if (IsRewindOperationLocked) return;
 
         // 按下 R 键触发轮回空事件 + 启动回溯（引用未拖入时跳过，避免空引用）
         if (Input.GetKeyDown(KeyCode.R) && reincarnationEvent != null)
@@ -159,8 +156,8 @@ public class ReincarnationManager : RewindableBase
     /// <summary>每个物理帧更新：刷新衰老速率、抓快照、入队并裁剪。</summary>
     private void FixedUpdate()
     {
-        // 回溯进行中不记录新快照，避免与回放互相干扰
-        if (isRewinding) return;
+        // 倒放和冷却期间不记录新快照，避免与回放互相干扰。
+        if (IsRewindOperationLocked) return;
         
         RecordSnapshot();
     }
@@ -169,9 +166,8 @@ public class ReincarnationManager : RewindableBase
     public override void RecordSnapshot()
 
     {
-        // 1. 更新衰老速率：年轻→1，老→0（AgeManager.instance 已做 Clamp01）
-        agingRate = Mathf.Clamp01(1f - AgeManager.instance.AgeNormalized);
-        agingRate = Mathf.Max(agingRate, 0.3f);
+        // 1. 刷新衰老速率：年轻→1，老→0（AgeManager.instance 已做 Clamp01）
+        float rewindableSeconds = CalculateCurrentRewindableSeconds();
 
         // 2. 抓取本帧快照（位置来自玩家根，血量来自单例 HealthManager）
         PlayerSnapshot snap = new PlayerSnapshot
@@ -182,17 +178,22 @@ public class ReincarnationManager : RewindableBase
         };
 
         // 3. 入队并按可回溯时间窗口裁剪过期快照（算法在基类）
-        EnqueueAndTrim(snapshots, snap, RewindableSeconds);
+        EnqueueAndTrim(snapshots, snap, rewindableSeconds);
     }
 
     public override void StartRewind()
     {
         // 防重入 + 空队列保护
-        if (isRewinding) return;
+        if (IsRewindOperationLocked) return;
         if (snapshots.Count == 0) return;
 
         // 队列转数组（按时间升序），交给基类倒放协程；时间参数由本类（玩家专属）传入
-        StartCoroutine(RewindBackwards(snapshots.ToArray(), ApplySnapshot, rewindSpeed, rewindCooldownSeconds));
+        StartCoroutine(RewindBackwards(
+            snapshots.ToArray(),
+            ApplySnapshot,
+            rewindSpeed,
+            CalculateCurrentRewindableSeconds,
+            rewindCooldownSeconds));
     }
 
     // ===== RewindableBase 钩子：冻结/解冻/清理（由 RewindBackwards 内部调用）=====
@@ -242,6 +243,13 @@ public class ReincarnationManager : RewindableBase
     {
         // 按住 R 才继续倒放，松开后由基类结束倒放并恢复玩家输入
         return Input.GetKey(KeyCode.R);
+    }
+
+    /// <summary>根据当前衰老状态返回可回溯时间窗口。</summary>
+    private float CalculateCurrentRewindableSeconds()
+    {
+        float agingRate = Mathf.Clamp01(1f - AgeManager.instance.AgeNormalized);
+        return Mathf.Lerp(minRewindBaseSeconds, maxRewindBaseSeconds, agingRate);
     }
 
     /// <summary>把单个快照应用回玩家身上（位置瞬切 + 血量直接设置，绕过死亡/治疗事件）。</summary>
