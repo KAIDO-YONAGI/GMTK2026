@@ -51,9 +51,15 @@ public class ReincarnationManager : RewindableBase
     // 快照队列（容器留子类，基类只提供算法）
     private readonly Queue<PlayerSnapshot> snapshots = new Queue<PlayerSnapshot>();
 
-    // 玩家根 Transform（位置来源）和移动脚本（冻结输入用）
+    // 玩家根 Transform、移动脚本和物理刚体
     private Transform playerTransform;
     private PlayerMovement playerMovement;
+    private Rigidbody2D playerRigidbody;
+
+    // 回溯前的物理状态，倒放结束后恢复
+    private RigidbodyType2D bodyTypeBeforeRewind;
+    private Vector2 velocityBeforeRewind;
+    private float angularVelocityBeforeRewind;
 
     // IRewindable：暴露当前快照数量
     public override int SnapshotCount => snapshots.Count;
@@ -70,6 +76,7 @@ public class ReincarnationManager : RewindableBase
 
         playerTransform = transform.root;
         playerMovement = playerTransform.GetComponent<PlayerMovement>();
+        playerRigidbody = playerTransform.GetComponent<Rigidbody2D>();
     }
 
     private void OnDestroy()
@@ -136,10 +143,30 @@ public class ReincarnationManager : RewindableBase
     {
         // 冻结玩家输入
         if (playerMovement != null) playerMovement.enabled = false;
+
+        // 停止物理系统继续修改位置，并保存回溯前的运动状态
+        if (playerRigidbody != null)
+        {
+            bodyTypeBeforeRewind = playerRigidbody.bodyType;
+            velocityBeforeRewind = playerRigidbody.velocity;
+            angularVelocityBeforeRewind = playerRigidbody.angularVelocity;
+
+            playerRigidbody.velocity = Vector2.zero;
+            playerRigidbody.angularVelocity = 0f;
+            playerRigidbody.bodyType = RigidbodyType2D.Kinematic;
+        }
     }
 
     protected override void OnUnfreeze()
     {
+        // 恢复回溯前的物理类型和运动状态
+        if (playerRigidbody != null)
+        {
+            playerRigidbody.bodyType = bodyTypeBeforeRewind;
+            playerRigidbody.velocity = velocityBeforeRewind;
+            playerRigidbody.angularVelocity = angularVelocityBeforeRewind;
+        }
+
         // 倒放结束立即恢复输入（冷却期间玩家可操作，只是不记录新快照）
         if (playerMovement != null) playerMovement.enabled = true;
     }
@@ -158,8 +185,15 @@ public class ReincarnationManager : RewindableBase
     /// <summary>把单个快照应用回玩家身上（位置瞬切 + 血量直接设置，绕过死亡/治疗事件）。</summary>
     private void ApplySnapshot(PlayerSnapshot snap)
     {
-        // 恢复位置
-        playerTransform.position = snap.position;
+        // 通过刚体恢复位置，避免 Transform 与物理系统同时写入导致闪烁
+        if (playerRigidbody != null)
+        {
+            playerRigidbody.position = new Vector2(snap.position.x, snap.position.y);
+        }
+        else
+        {
+            playerTransform.position = snap.position;
+        }
 
         // 恢复血量（走轮回专用接口，绕过死亡/治疗事件）
         if (HealthManager.Instance != null)
