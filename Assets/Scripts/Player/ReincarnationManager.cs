@@ -7,6 +7,9 @@ using UnityEngine;
 /// </summary>
 public class ReincarnationManager : RewindableBase
 {
+    // 单例：玩家轮回回溯全局唯一，方便外部访问
+    public static ReincarnationManager Instance { get; private set; }
+
     [Header("Send Reincarnation Message")]
     [SerializeField] private VoidEventSO reincarnationEvent;
 
@@ -57,8 +60,25 @@ public class ReincarnationManager : RewindableBase
 
     private void Awake()
     {
+        // 单例设置：重复实例时销毁自身，保证全局唯一
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+
         playerTransform = transform.root;
         playerMovement = playerTransform.GetComponent<PlayerMovement>();
+    }
+
+    private void OnDestroy()
+    {
+        // 防止被销毁的单例指针悬挂
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
 
     private void Update()
