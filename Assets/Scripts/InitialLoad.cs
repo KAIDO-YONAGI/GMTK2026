@@ -6,19 +6,26 @@ using UnityEngine.SceneManagement;
 public class InitialLoad : MonoBehaviour
 {
     [Tooltip("Scenes loaded additively during startup and kept loaded.")]
-    public List<string> persistentSceneNames = new List<string>();
+    public List<GameSceneSO> persistentScenes = new List<GameSceneSO>();
 
     private void Awake()
     {
         StartCoroutine(LoadPersistentScenes());
     }
 
-    private IEnumerator LoadPersistentScenes()
+private IEnumerator LoadPersistentScenes()
     {
-        foreach (string sceneName in persistentSceneNames)
+        foreach (GameSceneSO sceneReference in persistentScenes)
         {
-            if (string.IsNullOrWhiteSpace(sceneName))
+            if (sceneReference == null)
                 continue;
+
+            string sceneName = sceneReference.sceneName;
+            if (string.IsNullOrWhiteSpace(sceneName))
+            {
+                Debug.LogError($"InitialLoad cannot load '{sceneReference.name}' because it has no scene assigned.");
+                continue;
+            }
 
             Scene loadedScene = SceneManager.GetSceneByName(sceneName);
             if (loadedScene.IsValid() && loadedScene.isLoaded)
@@ -26,7 +33,7 @@ public class InitialLoad : MonoBehaviour
 
             if (!Application.CanStreamedLevelBeLoaded(sceneName))
             {
-                Debug.LogError($"InitialLoad cannot load scene '{sceneName}'. Add it to Build Settings first.");
+                Debug.LogError($"InitialLoad cannot load scene '{sceneName}'. Assign a scene in its GameSceneSO first.");
                 continue;
             }
 
