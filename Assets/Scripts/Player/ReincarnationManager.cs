@@ -17,6 +17,10 @@ public class ReincarnationManager : RewindableBase
     [Tooltip("完全衰老（agingRate=0）时的可回溯秒数。即使老到极致也保留最小窗口。")]
     [SerializeField] private float minRewindBaseSeconds = 1f;
 
+    // 外部只读访问：回溯窗口上下限（UI 显示、外部系统查询用）
+    public float MaxRewindBaseSeconds => maxRewindBaseSeconds;
+    public float MinRewindBaseSeconds => minRewindBaseSeconds;
+
     [Header("Rewind Playback")]
     [Tooltip("回溯播放倍速。1 = 与记录时 1:1 实时倒放；数值越大倒带越快。按真实流逝时间驱动，非固定步长。")]
     [SerializeField] private float rewindSpeed = 1f;
