@@ -15,6 +15,7 @@ public class PlayerMovement : MonoBehaviour
     public LayerMask groundLayer;            // 地面 Layer（Ground/Platform 等）
     public Transform groundCheck;            // 脚下检测点（Player 底部）
     public float groundCheckRadius = 0.1f;   // 检测圆半径
+    private float agingRate = 1f;
 
     Rigidbody2D rb;
     bool isGrounded;
@@ -23,18 +24,17 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
     }
-
     void Update()
     {
         // 地面检测：未配置 groundCheck 时假设始终在地面（demo 模式，玩家可空中跳）
         isGrounded = groundCheck != null
             ? Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer)
             : true;
-
+        agingRate = 1f - AgeManager.instance.AgeNormalized;
         // 跳跃（仅地面时）
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce * agingRate);
         }
     }
 
@@ -42,6 +42,6 @@ public class PlayerMovement : MonoBehaviour
     {
         // 水平移动：覆盖 x 速度，保留 y 速度（避免覆盖跳跃）
         float x = Input.GetAxisRaw("Horizontal");
-        rb.velocity = new Vector2(x * moveSpeed, rb.velocity.y);
+        rb.velocity = new Vector2(x * moveSpeed * agingRate, rb.velocity.y);
     }
 }
