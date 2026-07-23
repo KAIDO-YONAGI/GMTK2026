@@ -15,7 +15,7 @@ public class RetryManager : MonoBehaviour
             Destroy(gameObject);
     }
 
-    public GameSceneSO currentScene;
+    public List<GameSceneSO> currentScene = new List<GameSceneSO>();
     public SceneLoadEventSO loadEventSO;
     [Header("Retry Event")]
     public VoidEventSO retryEventSO;

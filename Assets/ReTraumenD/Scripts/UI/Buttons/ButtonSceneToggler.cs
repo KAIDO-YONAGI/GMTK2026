@@ -5,7 +5,7 @@ using MyEnums;
 public class ButtonSceneToggler : MonoBehaviour
 {
     public SceneLoadEventSO loadEventSO;
-    public GameSceneSO sceneToLoad;
+    public List<GameSceneSO> sceneToLoad = new List<GameSceneSO>();
     public CanvasGroup ButtonCanvas;
     public Vector3 newPosition;
     public bool isToFade = true;
@@ -17,7 +17,8 @@ public class ButtonSceneToggler : MonoBehaviour
         ButtonCanvas.interactable = false;
         ButtonCanvas.blocksRaycasts = false;
 
-        if (sceneToLoad.sceneType != MyEnums.SceneType.Retry)
+        if (sceneToLoad != null && sceneToLoad.Count > 0 &&
+            sceneToLoad[0] != null && sceneToLoad[0].sceneType != MyEnums.SceneType.Retry)
         {
             loadEventSO.RaiseLoadRequestEvent(sceneToLoad, newPosition, isToFade);
         }

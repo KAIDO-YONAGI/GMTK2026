@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System.Collections.Generic;
 
 /// <summary>
 /// 场景切换管理器
@@ -14,7 +15,7 @@ public class SceneChanger : MonoBehaviour
     /// <summary>玩家初始位置</summary>
     public Vector3 initialPosition = Vector3.zero;
     public float fadeDuration = 1f;
-    public GameSceneSO initScene;
+    public List<GameSceneSO> initScene = new List<GameSceneSO>();
     public GameObject player;
     public CanvasGroup fadeCanva;
     /// <summary>过渡动画播放器数组</summary>
@@ -24,9 +25,7 @@ public class SceneChanger : MonoBehaviour
     public VoidEventSO sceneLoadedEvent;
     public Animator[] transitionImagesDuringFade;
     public Object[] objectsToUnableWhileGameReset;
-    private GameSceneSO sceneToLoad;
-
-    private GameSceneSO currentScene;
+    private readonly List<GameSceneSO> currentScenes = new List<GameSceneSO>();
     /// <summary>已加载的场景对象</summary>
     private Scene loadedScene;
     /// <summary>玩家新位置</summary>
@@ -46,17 +45,24 @@ public class SceneChanger : MonoBehaviour
     // 供存档系统在切场前读取当前场景 SO。
     public GameSceneSO GetCurrentGameScene()
     {
-        return currentScene;
+        return currentScenes.Count > 0 ? currentScenes[0] : null;
     }
     /// <summary>
-    /// 唤醒时初始化单例并加载首个场景
+    /// 唤醒时初始化单例
     /// </summary>
     private void Awake()
     {
         instance = this;
-        sceneToLoad = initScene;
+    }
+
+    /// <summary>
+    /// 启动时通过统一的场景切换事件加载初始场景列表
+    /// </summary>
+    private void Start()
+    {
         SetPlayerPostion(initialPosition);
-        LoadScene(sceneToLoad);
+        if (loadEventSO != null && initScene != null && initScene.Count > 0)
+            loadEventSO.RaiseLoadRequestEvent(initScene, initialPosition, false);
     }
 
     /// <summary>
@@ -64,7 +70,8 @@ public class SceneChanger : MonoBehaviour
     /// </summary>
     private void OnEnable()
     {
-        loadEventSO.LoadRequestEvent += OnLoadRequestEvent;
+        if (loadEventSO != null)
+            loadEventSO.LoadRequestEvent += OnLoadRequestEvent;
     }
 
     /// <summary>
@@ -72,7 +79,8 @@ public class SceneChanger : MonoBehaviour
     /// </summary>
     private void OnDisable()
     {
-        loadEventSO.LoadRequestEvent -= OnLoadRequestEvent;
+        if (loadEventSO != null)
+            loadEventSO.LoadRequestEvent -= OnLoadRequestEvent;
     }
 
     /// <summary>
@@ -138,80 +146,82 @@ public class SceneChanger : MonoBehaviour
     /// <summary>
     /// 场景加载请求事件回调
     /// </summary>
-    /// <param name="scene">目标场景</param>
+    /// <param name="scenes">目标场景列表</param>
     /// <param name="newPosition">玩家新位置</param>
     /// <param name="isToFade">是否显示过渡动画</param>
-    private void OnLoadRequestEvent(GameSceneSO scene, Vector3 newPosition, bool isToFade)
+    private void OnLoadRequestEvent(List<GameSceneSO> scenes, Vector3 newPosition, bool isToFade)
     {
-        ForbidInput();
-        TimeManager.instance.PauseGame();
-        sceneToLoad = scene;
+        if (scenes == null || scenes.Count == 0)
+            return;
 
+        ForbidInput();
+        if (TimeManager.instance != null)
+            TimeManager.instance.PauseGame();
         // 注：原 ARPG 的 StatsManager.instance.Respawn() 回血逻辑已移除，
         // 切场景时的回血/重置应由具体玩法在 sceneLoadedEvent 订阅方里处理。
 
-        this.newPosition = newPosition == Vector3.zero ? sceneToLoad.initialPosition : newPosition;
+        this.newPosition = newPosition == Vector3.zero ? scenes[0].initialPosition : newPosition;
         //如果传入位置为零向量，则使用场景预设的初始位置
         this.isToFade = isToFade;
         if (isToFade && !isInitialScene)
         {
             PlayLoadingAnimation("FadeIn");
         }
-        StartCoroutine(UnloadCurrentScene(sceneToLoad));//卸载当前场景
+        StartCoroutine(UnloadCurrentScenes(scenes));//卸载当前场景列表
     }
 
     /// <summary>
-    /// 卸载当前场景协程
-    /// 等待淡入动画完成后卸载旧场景，然后加载新场景
+    /// 卸载当前场景列表并加载目标场景列表
     /// </summary>
-    /// <param name="sceneToLoad">要加载的目标场景</param>
-    private IEnumerator UnloadCurrentScene(GameSceneSO sceneToLoad)
+    /// <param name="scenes">要加载的场景列表</param>
+    private IEnumerator UnloadCurrentScenes(List<GameSceneSO> scenes)
     {
+        if (isToFade && !isInitialScene)
+            yield return new WaitForSecondsRealtime(fadeDuration);
 
-        yield return new WaitForSecondsRealtime(fadeDuration);
+        for (int i = currentScenes.Count - 1; i >= 0; i--)
+        {
+            GameSceneSO scene = currentScenes[i];
+            if (scene != null && !string.IsNullOrEmpty(scene.sceneName))
+            //用字符串找到一个已经加载的场景，然后异步卸载它
+                yield return SceneManager.UnloadSceneAsync(scene.sceneName);
+        }
 
-        if (currentScene != null && !string.IsNullOrEmpty(currentScene.sceneName))
-            yield return SceneManager.UnloadSceneAsync(currentScene.sceneName);
-        LoadScene(sceneToLoad);
+        currentScenes.Clear();
+        yield return LoadScenesRoutine(scenes);
+    }
+
+    /// <summary>
+    /// 按列表顺序加载场景，全部完成后调用 OnLoadCompleted
+    /// </summary>
+    private IEnumerator LoadScenesRoutine(List<GameSceneSO> scenes)
+    {
+        foreach (GameSceneSO scene in scenes)
+        {
+            if (scene == null || string.IsNullOrEmpty(scene.sceneName))
+                continue;
+
+            if (scene.sceneType == MyEnums.SceneType.Menu)
+                SetObjects(false);
+            else if (scene.sceneType == MyEnums.SceneType.Location)
+                SetObjects(true);
+
+            AsyncOperation loadOperation = SceneManager.LoadSceneAsync(scene.sceneName, LoadSceneMode.Additive);
+            while (loadOperation != null && !loadOperation.isDone)
+                yield return null;
+
+            currentScenes.Add(scene);
+        }
+
         SetPlayerPostion(newPosition);
-
-    }
-
-    /// <summary>
-    /// 异步加载场景
-    /// 使用 SceneManager 以 additive 模式加载场景
-    /// </summary>
-    /// <param name="sceneToLoad">要加载的场景</param>
-    private void LoadScene(GameSceneSO sceneToLoad)
-    {
-        if (sceneToLoad.sceneType == MyEnums.SceneType.Menu)
-        {
-            SetObjects(false);
-        }
-
-        else if (sceneToLoad.sceneType == MyEnums.SceneType.Location)
-        {
-            SetObjects(true);
-        }
-        if (sceneToLoad != null && !string.IsNullOrEmpty(sceneToLoad.sceneName))
-        {
-            StartCoroutine(LoadSceneRoutine(sceneToLoad));
-        }
-    }
-
-    /// <summary>
-    /// 场景加载协程：等待异步加载完成后调用 OnLoadCompleted
-    /// </summary>
-    private IEnumerator LoadSceneRoutine(GameSceneSO sceneToLoad)
-    {
-        var op = SceneManager.LoadSceneAsync(sceneToLoad.sceneName, LoadSceneMode.Additive);
-        while (op != null && !op.isDone)
-            yield return null;
         OnLoadCompleted();
     }
 
     private void SetObjects(bool state)
     {
+        if (objectsToUnableWhileGameReset == null)
+            return;
+
         foreach (Object obj in objectsToUnableWhileGameReset)
         {
             if (obj is GameObject go)
@@ -227,8 +237,10 @@ public class SceneChanger : MonoBehaviour
     /// </summary>
     private void OnLoadCompleted()
     {
-        currentScene = sceneToLoad;
-        loadedScene = SceneManager.GetSceneByName(sceneToLoad.sceneName);
+        GameSceneSO firstScene = GetCurrentGameScene();
+        loadedScene = firstScene != null
+            ? SceneManager.GetSceneByName(firstScene.sceneName)
+            : SceneManager.GetActiveScene();
         if (isToFade && !isInitialScene)
         {
             PlayLoadingAnimation("FadeOut");
@@ -236,7 +248,8 @@ public class SceneChanger : MonoBehaviour
         isInitialScene = false;
         sceneLoadedEvent?.OnEventRaised();
         AllowInput();
-        TimeManager.instance.ForceResumeGame();
+        if (TimeManager.instance != null)
+            TimeManager.instance.ForceResumeGame();
     }
     private void ForbidInput()
     {

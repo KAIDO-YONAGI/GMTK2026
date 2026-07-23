@@ -32,7 +32,39 @@ public class GameSceneSO : ScriptableObject {
             string assetName = sceneAsset.name;
             if (assetName != sceneName)
                 sceneName = assetName;
+
+            EnsureSceneInBuildSettings();
         }
 #endif
     }
+
+#if UNITY_EDITOR
+    /// <summary>
+    /// 确保由场景 SO 引用的场景可被运行时 SceneManager 加载。
+    /// </summary>
+    private void EnsureSceneInBuildSettings()
+    {
+        string scenePath = AssetDatabase.GetAssetPath(sceneAsset);
+        if (string.IsNullOrEmpty(scenePath))
+            return;
+
+        EditorBuildSettingsScene[] buildScenes = EditorBuildSettings.scenes;
+        for (int i = 0; i < buildScenes.Length; i++)
+        {
+            if (buildScenes[i].path != scenePath)
+                continue;
+
+            if (!buildScenes[i].enabled)
+            {
+                buildScenes[i] = new EditorBuildSettingsScene(scenePath, true);
+                EditorBuildSettings.scenes = buildScenes;
+            }
+            return;
+        }
+
+        Array.Resize(ref buildScenes, buildScenes.Length + 1);
+        buildScenes[buildScenes.Length - 1] = new EditorBuildSettingsScene(scenePath, true);
+        EditorBuildSettings.scenes = buildScenes;
+    }
+#endif
 }

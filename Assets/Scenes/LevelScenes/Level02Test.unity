@@ -598,7 +598,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3385edf92b0329e4ea60c19683aae8ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  artAssets: {fileID: 11400000, guid: b3b58d35b7f30674eb84030cbfbe4b91, type: 2}
+  artAssets: {fileID: 11400000, guid: d87e991cd777eb44e84e82a0e148e1d5, type: 2}
   loadEventSO: {fileID: 11400000, guid: 820c6319319801a4987f94ab3d435c01, type: 2}
   bgmSource: {fileID: 1462075088}
   ambientSource: {fileID: 1165690029}
@@ -652,7 +652,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   loadEventSO: {fileID: 11400000, guid: 820c6319319801a4987f94ab3d435c01, type: 2}
   newPosition: {x: 3, y: 0, z: 0}
-  sceneToLoad: {fileID: 11400000, guid: fb46f5dabfb5b7a40a9a466b64951181, type: 2}
+  sceneToLoad:
+  - {fileID: 11400000, guid: fb46f5dabfb5b7a40a9a466b64951181, type: 2}
   isToFade: 1
 --- !u!61 &702044689
 BoxCollider2D:

@@ -22,7 +22,9 @@ namespace MyEnums
     {
         Location,
         Menu,
-        Retry
+        Retry,
+         //default没有功能性索引，建议新的枚举在此之前添加
+        Default
     }
     public enum PersistentType
     {

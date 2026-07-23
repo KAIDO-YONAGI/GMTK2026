@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class SceneToggler : MonoBehaviour
 {
@@ -6,7 +7,7 @@ public class SceneToggler : MonoBehaviour
 
     public SceneLoadEventSO loadEventSO;
     public Vector3 newPosition;
-    public GameSceneSO sceneToLoad;
+    public List<GameSceneSO> sceneToLoad = new List<GameSceneSO>();
     public bool isToFade = true;
 
     private void OnTriggerEnter2D(Collider2D collider)

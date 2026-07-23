@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
 /// 场景美术资产触发器。放在每个内容场景里，订阅 SceneLoadEventSO。
@@ -34,12 +35,11 @@ public class SceneArtAssetsTrigger : MonoBehaviour
         StopAudio();
     }
 
-    private void OnLoadRequest(GameSceneSO scene, Vector3 pos, bool isFade)
+    private void OnLoadRequest(List<GameSceneSO> scenes, Vector3 pos, bool isFade)
     {
-        // scene == 本场景 SO → 本场景即将被加载（激活）
-        // scene != 本场景 SO → 本场景即将被卸载
+        // 目标列表包含本场景 SO 时，本场景即将被加载（激活）。
         if (artAssets != null && artAssets.ownerScene != null)
-            isMineActive = (scene == artAssets.ownerScene);
+            isMineActive = scenes != null && scenes.Contains(artAssets.ownerScene);
         else
             isMineActive = false;
         ApplyAudio();
