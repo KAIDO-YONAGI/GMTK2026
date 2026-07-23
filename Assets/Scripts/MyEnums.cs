@@ -72,4 +72,9 @@ namespace MyEnums
         Save,
         Load
     }
+    public enum DeathType
+    {
+        OldDead,
+        UnnormalDead
+    }
 }
