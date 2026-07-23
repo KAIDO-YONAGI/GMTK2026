@@ -33,6 +33,6 @@ EditorBuildSettings:
     path: Assets/Scenes/New Scene.unity
     guid: 175997416cc19f8479f0260495de3cc9
   - enabled: 1
-    path: Assets/Scenes/LevelScenes/Test.unity
+    path: Assets/Scenes/PersistentScene_1.unity
     guid: e956b5f550b9ae042a2749df25e0e54c
   m_configObjects: {}

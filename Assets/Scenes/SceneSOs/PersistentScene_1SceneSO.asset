@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 09a4ebb01acc81c41889f97c05800566, type: 3}
-  m_Name: NewSceneSO
+  m_Name: PersistentScene_1SceneSO
   m_EditorClassIdentifier: 
-  ID: c76a59de-ba78-4163-8105-0d7bda4b5830
+  ID: 7c39f2fd-624b-49d3-92a1-2cb22f905c7e
   sceneAsset: {fileID: 102900000, guid: e956b5f550b9ae042a2749df25e0e54c, type: 3}
-  sceneName: Test
+  sceneName: PersistentScene_1
   sceneType: 0
   initialPosition: {x: 0, y: 0, z: 0}
