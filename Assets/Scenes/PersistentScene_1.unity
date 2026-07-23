@@ -208,10 +208,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: HUDCanvas
       objectReference: {fileID: 0}
-    - target: {fileID: 3516731398032200250, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 5382924639195656398, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -305,6 +301,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1795018739}
     m_Modifications:
+    - target: {fileID: 1524971446686481088, guid: 7262689743604654294b93111288406d, type: 3}
+      propertyPath: m_SortingOrder
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 2777368398886928515, guid: 7262689743604654294b93111288406d, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -385,13 +385,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6030330042285081188, guid: 7262689743604654294b93111288406d, type: 3}
+      propertyPath: retryEventSO
+      value: 
+      objectReference: {fileID: 11400000, guid: 4088e8149793bac45899281c41132346, type: 2}
+    - target: {fileID: 6030330042285081188, guid: 7262689743604654294b93111288406d, type: 3}
+      propertyPath: sceneToLoad.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6030330042285081188, guid: 7262689743604654294b93111288406d, type: 3}
+      propertyPath: sceneToLoad.Array.data[0]
+      value: 
+      objectReference: {fileID: 11400000, guid: 46bad1acaca19534c86368ea01bdabf3, type: 2}
     - target: {fileID: 6640132882095502779, guid: 7262689743604654294b93111288406d, type: 3}
       propertyPath: m_Name
       value: GameOverCanvas
-      objectReference: {fileID: 0}
-    - target: {fileID: 6640132882095502779, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -506,6 +514,10 @@ PrefabInstance:
     - target: {fileID: 3708655197922957265, guid: 2814db402cac3824395491cf7ccf0cda, type: 3}
       propertyPath: m_Name
       value: AgeManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 9158868109060796969, guid: 2814db402cac3824395491cf7ccf0cda, type: 3}
+      propertyPath: agePerSecond
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

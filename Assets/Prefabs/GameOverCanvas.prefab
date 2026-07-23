@@ -512,6 +512,7 @@ GameObject:
   - component: {fileID: 5369638754221891605}
   - component: {fileID: 7010862047656139672}
   - component: {fileID: 8351963644772558159}
+  - component: {fileID: 1523889920115770574}
   m_Layer: 5
   m_Name: GameOverCanvas
   m_TagString: Untagged
@@ -610,9 +611,9 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6640132882095502779}
   m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
+  m_Alpha: 0
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
 --- !u!114 &8351963644772558159
 MonoBehaviour:
@@ -629,3 +630,17 @@ MonoBehaviour:
   gameOverToggleEventSO: {fileID: 11400000, guid: 421b13ff016780149b1e6e053f295712, type: 2}
   gameOverGroup: {fileID: 7010862047656139672}
   peacefulDeathText: {fileID: 2214872040349657220}
+--- !u!114 &1523889920115770574
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6640132882095502779}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73ba99ce52683264fb3e916b19b6be5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  deathEventSO: {fileID: 11400000, guid: 8dca7fcc25850a547b132efa5717da16, type: 2}
+  gameOverToggleEventSO: {fileID: 11400000, guid: 421b13ff016780149b1e6e053f295712, type: 2}
