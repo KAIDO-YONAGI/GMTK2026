@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using MyEnums;
 using UnityEngine;
 
-//TODO 可能的优化：小顶堆存开启列表，动态A*，距离算法的优化
 //关于网格和世界坐标的转化 由于转化关系，需要先导航到这个网格中心点才能开始导航
 //地图数据获取也可以优化，用以解决稀疏地图的遍历问题
 //可以用带权路径替换开根计算

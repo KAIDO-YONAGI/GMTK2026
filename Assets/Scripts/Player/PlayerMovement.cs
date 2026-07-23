@@ -31,6 +31,8 @@ public class PlayerMovement : MonoBehaviour
             ? Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer)
             : true;
         agingRate = 1f - AgeManager.instance.AgeNormalized;
+        if (agingRate<0.3f)agingRate=0.3f;
+        
         // 跳跃（仅地面时）
         if (Input.GetButtonDown("Jump") && isGrounded)
         {

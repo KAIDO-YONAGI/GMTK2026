@@ -10,7 +10,8 @@ public class ButtonSceneToggler : MonoBehaviour
     public Vector3 newPosition;
     public bool isToFade = true;
     [Header("Retry Event")]
-    public VoidEventSO retryEventSO;
+    public VoidEventSO retryEventSO;//需要在每个场景内配置retrymanager配合使用
+    //不挂就是
     public void HandleSceneToggle()//editor内由button组件绑定
     {
         ButtonCanvas.alpha = 0;

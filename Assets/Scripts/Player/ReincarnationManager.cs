@@ -161,12 +161,20 @@ public class ReincarnationManager : RewindableBase
     {
         // 回溯进行中不记录新快照，避免与回放互相干扰
         if (isRewinding) return;
+        
+        RecordSnapshot();
+    }
 
+    // ===== IRewindable =====
+    public override void RecordSnapshot()
+
+    {
         // 1. 更新衰老速率：年轻→1，老→0（AgeManager.instance 已做 Clamp01）
         agingRate = Mathf.Clamp01(1f - AgeManager.instance.AgeNormalized);
+        agingRate = Mathf.Max(agingRate, 0.3f);
 
         // 2. 抓取本帧快照（位置来自玩家根，血量来自单例 HealthManager）
-        var snap = new PlayerSnapshot
+        PlayerSnapshot snap = new PlayerSnapshot
         {
             time = Time.time,
             position = playerTransform.position,
@@ -175,12 +183,6 @@ public class ReincarnationManager : RewindableBase
 
         // 3. 入队并按可回溯时间窗口裁剪过期快照（算法在基类）
         EnqueueAndTrim(snapshots, snap, RewindableSeconds);
-    }
-
-    // ===== IRewindable =====
-    public override void RecordSnapshot()
-    {
-        // 接口完整性占位：本类的记录在 FixedUpdate 里完成，不通过此方法触发。
     }
 
     public override void StartRewind()
@@ -256,6 +258,7 @@ public class ReincarnationManager : RewindableBase
         }
 
         // 恢复血量（走轮回专用接口，绕过死亡/治疗事件）
+        //TODO 绕过死亡还需要考虑
         if (HealthManager.Instance != null)
         {
             HealthManager.Instance.SetHealthForReincarnation(snap.health);

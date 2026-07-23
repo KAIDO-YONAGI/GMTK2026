@@ -98,6 +98,8 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
             // 允许子类在按键松开等情况下提前结束倒放
             if (!ShouldContinueRewind())
             {
+                // 松开即停：立即归零倒回时间，避免冷却期间的延迟残留
+                currentRewoundGameTime = 0f;
                 break;
             }
 
