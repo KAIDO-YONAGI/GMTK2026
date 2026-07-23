@@ -6,7 +6,7 @@ using UnityEngine;
 /// 用 CanvasGroup 的 alpha 做淡入淡出，R 键按下动画由 Animator（R_KeyAnimator）驱动。
 /// 注意：用 alpha+blocksRaycasts 控制可见，不SetActive，否则会停掉 Animator。
 /// </summary>
-public class RewindGuideCanvas : MonoBehaviour
+public class GuideCanvas : MonoBehaviour
 {
     [Header("Events")]
     [Tooltip("触发后淡入显示导引。")]
@@ -65,7 +65,7 @@ public class RewindGuideCanvas : MonoBehaviour
     {
         if (guideCanvasGroup == null)
         {
-            Debug.LogWarning("[RewindGuideCanvas] guideCanvasGroup 未赋值，无法淡入淡出。");
+            Debug.LogWarning("[GuideCanvas] guideCanvasGroup 未赋值，无法淡入淡出。");
             yield break;
         }
 
