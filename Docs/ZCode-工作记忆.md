@@ -1,8 +1,8 @@
 # ZCode 工作记忆 —— GameJam 项目规范
 
 > 本文件记录用户对 ZCode 在本项目中提出的所有持续性要求。**每次会话开始时应优先读取本文件并严格遵守。**
-> 路径：`D:\Unity\Projects\GameJam\Docs\ZCode-工作记忆.md`
-> 更新日期：2026-07-23
+> 路径：`D:\Unity\Projects\GameJam2607\Docs\ZCode-工作记忆.md`
+> 更新日期：2026-07-24
 
 ---
 
@@ -56,7 +56,7 @@ Unity MCP 每次调用都会返回大量结构化 JSON，容易快速消耗额�
 ## 3. 场景操作规范
 
 ### 3.1 PersistentScene 是常驻基地
-- **编辑器开发时**：Hierarchy 里 PersistentScene **必须保持加载**，让用户能完整看到 `Managers (SceneChanger/TimeManager/UIManager) + FadeCanvas + ESCPanel + EventSystem`。
+- **编辑器开发时**：Hierarchy 里 PersistentScene **必须保持加载**，让用户能完整看到 `Managers (SceneChanger/TimeManager/UIManager) + FadeCanvas + ESCCanvas + EventSystem`。
 - **不要用 `OpenSceneMode.Single`** 替换掉 PersistentScene —— 除非是 Play 测试入口场景。
 
 ### 3.2 内容场景用 unload 状态
@@ -112,25 +112,90 @@ Unity MCP 每次调用都会返回大量结构化 JSON，容易快速消耗额�
 
 ## 附录 —— 项目当前架构快照（仅供参考，实际状态以编辑器为准）
 
+> 以下内容于 2026-07-24 通过 Unity MCP、代码和工作区文件核实。编辑器状态是开发快照，不代表最终运行时状态。
+
+- **项目路径**：`D:\Unity\Projects\GameJam2607`
 - **Unity 版本**：2022.3.62f3c1 LTS
-- **渲染管线**：Built-in → **计划迁移到 URP**（2026-07-23 决策，目的：为衰老画面灰白→深黑、死亡全黑白等后处理打基础）
-  - **迁移手册**：见 `Docs/URP-Migration-Guide.md`（手动操作步骤，尚未执行）
-  - **当前状态**：尚未迁移，仍为 Built-in。迁移前已核实：无自定义材质（仅 2 个 TMP 自带材质）、无 Light2D、无 Sprite Atlas、装了 `com.unity.feature.2d` 完整套件
-  - **迁移后更新**：执行迁移后需回来把"渲染管线"改为 URP，并记录 URP Asset 路径
-- **目标项目类型**：横版解谜（GameJam）
-- **核心代码包**：`Assets/ReTraumenD/`（从 My_ARPG 项目迁移改造）
-- **美术资源包**：`Assets/SMDJ/`（含 570+ 图标、阿里普惠体中文字体 SDF）
+- **目标平台**：StandaloneWindows64
+- **项目类型**：横版解谜（GameJam）
+- **渲染管线**：当前仍为 Built-in
+  - `GraphicsSettings.currentRenderPipeline` 和默认管线资产均为 `null`。
+  - `Packages/manifest.json` 已安装 `com.unity.render-pipelines.universal` 14.0.12，`com.unity.feature.2d` 为 2.0.1。
+  - `Assets/URPAssets/New Universal Render Pipeline Asset.asset` 已存在，但尚未分配到 Graphics/Quality 设置。
+  - URP 迁移仍是计划事项；迁移完成后需在此处记录实际使用的 URP Asset 路径。
+- **代码与资源目录**：
+  - 核心脚本：`Assets/Scripts/`
+  - 预制件：`Assets/Prefabs/`
+  - ScriptableObject：`Assets/SO/`
+  - 美术资源主要位于：`Assets/ArtRes/`、`Assets/Sprites/`、`Assets/TextMesh Pro/`
 - **Unity MCP**：CoplayDev `com.coplaydev.unity-mcp` v10.0.0
   - 全局配置：`~/.zcode/cli/config.json` → `mcp.servers.unity`（HTTP 127.0.0.1:8080/mcp）
   - 本地 Python server 源：`D:\MCP\unity-mcp-local\unity-mcp-10.0.0\Server`
-- **远程仓库**：Gitee `https://gitee.com/KAIDOYONAGI/game-jam2607`（分支 `main`）
-- **场景架构**（详见 `Docs/Scene-and-Panel-System-Usage.md`）：
-  - Build Index 0: `InitialScene`（入口）
-  - Build Index 1: `PersistentScene`（常驻）
-  - Build Index 2: `StartingMenu`（主菜单）
-  - Build Index 3: `Level01`（关卡）
-- **面板系统**：UIManager 事件驱动 + ESCPanel（ESC 暂停菜单已配置）
-- **CanvasToToggle 枚举**：`ESC / GameOver / Dialog / Default`（已精简，去掉了 ARPG 专属值）
+- **远程仓库**：Gitee `https://gitee.com/KAIDOYONAGI/game-jam2607.git`，当前分支 `main`
+
+### 场景与编辑器状态
+
+- **Build Settings**：以下 7 个场景全部 enabled。
+
+| Build Index | 场景 |
+|---|---|
+| 0 | `Assets/Scenes/InitialScene.unity` |
+| 1 | `Assets/Scenes/PersistentScene.unity` |
+| 2 | `Assets/Scenes/StartingMenu.unity` |
+| 3 | `Assets/Scenes/LevelScenes/Level01Test.unity` |
+| 4 | `Assets/Scenes/LevelScenes/Level02Test.unity` |
+| 5 | `Assets/Scenes/LevelScenes/Level02Test 1.unity` |
+| 6 | `Assets/Scenes/PersistentScene_1.unity` |
+
+- **编辑器核实时状态**：
+  - Play Mode：未运行；未暂停。
+  - 当前活动场景：`PersistentScene`。
+  - 实际 loaded：`PersistentScene`、`PersistentScene_1`、`Level01Test`。
+  - 当前保留为 unload：`StartingMenu`、`Level02Test`、`Level02Test 1`。
+  - 按场景规范，开发最终状态应为 `PersistentScene` loaded、其余内容场景 unload；当前额外加载了 `PersistentScene_1` 和 `Level01Test`，属于待整理的编辑器状态，本次仅记录，不自动改场景。
+- **`PersistentScene` 当前层级摘要**：
+
+```text
+VirtualCamera       [CinemachineVirtualCamera + CinemachineConfiner2D + ConfinerFinder]
+Player              [PlayerMovement + Rigidbody2D + CircleCollider2D]
+├── WearablePoint   [WearableManager]
+├── GroundCheck
+├── ReincarnationManager
+└── HealthManager
+Managers
+├── SceneChanger    [SceneChanger]
+│   └── FadeCanvas  [Canvas + CanvasGroup + CanvasScaler + GraphicRaycaster]
+├── TimeManager     [TimeManager]
+├── UIManager       [UIManager]
+└── EventSystem     [EventSystem + StandaloneInputModule]
+Canvases
+├── ESCCanvas       [ESCMenuManager]
+└── GuideCanvas     [GuideCanvas]
+IceBlock            [Ice + IceBlock + BoxCollider2D]
+└── IntactVisual    [SpriteRenderer]
+```
+
+- **Canvas 配置**：当前核实到的 5 个 Canvas 均为 `ScreenSpaceOverlay`，`ScaleWithScreenSize`，参考分辨率 `(1920, 1080)`，`matchWidthOrHeight=0`：
+  - `PersistentScene`：`FadeCanvas`、`ESCCanvas`、`GuideCanvas`
+  - `PersistentScene_1`：`GameOverCanvas`、`HUDCanvas`
+
+### 回溯系统与冰块内容
+
+- **公共回溯基类**：`Assets/Scripts/Rewind/RewindableBase.cs` 提供时间窗口裁剪、倒放协程、冷却和冻结/解冻钩子。
+- **玩家轮回**：`Assets/Scripts/Player/ReincarnationManager.cs:181-231` 在按住 `R` 时记录玩家位置与血量快照；当前可回溯窗口按衰老状态在 1 至 8 秒之间插值。
+- **玩家输入**：`Assets/Scripts/Player/PlayerMovement.cs:14-87` 已增加 `startInputEvent` / `stopInputEvent`，通过事件开关输入并在停止时清除水平速度；`ReincarnationManager` 不再直接禁用 `PlayerMovement` 组件。
+- **独立冰块机关**：
+  - `Assets/Scripts/RewindableThings/IceBlock.cs:5-209` 继承 `RewindableBase`，在完整/碎裂之间切换视觉和碰撞，并仅记录状态变化快照。
+  - `Assets/Prefabs/Ice/IceBlock.prefab` 已被 Unity 识别；当前 `PersistentScene` 中已有 `IceBlock` 实例，带 `Ice`、`IceBlock`、`BoxCollider2D` 和 `IntactVisual`。
+- **本次核实的工作区状态（2026-07-24）**：除本工作记忆文件外，`git status` 未显示其他未提交变更；`IceBlock.cs` 与 `IceBlock.prefab` 已被 Git 跟踪。
+
+### UI 与验证
+
+- **面板系统**：`UIManager` 事件驱动；当前实际 Canvas 名称是 `ESCCanvas`、`GuideCanvas`、`GameOverCanvas`、`HUDCanvas` 和 `FadeCanvas`，不再以 `ESCPanel` 作为场景对象名记录。
+- **`CanvasToToggle` 枚举**：`ESC / GameOver / Dialog / Default`，定义于 `Assets/Scripts/MyEnums.cs:56-66`；`Default` 仍表示无面板打开，不作为真实面板目标。
+- **场景加载代码**：`InitialLoad` 以 Additive 方式加载配置的持久场景，`SceneChanger` 以 Additive 方式加载目标场景并在完成后触发 `sceneLoadedEvent`；依据 `Assets/Scripts/InitialLoad.cs:8-43`、`Assets/Scripts/Scene/SceneChanger.cs:197-252`。
+- **验证时状态**：编辑器未编译、未运行 Play Mode；控制台未发现 C# error，仅有 Unity MCP WebSocket/批处理提示。`IceBlock.cs` 的脚本诊断为 0 errors、2 warnings，属于工具启发式提示，后续测试时仍需关注。
+- **相关说明**：`Docs/场景加载与面板系统使用说明.md`。本附录的场景清单以本次 Unity MCP 实测为准。
 
 ---
 
@@ -139,4 +204,5 @@ Unity MCP 每次调用都会返回大量结构化 JSON，容易快速消耗额�
 | 日期 | 修订内容 |
 |---|---|
 | 2026-07-18 | 初始版本，汇总所有用户提出的持续性规范 |
-| 2026-07-23 | 附录标注渲染管线计划迁移到 URP，指向迁移手册 `Docs/URP-Migration-Guide.md` |
+| 2026-07-23 | 附录标注渲染管线计划迁移到 URP，记录迁移尚未执行 |
+| 2026-07-24 | 依据 Unity MCP 实时状态更新项目路径、渲染管线、Build Settings、编辑器场景状态、Canvas、回溯系统 |

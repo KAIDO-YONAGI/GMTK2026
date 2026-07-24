@@ -48,6 +48,8 @@ MonoBehaviour:
   reincarnationBegEvent: {fileID: 0}
   reincarnationEndEvent: {fileID: 0}
   snapshotAppliedEvent: {fileID: 0}
+  MovementBegEventSO: {fileID: 11400000, guid: b0c54761287e6b94da400ffc4d5c9c46, type: 2}
+  MovementEndEventSO: {fileID: 11400000, guid: d1be32208aed32d47bbf516fc6248eb6, type: 2}
   maxRewindBaseSeconds: 8
   minRewindBaseSeconds: 1
   rewindSpeed: 1
@@ -310,8 +312,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 5
   jumpForce: 12
-  startInputEvent: {fileID: 11400000, guid: 92fba088eb8a33d448de9ab09aa82b8e, type: 2}
-  stopInputEvent: {fileID: 11400000, guid: f37a074e87627f8498ef5a4e37f6d6ee, type: 2}
+  startInputEvent: {fileID: 11400000, guid: d1be32208aed32d47bbf516fc6248eb6, type: 2}
+  stopInputEvent: {fileID: 11400000, guid: b0c54761287e6b94da400ffc4d5c9c46, type: 2}
   groundLayer:
     serializedVersion: 2
     m_Bits: 1536
