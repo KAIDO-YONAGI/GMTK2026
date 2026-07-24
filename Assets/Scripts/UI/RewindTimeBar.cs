@@ -5,7 +5,7 @@ using UnityEngine.UI;
 public class RewindTimeBar : MonoBehaviour
 {
     [SerializeField] private Image fillImage;
-    [SerializeField] private Image consumedImage;
+    [SerializeField] private Image usableImage;
     [SerializeField] private Gradient colorGradient;
     [SerializeField] private SceneLoadEventSO sceneLoadEventSO;
     [SerializeField] private CanvasGroup hudGroup;
@@ -14,17 +14,19 @@ public class RewindTimeBar : MonoBehaviour
     private RectTransform consumedRect;
     private float fullWidth;
 
-    private bool isRetry; 
+    private bool isRetry;
+    // private float lastAppliedSnapshotTime;
+    private float lastUsableImageWidth;
 
     float MaxSec => ReincarnationManager.Instance.MaxRewindBaseSeconds;
     float MinSec => ReincarnationManager.Instance.MinRewindBaseSeconds;
 
-    private float currentConsumedWidth;
+    private float currentUsabelWidth;
 
     private void Awake()
     {
         fillRect = fillImage.rectTransform;
-        consumedRect = consumedImage.rectTransform;
+        consumedRect = usableImage.rectTransform;
         fullWidth = fillRect.sizeDelta.x;
     }
 
@@ -72,6 +74,8 @@ public class RewindTimeBar : MonoBehaviour
         fillImage.color = colorGradient.Evaluate(AgeManager.instance.AgeNormalized);
 
         float storedSeconds = ReincarnationManager.Instance.CurrentStoredSeconds;
+        float storeFactor = storedSeconds > 0f && rewindableSeconds > 0f
+            ?  storedSeconds / rewindableSeconds : 0f;
 
         if (ReincarnationManager.Instance.IsRewinding)
         {
@@ -79,18 +83,24 @@ public class RewindTimeBar : MonoBehaviour
             float remaining = Mathf.Max(0f, storedSeconds - consumed);
             float t = storedSeconds > 0f ? remaining / storedSeconds : 0f;
             
-            currentConsumedWidth = fillImageWidth * t;
+            currentUsabelWidth = fillImageWidth * storeFactor * t;
+            lastUsableImageWidth = currentUsabelWidth;
+        }
+
+        else if (ReincarnationManager.Instance.isRewindCoolingDown)
+        {
+            currentUsabelWidth = lastUsableImageWidth;
         }
         else
         {
             float target = storedSeconds > 0f && rewindableSeconds > 0f
                 ? fillImageWidth * (storedSeconds / rewindableSeconds)
                 : 0f;
-            currentConsumedWidth = Mathf.Lerp(currentConsumedWidth, target, Time.deltaTime * 8f);
-            if (currentConsumedWidth < 0.5f) currentConsumedWidth = 0f;
+            currentUsabelWidth = Mathf.Lerp(currentUsabelWidth, target, Time.deltaTime * 8f);
+            if (currentUsabelWidth < 0.5f) currentUsabelWidth = 0f;
         }
 
-        size.x = currentConsumedWidth;
+        size.x = currentUsabelWidth;
         consumedRect.sizeDelta = size;
     }
 }

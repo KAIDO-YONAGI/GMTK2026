@@ -89,7 +89,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fillImage: {fileID: 4168582580670889040}
-  consumedImage: {fileID: 5385857379618039229}
+  usableImage: {fileID: 5385857379618039229}
   colorGradient:
     serializedVersion: 2
     key0: {r: 0.83396226, g: 0.47164798, b: 0.18095396, a: 1}
