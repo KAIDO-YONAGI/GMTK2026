@@ -2252,10 +2252,6 @@ PrefabInstance:
       propertyPath: hurtParticle
       value: 
       objectReference: {fileID: 542757898}
-    - target: {fileID: 2335072288856054525, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: healthChangedEvent
-      value: 
-      objectReference: {fileID: 11400000, guid: 9cefeb31f41307444b80469d48e17b9b, type: 2}
     - target: {fileID: 2939508182233482846, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -2306,10 +2302,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 4904615342974543117, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 542757896}
+    m_AddedGameObjects: [{targetCorrespondingSourceObject: {fileID: 4904615342974543117, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}, insertIndex: -1, addedObject: {fileID: 542757896}}]
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
 --- !u!1660057539 &9223372036854775807
