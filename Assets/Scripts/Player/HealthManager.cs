@@ -16,6 +16,9 @@ public class HealthManager : MonoBehaviour
     [Header("Health Changed Event")]
     [Tooltip("血量变化时广播当前血量值（IntEventSO）。血量 HUD 订阅它来更新显示。")]
     [SerializeField] private IntEventSO healthChangedEvent;
+    
+    [Header("受伤粒子")]
+    [SerializeField] private ParticleSystem hurtParticle;
 
     // 当前生命值只读访问（外部查询用，修改请走 ChangeHealth）
     public int CurrentHealth => currentHealth;
@@ -53,6 +56,12 @@ public class HealthManager : MonoBehaviour
         if (isDead) return; // 已死亡则不再扣血/治疗
 
         currentHealth += amount;
+        
+        if (amount < 0 && hurtParticle != null)
+        {
+            if(!hurtParticle.isPlaying)
+                hurtParticle.Play();
+        }
 
         // 上界保护
         if (currentHealth > maxHealth)
