@@ -86,6 +86,9 @@ public class WaterFlowUnit : MonoBehaviour
         bool s2 = phase == WaterPhase.Stage2 || phase == WaterPhase.Broken; // 碎冰后视觉用满水（一滩水）
         bool ice = phase == WaterPhase.Frozen;
 
+        // 每次同步相位都恢复 Ice 标记，确保碎冰后再次结冰时仍可被击碎。
+        if (iceComponent != null) iceComponent.Restore();
+
         // 子物体可能正被外部销毁（如 FlyingSpike 击碎 IceImg），操作前判 null 且仅在状态不同时 SetActive。
         SafeSetActive(stage1Object, s1);
         SafeSetActive(stage2Object, s2);

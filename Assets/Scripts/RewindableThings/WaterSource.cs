@@ -13,7 +13,8 @@ using UnityEngine;
 /// 2. 状态推进：所有 Stage1 单元出生 stage1ToStage2Seconds 秒后自动切 Stage2。
 /// 3. 结冰：StartFreezing 启动 freezeDelay 倒计时，到点把所有 Stage2 单元切 Frozen；
 ///    此后新成熟的水流单元也会直接切 Frozen（带碰撞 + Ice 标记）。
-/// 4. 碎冰：Ice 被销毁时回调 NotifyUnitBroken → 该单元切 Broken（关碰撞、不再结冰）。
+/// 4. 碎冰：Ice 被击碎时回调 NotifyUnitBroken → 该单元切回 Stage2（关碰撞），
+///    再次触发结冰后可重新切 Frozen。
 ///
 /// 回溯策略（事件驱动稀疏快照，区别于 FlyingSpike 的每帧快照）：
 /// 只在状态转变时刻（单元出生 / Stage1→Stage2 / 结冰 / 碎冰）记录快照，
@@ -125,13 +126,30 @@ public class WaterSource : RewindableBase
         RecordSnapshot(); // 状态转变：开始流水
     }
 
-    /// <summary>启动结冰倒计时（多次调用幂等）。</summary>
+    /// <summary>启动结冰倒计时；已冻结后仍可让碎冰水块再次结冰。</summary>
     public void StartFreezing()
     {
-        if (isFrozen) return;
         if (IsRewindOperationLocked) return;
-        if (freezeCoroutine != null) StopCoroutine(freezeCoroutine);
+
+        // 未进入冻结模式时允许首次结冰；已进入冻结模式时只为碎冰后留下的 Stage2 水块重新计时。
+        if (isFrozen && !HasStage2Units()) return;
+        if (freezeCoroutine != null) return;
+
         freezeCoroutine = StartCoroutine(FreezeAfterDelay());
+    }
+
+    private bool HasStage2Units()
+    {
+        for (int i = 0; i < units.Count; i++)
+        {
+            WaterFlowUnit unit = units[i];
+            if (unit != null && unit.Phase == WaterFlowUnit.WaterPhase.Stage2)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>由 WaterFlowUnit 的 Ice.OnBroken 回调调用：单单元碎冰后变回水（Stage2），可再次结冰。</summary>
