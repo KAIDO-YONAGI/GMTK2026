@@ -1,29 +1,77 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-/// <summary>
-/// 压力板：水流末端检测到时调用 Activate()，触发 Inspector 配置的 UnityEvent。
-/// 设计为被动触发器（自身不监听物理），由 WaterSource 通过 CompareTag("PressurePlate") + GetComponent 调用。
-/// 用法：在 onActivate 里拖入机关方法（如 SpikeLauncher.Activate），水流流到压力板就触发机关。
-/// </summary>
+[RequireComponent(typeof(Collider2D))]
 public class PressurePlate : MonoBehaviour
 {
+    [Header("Animation")]
+    [Tooltip("压力板 Animator（可选，配置后会在 Activate/Deactivate 时播放对应动画）。")]
+    [SerializeField] private Animator animator;
+    [Tooltip("激活时播放的动画 Clip 名称。")]
+    [SerializeField] private string activateClipName = "Activate";
+    [Tooltip("解除时播放的动画 Clip 名称。")]
+    [SerializeField] private string deactivateClipName = "Deactivate";
+
     [Header("Events")]
-    [Tooltip("被激活时触发。在水流末端命中此压力板时调用。")]
+    [Tooltip("被激活时触发。水流末端命中此压力板或玩家进入 trigger 区域时调用。")]
     [SerializeField] private UnityEvent onActivate;
 
-    [Tooltip("被解除时触发。可选，目前水流系统不主动调用，预留接口。")]
+    [Tooltip("被解除时触发。玩家离开 trigger 区域时调用。")]
     [SerializeField] private UnityEvent onDeactivate;
 
-    /// <summary>激活压力板（水流命中时由 WaterSource 调用）。</summary>
+    private Collider2D triggerArea;
+
+    private void Awake()
+    {
+        triggerArea = GetComponent<Collider2D>();
+        triggerArea.isTrigger = true;
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (!collision.gameObject.CompareTag("Player")) return;
+        Activate();
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (!collision.gameObject.CompareTag("Player")) return;
+        Deactivate();
+    }
+
+    /// <summary>激活压力板（水流命中时由 WaterSource 调用，或玩家进入 trigger 时自动调用）。</summary>
     public void Activate()
     {
+        if (animator != null) animator.Play(activateClipName);
         onActivate?.Invoke();
     }
 
-    /// <summary>解除激活（预留接口）。</summary>
+    /// <summary>解除激活（玩家离开 trigger 时自动调用，或外部手动调用）。</summary>
     public void Deactivate()
     {
+        if (animator != null) animator.Play(deactivateClipName);
         onDeactivate?.Invoke();
     }
+
+    // private void OnDrawGizmos()
+    // {
+    //     var col = GetComponent<Collider2D>();
+    //     if (col == null) return;
+    //
+    //     Gizmos.color = new Color(1f, 0.5f, 0f, 0.3f);
+    //     var box = col as BoxCollider2D;
+    //     if (box != null)
+    //     {
+    //         Gizmos.DrawCube(transform.position + (Vector3)box.offset, box.size);
+    //         Gizmos.color = new Color(1f, 0.5f, 0f, 0.8f);
+    //         Gizmos.DrawWireCube(transform.position + (Vector3)box.offset, box.size);
+    //         return;
+    //     }
+    //     var circle = col as CircleCollider2D;
+    //     if (circle != null)
+    //     {
+    //         Vector3 center = transform.position + (Vector3)circle.offset;
+    //         Gizmos.DrawSphere(center, circle.radius);
+    //     }
+    // }
 }
