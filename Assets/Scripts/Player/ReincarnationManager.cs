@@ -13,6 +13,15 @@ public class ReincarnationManager : RewindableBase
     [Header("Send Reincarnation Message")]
     [SerializeField] private VoidEventSO reincarnationEvent;
 
+    [Tooltip("回溯真正开始时触发（OnFreeze 时刻，不是 R 键脉冲）。表现层用它做「进入回溯」反馈。")]
+    [SerializeField] private VoidEventSO reincarnationBegEvent;
+
+    [Tooltip("回溯真正结束时触发（OnUnfreeze 时刻，冷却之前）。表现层用它做「退出回溯」反馈。")]
+    [SerializeField] private VoidEventSO reincarnationEndEvent;
+
+    [Tooltip("每次 apply 应用快照后广播该快照的时间戳（snap.time）。表现层可据此显示「倒回到了哪个时刻」。")]
+    [SerializeField] private FloatEventSO snapshotAppliedEvent;
+
     [Header("Rewind Time Window")]
     [Tooltip("完全年轻（agingRate=1）时的可回溯秒数。")]
     [SerializeField] private float maxRewindBaseSeconds = 8f;
@@ -224,6 +233,9 @@ public class ReincarnationManager : RewindableBase
     {
         hasFrozenPlayerState = true;
 
+        // 回溯真正开始：广播 beg 事件（此时基类 isRewinding 已为 true）
+        if (reincarnationBegEvent != null) reincarnationBegEvent.OnEventRaised();
+
         // 冻结玩家输入
         if (playerMovement != null) playerMovement.enabled = false;
 
@@ -255,6 +267,9 @@ public class ReincarnationManager : RewindableBase
         // 倒放结束立即恢复输入（冷却期间玩家可操作，只是不记录新快照）
         if (playerMovement != null) playerMovement.enabled = true;
         hasFrozenPlayerState = false;
+
+        // 回溯真正结束：广播 end 事件（此时基类 isRewinding 已为 false，冷却尚未开始）
+        if (reincarnationEndEvent != null) reincarnationEndEvent.OnEventRaised();
     }
 
     protected override void ClearSnapshots()
@@ -295,5 +310,8 @@ public class ReincarnationManager : RewindableBase
         {
             HealthManager.Instance.SetHealthForReincarnation(snap.health);
         }
+
+        // 每次 apply 应用完快照后，广播该快照的时间戳供表现层使用
+        if (snapshotAppliedEvent != null) snapshotAppliedEvent.OnEventRaised(snap.time);
     }
 }

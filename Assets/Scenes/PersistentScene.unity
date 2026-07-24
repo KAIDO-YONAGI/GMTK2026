@@ -2215,6 +2215,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4166633020081661392, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
+      propertyPath: snapshotAppliedEvent
+      value: 
+      objectReference: {fileID: 11400000, guid: 3ae4240a4cb67964c9246f0c3e832efb, type: 2}
+    - target: {fileID: 4166633020081661392, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
+      propertyPath: reincarnationBegEvent
+      value: 
+      objectReference: {fileID: 11400000, guid: f37a074e87627f8498ef5a4e37f6d6ee, type: 2}
+    - target: {fileID: 4166633020081661392, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
+      propertyPath: reincarnationEndEvent
+      value: 
+      objectReference: {fileID: 11400000, guid: 92fba088eb8a33d448de9ab09aa82b8e, type: 2}
     - target: {fileID: 7136176016375389579, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_Name
       value: Player
