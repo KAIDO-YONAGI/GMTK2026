@@ -136,15 +136,26 @@ public class WaterSource : RewindableBase
             Vector3 nextPos = (spawnRoot != null ? spawnRoot.position : transform.position)
                               + Vector3.down * (cellSize * stepCount);
 
-            Collider2D hit = Physics2D.OverlapPoint(nextPos, groundMask);
-            if (hit != null)
+            // 地面检测：从下一格中心向下打 cellSize 距离的射线。
+            // 用 Raycast 而非 OverlapPoint 的原因：Tilemap 的 CompositeCollider2D 是空心薄壳，
+            // OverlapPoint 要求点落在 collider 实体内部，而格中心常落在薄壳外（哪怕视觉上"在 tile 里"），
+            // 导致永不命中。Raycast 检测射线是否穿过 collider 表面，可靠。
+            RaycastHit2D groundHit = Physics2D.Raycast(nextPos, Vector2.down, cellSize, groundMask);
+            if (groundHit.collider != null)
             {
-                // 命中地面 / 平台：停止向下生成（已有单元继续 Stage2 推进、可结冰）
+                // 命中地面 / 平台：这一格贴着地面，必须生成它让水流视觉贴紧地面（不悬空），生成后停止向下扩散。
+                // 已生成单元继续推进到 Stage2、可结冰。
+                SpawnUnitAt(nextPos);
+                // 给最后这格单元挂一个拖尾子物体：向下偏移半格，锁定 Stage1，消除视觉悬空。
+                // 拖尾不加入 units 列表、不参与回溯推进（纯视觉装饰，由父单元管理生命周期）。
+                WaterFlowUnit lastUnit = units[units.Count - 1];
+                SpawnTail(lastUnit);
                 isFlowing = false;
                 break;
             }
 
-            // 命中压力板（按 tag 筛选）：激活后停止
+            // 命中压力板（按 tag 筛选）：激活后停止。
+            // 压力板是独立 BoxCollider2D，OverlapPoint 对它有效。
             Collider2D plateHit = Physics2D.OverlapPoint(nextPos);
             if (plateHit != null && plateHit.CompareTag("PressurePlate"))
             {
@@ -176,6 +187,7 @@ public class WaterSource : RewindableBase
                 var u = units[i];
                 if (u == null) continue;
                 if (u.Phase == WaterFlowUnit.WaterPhase.Stage1 &&
+                    !u.LockAtStage1 &&
                     now - u.BirthTime >= stage1ToStage2Seconds)
                 {
                     u.SetPhase(WaterFlowUnit.WaterPhase.Stage2);
@@ -226,6 +238,21 @@ public class WaterSource : RewindableBase
         unit.Init(this);
         units.Add(unit);
         RecordSnapshot(); // 状态转变：单元出生
+    }
+
+    /// <summary>
+    /// 给最后命中地面的单元挂一个拖尾子物体，消除水流视觉悬空。
+    /// 拖尾复用 WaterFlowUnit.prefab，作为父单元的子物体（localPosition.y = -cellSize/2），
+    /// 锁定在 Stage1（不推进 Stage2），不加入 units 列表、不参与回溯推进——纯视觉装饰，随父单元销毁。
+    /// </summary>
+    private void SpawnTail(WaterFlowUnit parentUnit)
+    {
+        if (unitTemplate == null || parentUnit == null) return;
+        WaterFlowUnit tail = Instantiate(unitTemplate, parentUnit.transform);
+        tail.transform.localPosition = Vector3.down * (cellSize * 0.5f);
+        tail.Init(null); // 不传 owner：拖尾的 Ice 永不到 Frozen，不需要碎冰通知
+        tail.LockAtStage1 = true;
+        tail.SetPhase(WaterFlowUnit.WaterPhase.Stage1);
     }
 
     // ===== 事件订阅 =====

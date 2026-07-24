@@ -31,6 +31,12 @@ public class WaterFlowUnit : MonoBehaviour
     /// <summary>本单元出生时间（Time.time），由 WaterSource 在 Init 时设置。</summary>
     public float BirthTime { get; private set; }
 
+    /// <summary>
+    /// 是否锁定在 Stage1 不自动推进到 Stage2。
+    /// 用于拖尾单元：贴地的视觉装饰，始终保持少量水动画，不演变成满水。
+    /// </summary>
+    public bool LockAtStage1 { get; set; }
+
     private Ice iceComponent;
     private BoxCollider2D iceCollider;
 
