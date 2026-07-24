@@ -59,6 +59,8 @@ public class WaterFlowUnit : MonoBehaviour
         {
             // 捕获 owner 到局部变量，避免闭包持有 owner 句柄在销毁后还在调用
             var ownerRef = owner;
+            // 冰被击碎（Ice.Break()）时通知水源点。IceImg 子物体不被销毁，
+            // NotifyUnitBroken 把单元切回 Stage2（水），后续可再次结冰（水↔冰循环）。
             iceComponent.OnBroken += _ => ownerRef.NotifyUnitBroken(this);
         }
     }
@@ -77,16 +79,25 @@ public class WaterFlowUnit : MonoBehaviour
         ApplyPhaseVisual(phase);
     }
 
-    /// <summary>按相位统一切换三个子节点激活与冰碰撞。</summary>
+    /// <summary>按相位统一切换三个子节点激活与冰碰撞。对已销毁的子物体跳过（防 OnDestroy 回调链报错）。</summary>
     private void ApplyPhaseVisual(WaterPhase phase)
     {
         bool s1 = phase == WaterPhase.Stage1;
         bool s2 = phase == WaterPhase.Stage2 || phase == WaterPhase.Broken; // 碎冰后视觉用满水（一滩水）
         bool ice = phase == WaterPhase.Frozen;
 
-        if (stage1Object != null) stage1Object.SetActive(s1);
-        if (stage2Object != null) stage2Object.SetActive(s2);
-        if (iceObject != null) iceObject.SetActive(ice);
+        // 子物体可能正被外部销毁（如 FlyingSpike 击碎 IceImg），操作前判 null 且仅在状态不同时 SetActive。
+        SafeSetActive(stage1Object, s1);
+        SafeSetActive(stage2Object, s2);
+        SafeSetActive(iceObject, ice);
         if (iceCollider != null) iceCollider.enabled = ice; // 仅冰阶段启用碰撞
+    }
+
+    /// <summary>安全 SetActive：物体为 null 或正在销毁时跳过，避免 "being destroyed" 报错。</summary>
+    private static void SafeSetActive(GameObject obj, bool value)
+    {
+        if (obj == null) return;
+        if (obj.activeSelf == value) return; // 状态一致就不操作，减少销毁中报错概率
+        obj.SetActive(value);
     }
 }

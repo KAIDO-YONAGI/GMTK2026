@@ -349,7 +349,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7081934254611086868, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
       propertyPath: freezeDelay
-      value: 9.23
+      value: 2.53
       objectReference: {fileID: 0}
     - target: {fileID: 7469646473646674123, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1372,6 +1372,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1774893441}
   - {fileID: 1888604821}
   - {fileID: 432838112}
   - {fileID: 974841463}
@@ -1471,6 +1472,68 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1584053398}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1774893440
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1584053398}
+    m_Modifications:
+    - target: {fileID: 1754273132740137174, guid: 7389affbcb26e8e44a5a89f52a7bd466, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.76
+      objectReference: {fileID: 0}
+    - target: {fileID: 1754273132740137174, guid: 7389affbcb26e8e44a5a89f52a7bd466, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -3.24
+      objectReference: {fileID: 0}
+    - target: {fileID: 1754273132740137174, guid: 7389affbcb26e8e44a5a89f52a7bd466, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1754273132740137174, guid: 7389affbcb26e8e44a5a89f52a7bd466, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1754273132740137174, guid: 7389affbcb26e8e44a5a89f52a7bd466, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1754273132740137174, guid: 7389affbcb26e8e44a5a89f52a7bd466, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1754273132740137174, guid: 7389affbcb26e8e44a5a89f52a7bd466, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1754273132740137174, guid: 7389affbcb26e8e44a5a89f52a7bd466, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1754273132740137174, guid: 7389affbcb26e8e44a5a89f52a7bd466, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1754273132740137174, guid: 7389affbcb26e8e44a5a89f52a7bd466, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5619868129621905909, guid: 7389affbcb26e8e44a5a89f52a7bd466, type: 3}
+      propertyPath: m_Name
+      value: PickupSpike
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 7389affbcb26e8e44a5a89f52a7bd466, type: 3}
+--- !u!4 &1774893441 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1754273132740137174, guid: 7389affbcb26e8e44a5a89f52a7bd466, type: 3}
+  m_PrefabInstance: {fileID: 1774893440}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1821485909
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1542,7 +1605,7 @@ PrefabInstance:
       objectReference: {fileID: 432838113}
     - target: {fileID: 32952880364412327, guid: 455fddea4a9f4294cbf4cea9a2d283c6, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 32952880364412327, guid: 455fddea4a9f4294cbf4cea9a2d283c6, type: 3}
       propertyPath: triggerOnce
@@ -1598,7 +1661,7 @@ PrefabInstance:
       objectReference: {fileID: 432838113}
     - target: {fileID: 7765089264148164631, guid: 455fddea4a9f4294cbf4cea9a2d283c6, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7765089264148164631, guid: 455fddea4a9f4294cbf4cea9a2d283c6, type: 3}
       propertyPath: triggerOnce
