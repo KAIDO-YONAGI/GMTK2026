@@ -61,7 +61,7 @@ public class RewindTimeBar : MonoBehaviour
         if (hudGroup == null) return;
         hudGroup.alpha = pendingShow ? 1 : 0;
         hudGroup.interactable = pendingShow;
-        hudGroup.blocksRaycasts = pendingShow;
+        hudGroup.blocksRaycasts = false;
         pendingShow = false;
     }
     

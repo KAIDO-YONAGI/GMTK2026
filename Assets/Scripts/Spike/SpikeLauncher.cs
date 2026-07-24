@@ -68,6 +68,12 @@ public class SpikeLauncher : MonoBehaviour
         }
     }
 
+    public void RotateByMouse(float angleDelta)
+    {
+        if (isPaused) return;
+        transform.Rotate(0f, 0f, angleDelta);
+    }
+
     [ContextMenu("Fire")]
     public void Fire()
     {
@@ -81,5 +87,9 @@ public class SpikeLauncher : MonoBehaviour
     {
         Gizmos.color = Color.red;
         Gizmos.DrawRay(transform.position, transform.up * 2f);
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, 0.6f);
+        Gizmos.DrawWireSphere(transform.position, 1.2f);
     }
 }
