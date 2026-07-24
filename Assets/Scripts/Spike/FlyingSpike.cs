@@ -105,9 +105,9 @@ public class FlyingSpike : RewindableBase
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.TryGetComponent<Ice>(out _))
+        if (other.TryGetComponent<Ice>(out var ice))
         {
-            Destroy(other.gameObject);
+            ice.Break();
             Destroy(gameObject);
             return;
         }

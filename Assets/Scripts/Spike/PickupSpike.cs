@@ -12,9 +12,9 @@ public class PickupSpike : MonoBehaviour
             return;
         }
 
-        if (isEquipped && other.TryGetComponent<Ice>(out _))
+        if (isEquipped && other.TryGetComponent<Ice>(out var ice))
         {
-            Destroy(other.gameObject);
+            ice.Break();
             Destroy(gameObject);
         }
     }
