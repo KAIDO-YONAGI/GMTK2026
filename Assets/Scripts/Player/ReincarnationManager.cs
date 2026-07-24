@@ -29,6 +29,11 @@ public class ReincarnationManager : RewindableBase
     [Tooltip("完全衰老（agingRate=0）时的可回溯秒数。即使老到极致也保留最小窗口。")]
     [SerializeField] private float minRewindBaseSeconds = 1f;
 
+    [Tooltip("可回溯窗口倍率。实际保留的快照时长 = 基础窗口 × 此倍率。" +
+             "大于 1 时能回溯更久（积累更多历史快照）。" +
+             "积累（记录保留时长）与消耗（按 R 倒放能回到多久）共用此倍率，保持统一。")]
+    [SerializeField] private float rewindWindowMultiplier = 1f;
+
     // 外部只读访问：回溯窗口及当前实时上限（UI 显示、外部系统查询用）
     public float MaxRewindBaseSeconds => maxRewindBaseSeconds;
     public float MinRewindBaseSeconds => minRewindBaseSeconds;
@@ -284,11 +289,12 @@ public class ReincarnationManager : RewindableBase
         return Input.GetKey(KeyCode.R);
     }
 
-    /// <summary>根据当前衰老状态返回可回溯时间窗口。</summary>
+    /// <summary>根据当前衰老状态返回可回溯时间窗口（已乘 rewindWindowMultiplier 倍率）。</summary>
     private float CalculateCurrentRewindableSeconds()
     {
         float agingRate = Mathf.Clamp01(1f - AgeManager.instance.AgeNormalized);
-        return Mathf.Lerp(minRewindBaseSeconds, maxRewindBaseSeconds, agingRate);
+        float baseSeconds = Mathf.Lerp(minRewindBaseSeconds, maxRewindBaseSeconds, agingRate);
+        return baseSeconds * Mathf.Max(0f, rewindWindowMultiplier);
     }
 
     /// <summary>把单个快照应用回玩家身上（位置瞬切 + 血量直接设置，绕过死亡/治疗事件）。</summary>

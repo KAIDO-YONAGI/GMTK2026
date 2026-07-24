@@ -19,7 +19,7 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
     protected bool isRewinding = false;
 
     // 回溯冷却标记：冷却期间不记录新快照，也不能再次启动回溯。
-    protected bool isRewindCoolingDown = false;
+    public bool isRewindCoolingDown = false;
 
     // 当前已倒回的游戏时间量（rewoundGameTime = elapsed × rewindSpeed）。回溯期间每帧更新，非回溯时为 0。
     protected float currentRewoundGameTime = 0f;
@@ -114,15 +114,15 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
                 currentRewoundGameTime = 0f;
                 break;
             }
-
+            
             float maxRewindSeconds = Mathf.Max(0f, getMaxRewindSeconds());
             float elapsedRewoundGameTime = (Time.time - rewindStartReal) * rewindSpeed;
             float desiredTargetTime = latestTime - elapsedRewoundGameTime;
-
+            
             // 快照的有效范围相对当前时刻计算，倒放期间旧快照会持续过期。
-            float oldestAllowedTime = Time.time - maxRewindSeconds;
+            float oldestAllowedTime = latestTime - maxRewindSeconds;
             float targetTime = Mathf.Max(desiredTargetTime, oldestAllowedTime);
-            currentRewoundGameTime = Mathf.Max(0f, Time.time - targetTime);
+            currentRewoundGameTime = Mathf.Max(0f, latestTime - targetTime);
 
             // 每帧从完整快照数组定位，窗口缩短时可回到较新的有效快照。
             int targetIndex = FindFirstSnapshotAtOrAfter(snapshots, targetTime);

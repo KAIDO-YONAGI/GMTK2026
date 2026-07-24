@@ -1,9 +1,11 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
 /// 水流结冰触发器：玩家进入区域时调用引用挂载的水源点 StartFreezing()。
 /// 与 WaterFlowTrigger 结构一致，仅触发的方法不同（结冰倒计时）。
 /// 结冰由水源点统一管理：到点把所有 Stage2 单元切到 Frozen。
+/// trigger 支持重复触发，是否真正结冰由 WaterSource 决定（已结冰则忽略，回溯后才解锁）。
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 public class WaterFreezeTrigger : MonoBehaviour
@@ -12,11 +14,12 @@ public class WaterFreezeTrigger : MonoBehaviour
     [Tooltip("被触发的水源点。玩家进入此 trigger 区域时调用其 StartFreezing()。")]
     [SerializeField] private WaterSource target;
 
-    [Tooltip("是否只触发一次（默认 true）。")]
-    [SerializeField] private bool triggerOnce = true;
+    [Header("Delay")]
+    [Tooltip("玩家进入区域后，等待多少秒才真正触发。0 = 立即触发。")]
+    [SerializeField] private float delaySeconds = 0f;
 
-    private bool hasTriggered;
     private Collider2D triggerArea;
+    private bool isDelaying; // 防止玩家反复进出时重复启动延时协程
 
     private void Awake()
     {
@@ -25,27 +28,36 @@ public class WaterFreezeTrigger : MonoBehaviour
     }
     void OnEnable()
     {
-        
+
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        if (!enabled) return; // 脚本被禁用时不响应（Unity 默认不拦截 OnTrigger，需手动检查）
         if (!collision.gameObject.CompareTag("Player")) return;
-        if (triggerOnce && hasTriggered) return;
         if (target == null)
         {
             Debug.LogWarning("[WaterFreezeTrigger] target 未配置: " + name, this);
             return;
         }
-        hasTriggered = true;
-        target.StartFreezing();
+        // 进入即计时，到点必触发（不管玩家是否还在区域）。延时中则不重复启动。
+        if (isDelaying) return;
+        if (delaySeconds <= 0f) { target.StartFreezing(); return; }
+        StartCoroutine(DelayedFreeze());
     }
 
-    /// <summary>外部调用入口。</summary>
+    private IEnumerator DelayedFreeze()
+    {
+        isDelaying = true;
+        yield return new WaitForSeconds(delaySeconds);
+        isDelaying = false;
+        if (target != null) target.StartFreezing();
+    }
+
+    /// <summary>外部调用入口（忽略延时）。</summary>
     public void Trigger()
     {
-        if (triggerOnce && hasTriggered) return;
+        if (!enabled) return;
         if (target == null) return;
-        hasTriggered = true;
         target.StartFreezing();
     }
 

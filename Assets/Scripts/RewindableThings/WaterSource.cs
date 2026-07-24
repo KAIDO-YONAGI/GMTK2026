@@ -54,6 +54,10 @@ public class WaterSource : RewindableBase
     [Tooltip("回溯结束后恢复记录前的冷却秒数。")]
     [SerializeField] private float rewindCooldownSeconds = 1f;
 
+    [Tooltip("可回溯窗口倍率。水源的可回溯秒数 = 玩家回溯窗口 × 此倍率。" +
+             "大于 1 时水源能回溯更久（保留更多历史快照，包括触发前的未开始状态）。")]
+    [SerializeField] private float rewindWindowMultiplier = 1f;
+
     [Header("Reincarnation Events")]
     [SerializeField] private VoidEventSO reincarnationBegEvent;
     [SerializeField] private VoidEventSO reincarnationEndEvent;
@@ -69,6 +73,9 @@ public class WaterSource : RewindableBase
 
     private bool isFlowing;     // 是否在向下扩散
     private bool isFrozen;      // 整体是否已结冰（防止重复结冰）
+    // 是否已经完成过一次流水（流到底/被阻挡停过）。流过一次后忽略所有 StartFlowing 调用，
+    // 直到回溯（OnReincarnationEnd）重置才能被 trigger 再次触发。
+    private bool hasFlowedOnce;
 
     private Coroutine flowCoroutine;
     private Coroutine advanceCoroutine;
@@ -86,11 +93,16 @@ public class WaterSource : RewindableBase
         public float Time => time;
     }
 
-    // 水源整体快照（每次状态转变时记录整张单元表）
+    // 水源整体快照（每次状态转变时记录整张单元表 + 水源级状态）
     private struct WaterSourceSnapshot : IRewindSnapshot
     {
         public float time;                  // 记录时刻
         public UnitSnapshot[] unitStates;   // 全部单元状态快照
+        // 水源级状态：回溯时要一并还原，决定"回溯后是否继续流/能否再被触发"
+        public bool hasFlowedOnce;          // 是否已触发过流水
+        public bool isFrozen;               // 是否已结冰
+        public bool isFlowing;              // 是否正在流
+        public int stepCount;               // 当前向下生成的格数（决定继续流的位置）
 
         public float Time => time;
     }
@@ -99,12 +111,14 @@ public class WaterSource : RewindableBase
 
     // ===== 公有接口 =====
 
-    /// <summary>启动流水（多次调用幂等）。</summary>
+    /// <summary>启动流水。流过一次后被锁死（hasFlowedOnce），回溯（OnReincarnationEnd）后才解锁。</summary>
     public void StartFlowing()
     {
+        if (hasFlowedOnce) return;  // 已流过一次，忽略直到回溯重置
         if (isFlowing) return;
         if (IsRewindOperationLocked) return;
         isFlowing = true;
+        hasFlowedOnce = true;       // 标记已触发，FlowLoop 结束后也不再响应 trigger
         flowCoroutine = StartCoroutine(FlowLoop());
         advanceCoroutine = StartCoroutine(AdvanceLoop());
         RecordSnapshot(); // 状态转变：开始流水
@@ -270,6 +284,17 @@ public class WaterSource : RewindableBase
         if (snapshotAppliedEvent != null) snapshotAppliedEvent.FloatEvent -= OnSnapshotApplied;
     }
 
+    /// <summary>
+    /// 每物理帧无条件记录快照。
+    /// 必须定时记录（而非只在状态转变时记录）：才能捕获到"水流未开始"等无变化时段的状态，
+    /// 回溯时才能还原到触发前的状态。回溯期间（IsRewindOperationLocked）跳过，避免污染。
+    /// </summary>
+    private void FixedUpdate()
+    {
+        if (IsRewindOperationLocked) return;
+        RecordSnapshot();
+    }
+
     private void OnReincarnationBeg() => StartRewind();
 
     private void OnReincarnationEnd()
@@ -280,6 +305,20 @@ public class WaterSource : RewindableBase
         ClearSnapshots();
         isRewinding = false;
         isRewindCoolingDown = false;
+        // 协程已被 StopAllCoroutines 停掉，清空引用。
+        // 注意：不重置 hasFlowedOnce/isFrozen/isFlowing/stepCount——这些已由 ApplySnapshot
+        // 还原到回溯到的那个快照的值，必须保留以正确反映"回溯后的状态"。
+        flowCoroutine = null;
+        advanceCoroutine = null;
+        freezeCoroutine = null;
+
+        // 如果回溯到的快照状态是"正在流"（已触发、未到底），回溯结束后立即从当前 stepCount 继续向下生成。
+        // isFlowing 此时是 ApplySnapshot 还原后的值。
+        if (isFlowing)
+        {
+            flowCoroutine = StartCoroutine(FlowLoop());
+            advanceCoroutine = StartCoroutine(AdvanceLoop());
+        }
     }
 
     private void OnSnapshotApplied(float snapshotTime)
@@ -303,7 +342,11 @@ public class WaterSource : RewindableBase
         var snap = new WaterSourceSnapshot
         {
             time = Time.time,
-            unitStates = CaptureAllUnits()
+            unitStates = CaptureAllUnits(),
+            hasFlowedOnce = hasFlowedOnce,
+            isFrozen = isFrozen,
+            isFlowing = isFlowing,
+            stepCount = stepCount
         };
         EnqueueAndTrim(snapshots, snap, GetRewindableSeconds());
     }
@@ -353,30 +396,39 @@ public class WaterSource : RewindableBase
         {
             if (units[i] != null) units[i].gameObject.SetActive(false);
         }
+
+        // 还原水源级状态：回溯到的那个时刻的 hasFlowedOnce/isFrozen/isFlowing/stepCount。
+        // 这里只更新数据，不重启协程（回溯期间协程保持停止，回溯结束后由 OnReincarnationEnd 按
+        // 还原后的 isFlowing 决定是否重启 FlowLoop，从当前 stepCount 继续向下生成）。
+        hasFlowedOnce = snap.hasFlowedOnce;
+        isFrozen = snap.isFrozen;
+        isFlowing = snap.isFlowing;     // 仅记录状态，真正是否继续流由 OnReincarnationEnd 判定
+        stepCount = snap.stepCount;
     }
 
     private float GetRewindableSeconds()
     {
-        if (ReincarnationManager.Instance != null)
-            return ReincarnationManager.Instance.CurrentRewindableSeconds;
-        return 8f;
+        float baseSeconds = ReincarnationManager.Instance != null
+            ? ReincarnationManager.Instance.CurrentRewindableSeconds
+            : 8f;
+        return baseSeconds * Mathf.Max(0f, rewindWindowMultiplier);
     }
 
     protected override bool ShouldContinueRewind() => Input.GetKey(KeyCode.R);
 
     protected override void OnFreeze()
     {
-        // 回溯期间暂停所有调度协程（RewindBackwards 在协程外执行，不会自动暂停我们的协程）
+        // 回溯期间暂停所有调度协程（RewindBackwards 在协程外执行，不会自动暂停我们的协程）。
+        // isFlowing 等水源级状态会在 ApplySnapshot 逐帧还原为快照值，这里无需手动改。
         if (flowCoroutine != null) { StopCoroutine(flowCoroutine); flowCoroutine = null; }
         if (advanceCoroutine != null) { StopCoroutine(advanceCoroutine); advanceCoroutine = null; }
         if (freezeCoroutine != null) { StopCoroutine(freezeCoroutine); freezeCoroutine = null; }
-        isFlowing = false;
     }
 
     protected override void OnUnfreeze()
     {
-        // 回溯结束后不自动恢复流水（避免行为不可预期），保持当前状态。
-        // 如需恢复，可由 trigger 重新触发 StartFlowing。
+        // 回溯结束（倒放完成）。水源级状态已由 ApplySnapshot 还原到目标快照。
+        // 是否重启 FlowLoop 由 OnReincarnationEnd 根据还原后的 isFlowing 判定，这里不做处理。
     }
 
     protected override void ClearSnapshots()
