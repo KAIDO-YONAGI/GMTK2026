@@ -66,19 +66,27 @@ public class RewindTimeBar : MonoBehaviour
         float fillAmount = agingRate;
 
         Vector2 size = fillRect.sizeDelta;
-        size.x = fullWidth * fillAmount;
+        float fillImageWidth = fullWidth * fillAmount;
+        size.x = fillImageWidth;
         fillRect.sizeDelta = size;
         fillImage.color = colorGradient.Evaluate(AgeManager.instance.AgeNormalized);
 
+        float storedSeconds = ReincarnationManager.Instance.CurrentStoredSeconds;
+
         if (ReincarnationManager.Instance.IsRewinding)
         {
-            float consumed = Mathf.Clamp(ReincarnationManager.Instance.CurrentRewoundGameTime, 0f, rewindableSeconds);
-            currentConsumedWidth = fullWidth * (consumed / (MaxSec -  MinSec));
-            consumedImage.gameObject.SetActive(true);
+            float consumed = Mathf.Clamp(ReincarnationManager.Instance.CurrentRewoundGameTime, 0f, storedSeconds);
+            float remaining = Mathf.Max(0f, storedSeconds - consumed);
+            float t = storedSeconds > 0f ? remaining / storedSeconds : 0f;
+            
+            currentConsumedWidth = fillImageWidth * t;
         }
         else
         {
-            currentConsumedWidth = Mathf.Lerp(currentConsumedWidth, 0f, Time.deltaTime * 8f);
+            float target = storedSeconds > 0f && rewindableSeconds > 0f
+                ? fillImageWidth * (storedSeconds / rewindableSeconds)
+                : 0f;
+            currentConsumedWidth = Mathf.Lerp(currentConsumedWidth, target, Time.deltaTime * 8f);
             if (currentConsumedWidth < 0.5f) currentConsumedWidth = 0f;
         }
 
