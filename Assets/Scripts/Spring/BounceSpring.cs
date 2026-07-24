@@ -20,7 +20,7 @@ public class BounceSpring : MonoBehaviour
         Vector3 velocity = rb.velocity;
         Vector3 alongSpring = Vector3.Project(velocity, transform.up);
         Vector3 perpendicular = velocity - alongSpring;
-        rb.velocity = perpendicular + transform.up * bounceForce;
+        rb.AddForce(transform.up * bounceForce, ForceMode2D.Impulse);
 
         cooldownTimer = cooldown;
 
