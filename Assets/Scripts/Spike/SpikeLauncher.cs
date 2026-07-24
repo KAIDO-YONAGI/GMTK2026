@@ -8,7 +8,6 @@ using UnityEngine;
 public class SpikeLauncher : MonoBehaviour
 {
     [SerializeField] private FlyingSpike spikePrefab;
-    [SerializeField] private Vector2 launchDirection = Vector2.right;
     [SerializeField] private float launchInterval = 0f;
     [SerializeField] private VoidEventSO reincarnationBegEvent;
     [SerializeField] private VoidEventSO reincarnationEndEvent;
@@ -46,12 +45,14 @@ public class SpikeLauncher : MonoBehaviour
     [ContextMenu("Activate")]
     public void Activate()
     {
-        isActive = true;
+        Debug.Log("Activate");
+        isActive = !isActive;
     }
 
     [ContextMenu("Deactivate")]
     public void Deactivate()
     {
+        Debug.Log("Deactivate");
         isActive = false;
     }
 
@@ -73,12 +74,12 @@ public class SpikeLauncher : MonoBehaviour
         if (spikePrefab == null) return;
 
         FlyingSpike spike = Instantiate(spikePrefab, transform.position, Quaternion.identity);
-        spike.Launch(launchDirection);
+        spike.Launch(transform.up);
     }
 
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position, launchDirection.normalized * 2f);
+        Gizmos.DrawRay(transform.position, transform.up * 2f);
     }
 }
