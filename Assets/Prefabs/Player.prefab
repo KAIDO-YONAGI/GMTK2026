@@ -201,10 +201,7 @@ MonoBehaviour:
   maxHealth: 3
   currentHealth: 3
   deathEvent: {fileID: 11400000, guid: 8dca7fcc25850a547b132efa5717da16, type: 2}
-  healthFeedbackGroup: {fileID: 4711045915071559495}
-  healthFeedbackFadeInDuration: 0.15
-  healthFeedbackDisplayDuration: 0.35
-  healthFeedbackFadeOutDuration: 0.25
+  healthChangedEvent: {fileID: 11400000, guid: 9cefeb31f41307444b80469d48e17b9b, type: 2}
 --- !u!1 &6037709841802087982
 GameObject:
   m_ObjectHideFlags: 0

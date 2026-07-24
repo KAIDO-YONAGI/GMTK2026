@@ -13,6 +13,10 @@ public class HealthManager : MonoBehaviour
     [Header("Death Event")]
     [SerializeField] private DeathEventSO deathEvent;
 
+    [Header("Health Changed Event")]
+    [Tooltip("血量变化时广播当前血量值（IntEventSO）。血量 HUD 订阅它来更新显示。")]
+    [SerializeField] private IntEventSO healthChangedEvent;
+
     // 当前生命值只读访问（外部查询用，修改请走 ChangeHealth）
     public int CurrentHealth => currentHealth;
     public int MaxHealth => maxHealth;
@@ -62,6 +66,9 @@ public class HealthManager : MonoBehaviour
             currentHealth = 0;
             OnDie();
         }
+
+        // 广播最新血量供 UI 更新（治疗/扣血都触发）
+        RaiseHealthChanged();
     }
 
     private bool isDead = false;
@@ -89,6 +96,7 @@ public class HealthManager : MonoBehaviour
     {
         currentHealth = maxHealth;
         isDead = false;
+        RaiseHealthChanged(); // 重试回满血：广播更新 UI
     }
 
     /// <summary>
@@ -102,5 +110,13 @@ public class HealthManager : MonoBehaviour
         {
             isDead = false; // 回到有血的状态：复活
         }
+        RaiseHealthChanged(); // 回溯还原血量：广播更新 UI
+    }
+
+    /// <summary>广播当前血量值给订阅者（血量 HUD 等）。事件未配置时安全跳过。</summary>
+    private void RaiseHealthChanged()
+    {
+        if (healthChangedEvent != null)
+            healthChangedEvent.OnEventRaised(currentHealth);
     }
 }
