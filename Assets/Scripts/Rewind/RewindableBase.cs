@@ -122,7 +122,7 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
             // 快照的有效范围相对当前时刻计算，倒放期间旧快照会持续过期。
             float oldestAllowedTime = Time.time - maxRewindSeconds;
             float targetTime = Mathf.Max(desiredTargetTime, oldestAllowedTime);
-            currentRewoundGameTime = Mathf.Max(0f, latestTime - targetTime);
+            currentRewoundGameTime = Mathf.Max(0f, Time.time - targetTime);
 
             // 每帧从完整快照数组定位，窗口缩短时可回到较新的有效快照。
             int targetIndex = FindFirstSnapshotAtOrAfter(snapshots, targetTime);
