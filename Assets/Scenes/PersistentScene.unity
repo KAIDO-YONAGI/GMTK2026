@@ -2176,10 +2176,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 2335072288856054525, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: healthChangedEvent
-      value: 
-      objectReference: {fileID: 11400000, guid: 9cefeb31f41307444b80469d48e17b9b, type: 2}
     - target: {fileID: 2939508182233482846, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
