@@ -142,10 +142,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u5BFF\u7EC8\u6B63\u5BDD\n\u4F60\u6B7B\u5F97\u5F88\u5B89\u8BE6"
+  m_text: "You Died\nA peaceful end"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 17a432a0f4ecfaa44b118e040b1f51c3, type: 2}
-  m_sharedMaterial: {fileID: 4751889424687818217, guid: 17a432a0f4ecfaa44b118e040b1f51c3, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -278,8 +278,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Retry
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 17a432a0f4ecfaa44b118e040b1f51c3, type: 2}
-  m_sharedMaterial: {fileID: 4751889424687818217, guid: 17a432a0f4ecfaa44b118e040b1f51c3, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
