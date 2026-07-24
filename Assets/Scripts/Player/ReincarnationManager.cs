@@ -80,9 +80,8 @@ public class ReincarnationManager : RewindableBase
     // 缓存最新快照时间戳，避免 CurrentStoredSeconds 每次 ToArray 遍历队列（表现层每帧读会 GC）
     private float latestSnapshotTime = 0f;
 
-    // 玩家根 Transform、移动脚本和物理刚体
+    // 玩家根 Transform 和物理刚体
     private Transform playerTransform;
-    private PlayerMovement playerMovement;
     private Rigidbody2D playerRigidbody;
 
     // 回溯前的物理状态，倒放结束后恢复
@@ -106,7 +105,6 @@ public class ReincarnationManager : RewindableBase
         Instance = this;
 
         playerTransform = transform.root;
-        playerMovement = playerTransform.GetComponent<PlayerMovement>();
         playerRigidbody = playerTransform.GetComponent<Rigidbody2D>();
     }
 
@@ -241,9 +239,6 @@ public class ReincarnationManager : RewindableBase
         // 回溯真正开始：广播 beg 事件（此时基类 isRewinding 已为 true）
         if (reincarnationBegEvent != null) reincarnationBegEvent.OnEventRaised();
 
-        // 冻结玩家输入
-        if (playerMovement != null) playerMovement.enabled = false;
-
         // 停止物理系统继续修改位置，并保存回溯前的运动状态
         if (playerRigidbody != null)
         {
@@ -269,11 +264,9 @@ public class ReincarnationManager : RewindableBase
             playerRigidbody.angularVelocity = angularVelocityBeforeRewind;
         }
 
-        // 倒放结束立即恢复输入（冷却期间玩家可操作，只是不记录新快照）
-        if (playerMovement != null) playerMovement.enabled = true;
         hasFrozenPlayerState = false;
 
-        // 回溯真正结束：广播 end 事件（此时基类 isRewinding 已为 false，冷却尚未开始）
+        // 回溯真正结束：广播 end 事件以恢复输入（此时基类 isRewinding 已为 false，冷却尚未开始）
         if (reincarnationEndEvent != null) reincarnationEndEvent.OnEventRaised();
     }
 

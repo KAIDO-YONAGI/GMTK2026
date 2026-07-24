@@ -11,6 +11,10 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 5f;
     public float jumpForce = 12f;
 
+    [Header("Input Events")]
+    [SerializeField] private VoidEventSO startInputEvent;
+    [SerializeField] private VoidEventSO stopInputEvent;
+
     [Header("Ground Check")]
     public LayerMask groundLayer;            // 地面 Layer（Ground/Platform 等）
     public Transform groundCheck;            // 脚下检测点（Player 底部）
@@ -19,13 +23,47 @@ public class PlayerMovement : MonoBehaviour
 
     Rigidbody2D rb;
     bool isGrounded;
+    bool isInputEnabled = true;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
     }
+
+    void OnEnable()
+    {
+        if (startInputEvent != null)
+            startInputEvent.VoidEvent += OnStartInput;
+        if (stopInputEvent != null)
+            stopInputEvent.VoidEvent += OnStopInput;
+    }
+
+    void OnDisable()
+    {
+        if (startInputEvent != null)
+            startInputEvent.VoidEvent -= OnStartInput;
+        if (stopInputEvent != null)
+            stopInputEvent.VoidEvent -= OnStopInput;
+    }
+
+    void OnStartInput()
+    {
+        isInputEnabled = true;
+    }
+
+    void OnStopInput()
+    {
+        isInputEnabled = false;
+
+        // 清除最后一次水平输入留下的速度，竖直方向继续交给物理系统。
+        if (rb != null)
+            rb.velocity = new Vector2(0f, rb.velocity.y);
+    }
+
     void Update()
     {
+        if (!isInputEnabled) return;
+
         // 地面检测：未配置 groundCheck 时假设始终在地面（demo 模式，玩家可空中跳）
         isGrounded = groundCheck != null
             ? Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer)
@@ -42,6 +80,8 @@ public class PlayerMovement : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (!isInputEnabled) return;
+
         // 水平移动：覆盖 x 速度，保留 y 速度（避免覆盖跳跃）
         float x = Input.GetAxisRaw("Horizontal");
         rb.velocity = new Vector2(x * moveSpeed * agingRate, rb.velocity.y);

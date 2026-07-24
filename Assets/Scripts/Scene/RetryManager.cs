@@ -30,7 +30,9 @@ public class RetryManager : MonoBehaviour
     }
     private void OnReTry()
     {
+        if (HealthManager.Instance != null)
+            HealthManager.Instance.ResetHealth();
+
         loadEventSO.RaiseLoadRequestEvent(currentScene, Vector3.zero, true);
-        // 注：原 ARPG 的 StatsManager.instance.Respawn() 回血逻辑已移除
     }
 }

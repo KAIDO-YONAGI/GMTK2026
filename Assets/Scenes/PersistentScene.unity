@@ -1714,7 +1714,7 @@ MonoBehaviour:
   initialPosition: {x: 0, y: 0, z: 0}
   fadeDuration: 1
   initScene:
-  - {fileID: 11400000, guid: e76f057f942010e418b9d660a649c6c1, type: 2}
+  - {fileID: 11400000, guid: fb46f5dabfb5b7a40a9a466b64951181, type: 2}
   player: {fileID: 27706796}
   fadeCanva: {fileID: 383477868}
   loadEventSO: {fileID: 11400000, guid: 820c6319319801a4987f94ab3d435c01, type: 2}
@@ -2215,6 +2215,10 @@ PrefabInstance:
     - target: {fileID: 2939508182233482846, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4166633020081661392, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
+      propertyPath: maxRewindBaseSeconds
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 4166633020081661392, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: snapshotAppliedEvent

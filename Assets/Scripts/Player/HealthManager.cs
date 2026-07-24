@@ -83,6 +83,15 @@ public class HealthManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 重试关卡时恢复满血并清除死亡状态，不触发治疗或死亡事件。
+    /// </summary>
+    public void ResetHealth()
+    {
+        currentHealth = maxHealth;
+        isDead = false;
+    }
+
+    /// <summary>
     /// 回溯/轮回专用：直接把血量设置到指定值，绕过死亡判定。
     /// 血量会钳制到 [0, maxHealth]。若目标血量 > 0，同时清除死亡状态（复活）。
     /// </summary>
