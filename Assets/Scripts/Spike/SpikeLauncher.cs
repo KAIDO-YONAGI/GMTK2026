@@ -79,7 +79,9 @@ public class SpikeLauncher : MonoBehaviour
     {
         if (spikePrefab == null) return;
 
-        FlyingSpike spike = Instantiate(spikePrefab, transform.position, Quaternion.identity);
+        FlyingSpike spike = Instantiate(spikePrefab, transform.position, Quaternion.identity, transform);
+        spike.transform.SetParent(null);
+
         spike.Launch(transform.up);
     }
 
