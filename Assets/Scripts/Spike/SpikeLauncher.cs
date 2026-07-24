@@ -10,9 +10,38 @@ public class SpikeLauncher : MonoBehaviour
     [SerializeField] private FlyingSpike spikePrefab;
     [SerializeField] private Vector2 launchDirection = Vector2.right;
     [SerializeField] private float launchInterval = 0f;
+    [SerializeField] private VoidEventSO reincarnationBegEvent;
+    [SerializeField] private VoidEventSO reincarnationEndEvent;
 
     private bool isActive;
+    private bool isPaused;
     private float timer;
+
+    private void OnEnable()
+    {
+        if (reincarnationBegEvent != null)
+            reincarnationBegEvent.VoidEvent += OnReincarnationBeg;
+        if (reincarnationEndEvent != null)
+            reincarnationEndEvent.VoidEvent += OnReincarnationEnd;
+    }
+
+    private void OnDisable()
+    {
+        if (reincarnationBegEvent != null)
+            reincarnationBegEvent.VoidEvent -= OnReincarnationBeg;
+        if (reincarnationEndEvent != null)
+            reincarnationEndEvent.VoidEvent -= OnReincarnationEnd;
+    }
+
+    private void OnReincarnationBeg()
+    {
+        isPaused = true;
+    }
+
+    private void OnReincarnationEnd()
+    {
+        isPaused = false;
+    }
 
     [ContextMenu("Activate")]
     public void Activate()
@@ -28,7 +57,7 @@ public class SpikeLauncher : MonoBehaviour
 
     private void Update()
     {
-        if (!isActive || launchInterval <= 0f) return;
+        if (!isActive || isPaused || launchInterval <= 0f) return;
 
         timer += Time.deltaTime;
         if (timer >= launchInterval)

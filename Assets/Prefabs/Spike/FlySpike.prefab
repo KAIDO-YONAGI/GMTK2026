@@ -103,7 +103,9 @@ MonoBehaviour:
   damage: 1
   rewindSpeed: 1
   rewindCooldownSeconds: 1
-  reincarnationEvent: {fileID: 11400000, guid: f37a074e87627f8498ef5a4e37f6d6ee, type: 2}
+  reincarnationBegEvent: {fileID: 11400000, guid: f37a074e87627f8498ef5a4e37f6d6ee, type: 2}
+  reincarnationEndEvent: {fileID: 11400000, guid: 92fba088eb8a33d448de9ab09aa82b8e, type: 2}
+  snapshotAppliedEvent: {fileID: 11400000, guid: 3ae4240a4cb67964c9246f0c3e832efb, type: 2}
 --- !u!60 &7411424748627937562
 PolygonCollider2D:
   m_ObjectHideFlags: 0

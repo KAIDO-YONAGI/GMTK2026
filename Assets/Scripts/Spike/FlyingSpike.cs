@@ -9,10 +9,13 @@ public class FlyingSpike : RewindableBase
     [SerializeField] private int damage = 1;
     [SerializeField] private float rewindSpeed = 1f;
     [SerializeField] private float rewindCooldownSeconds = 1f;
-    [SerializeField] private VoidEventSO reincarnationEvent;
+    [SerializeField] private VoidEventSO reincarnationBegEvent;
+    [SerializeField] private VoidEventSO reincarnationEndEvent;
+    [SerializeField] private FloatEventSO snapshotAppliedEvent;
 
     private Vector3 flyDirection;
     private float aliveTimer;
+    private float birthTime;
     private bool isFrozen;
 
     private struct SpikeSnapshot : IRewindSnapshot
@@ -35,18 +38,48 @@ public class FlyingSpike : RewindableBase
     {
         flyDirection = direction.normalized;
         transform.up = flyDirection;
+        birthTime = Time.time;
     }
 
     private void OnEnable()
     {
-        if (reincarnationEvent != null)
-            reincarnationEvent.VoidEvent += StartRewind;
+        if (reincarnationBegEvent != null)
+            reincarnationBegEvent.VoidEvent += OnReincarnationBeg;
+        if (reincarnationEndEvent != null)
+            reincarnationEndEvent.VoidEvent += OnReincarnationEnd;
+        if (snapshotAppliedEvent != null)
+            snapshotAppliedEvent.FloatEvent += OnSnapshotApplied;
     }
 
     private void OnDisable()
     {
-        if (reincarnationEvent != null)
-            reincarnationEvent.VoidEvent -= StartRewind;
+        if (reincarnationBegEvent != null)
+            reincarnationBegEvent.VoidEvent -= OnReincarnationBeg;
+        if (reincarnationEndEvent != null)
+            reincarnationEndEvent.VoidEvent -= OnReincarnationEnd;
+        if (snapshotAppliedEvent != null)
+            snapshotAppliedEvent.FloatEvent -= OnSnapshotApplied;
+    }
+
+    private void OnReincarnationBeg()
+    {
+        StartRewind();
+    }
+
+    private void OnSnapshotApplied(float snapshotTime)
+    {
+        if (snapshotTime < birthTime)
+            Destroy(gameObject);
+    }
+
+    private void OnReincarnationEnd()
+    {
+        StopAllCoroutines();
+        OnUnfreeze();
+        if (this == null) return;
+        ClearSnapshots();
+        isRewinding = false;
+        isRewindCoolingDown = false;
     }
     
     private void Update()
