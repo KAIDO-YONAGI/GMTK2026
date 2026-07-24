@@ -13,6 +13,7 @@ public class PlayerMovement : MonoBehaviour
     public float jumpForce = 12f;
     // 刚体通过 Inspector 拖拽引用，允许移动脚本挂在 Player 的子物体上。
     [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private ParticleSystem runParticleSystem;
 
     [Header("Input Events")]
     [SerializeField] private VoidEventSO startInputEvent;
@@ -149,6 +150,18 @@ public class PlayerMovement : MonoBehaviour
             : true;
         agingRate = 1f - AgeManager.instance.AgeNormalized;
         agingRate = Mathf.Max(0.3f, agingRate);
+        
+        if(isGrounded &&  Input.GetAxisRaw("Horizontal") != 0)
+        {
+            if(!runParticleSystem.isPlaying)
+                runParticleSystem.Play();
+        }
+        else
+        {
+            if(runParticleSystem.isPlaying)
+                runParticleSystem.Stop();
+        }
+            
     }
 
     void HandleJumpInput()
