@@ -8,13 +8,14 @@ public class RewindTimeBar : MonoBehaviour
     [SerializeField] private Image usableImage;
     [SerializeField] private Gradient colorGradient;
     [SerializeField] private SceneLoadEventSO sceneLoadEventSO;
+    [SerializeField] private VoidEventSO sceneLoadedEvent;
     [SerializeField] private CanvasGroup hudGroup;
 
     private RectTransform fillRect;
     private RectTransform consumedRect;
     private float fullWidth;
 
-    private bool isRetry;
+    private bool pendingShow;
     // private float lastAppliedSnapshotTime;
     private float lastUsableImageWidth;
 
@@ -34,29 +35,34 @@ public class RewindTimeBar : MonoBehaviour
     {
         if (sceneLoadEventSO != null)
             sceneLoadEventSO.LoadRequestEvent += OnSceneLoad;
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent += OnSceneLoaded;
     }
 
     private void OnDisable()
     {
         if (sceneLoadEventSO != null)
             sceneLoadEventSO.LoadRequestEvent -= OnSceneLoad;
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent -= OnSceneLoaded;
     }
 
     private void OnSceneLoad(List<GameSceneSO> scenes, Vector3 position, bool isToFade)
     {
-        if (isRetry)
-        {
-            isRetry = false;
-            hudGroup.alpha = 0;
-            return;
-        }
-        
         if (hudGroup == null) return;
-        bool hasLocation = scenes != null && scenes.Exists(s => s != null && s.sceneType == MyEnums.SceneType.Location);
-        
-        hudGroup.alpha = hasLocation ? 1 : 0;
-        hudGroup.interactable = hasLocation;
-        hudGroup.blocksRaycasts = hasLocation;
+        hudGroup.alpha = 0;
+        hudGroup.interactable = false;
+        hudGroup.blocksRaycasts = false;
+        pendingShow = scenes != null && scenes.Exists(s => s != null && s.sceneType == MyEnums.SceneType.Location);
+    }
+
+    private void OnSceneLoaded()
+    {
+        if (hudGroup == null) return;
+        hudGroup.alpha = pendingShow ? 1 : 0;
+        hudGroup.interactable = pendingShow;
+        hudGroup.blocksRaycasts = pendingShow;
+        pendingShow = false;
     }
     
     private void Update()

@@ -121,6 +121,7 @@ MonoBehaviour:
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
   sceneLoadEventSO: {fileID: 11400000, guid: 820c6319319801a4987f94ab3d435c01, type: 2}
+  sceneLoadedEvent: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
   hudGroup: {fileID: 6921099027826360944}
 --- !u!1 &3516731398032200250
 GameObject:
