@@ -48,7 +48,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -147,9 +147,9 @@ TextureImporter:
       name: tilemap_packed_1
       rect:
         serializedVersion: 2
-        x: 252
+        x: 254
         y: 108
-        width: 18
+        width: 14
         height: 18
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -168,9 +168,9 @@ TextureImporter:
       name: tilemap_packed_2
       rect:
         serializedVersion: 2
-        x: 252
+        x: 254
         y: 90
-        width: 18
+        width: 14
         height: 18
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -210,9 +210,9 @@ TextureImporter:
       name: tilemap_packed_4
       rect:
         serializedVersion: 2
-        x: 270
+        x: 272
         y: 108
-        width: 18
+        width: 14
         height: 18
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -231,9 +231,9 @@ TextureImporter:
       name: tilemap_packed_5
       rect:
         serializedVersion: 2
-        x: 270
+        x: 272
         y: 90
-        width: 18
+        width: 14
         height: 18
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
