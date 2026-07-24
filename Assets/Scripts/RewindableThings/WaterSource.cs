@@ -133,12 +133,13 @@ public class WaterSource : RewindableBase
         freezeCoroutine = StartCoroutine(FreezeAfterDelay());
     }
 
-    /// <summary>由 WaterFlowUnit 的 Ice.OnBroken 回调调用：单单元碎冰。</summary>
+    /// <summary>由 WaterFlowUnit 的 Ice.OnBroken 回调调用：单单元碎冰后变回水（Stage2），可再次结冰。</summary>
     public void NotifyUnitBroken(WaterFlowUnit unit)
     {
         if (unit == null) return;
-        unit.ForcePhase(WaterFlowUnit.WaterPhase.Broken);
-        RecordSnapshot(); // 状态转变：碎冰
+        // 碎冰后切回 Stage2（满水），IceImg 子物体未销毁，后续可被 WaterFreezeTrigger 再次结冰。
+        unit.ForcePhase(WaterFlowUnit.WaterPhase.Stage2);
+        RecordSnapshot(); // 状态转变：碎冰→变回水
     }
 
     // ===== 流水协程：每隔 flowInterval 向下一格生成单元 =====
