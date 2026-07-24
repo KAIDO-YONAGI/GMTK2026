@@ -25,6 +25,23 @@ public class ReincarnationManager : RewindableBase
     public float MinRewindBaseSeconds => minRewindBaseSeconds;
     public float CurrentRewindableSeconds => CalculateCurrentRewindableSeconds();
 
+    /// <summary>
+    /// 当前队列里实际存了多少秒的快照（最早快照到最新快照的时间跨度）。
+    /// 实时反映：随 agingRate 缩减窗口时旧快照被裁剪，此值会动态变小。
+    /// 与 CurrentRewindableSeconds（理论上限）不同——这是"当下真的能倒回多久"。
+    /// 队列为空或正在回溯时返回 0。无 ToArray，适合表现层每帧读取。
+    /// </summary>
+    public float CurrentStoredSeconds
+    {
+        get
+        {
+            if (snapshots.Count == 0) return 0f;
+            // earliest=队首（Peek），latest=入队时缓存的时间戳，避免遍历/ToArray
+            float earliest = snapshots.Peek().time;
+            return Mathf.Max(0f, latestSnapshotTime - earliest);
+        }
+    }
+
     [Header("Rewind Playback")]
     [Tooltip("回溯播放倍速。1 = 与记录时 1:1 实时倒放；数值越大倒带越快。按真实流逝时间驱动，非固定步长。")]
     [SerializeField] private float rewindSpeed = 1f;
@@ -45,6 +62,9 @@ public class ReincarnationManager : RewindableBase
 
     // 快照队列（容器留子类，基类只提供算法）
     private readonly Queue<PlayerSnapshot> snapshots = new Queue<PlayerSnapshot>();
+
+    // 缓存最新快照时间戳，避免 CurrentStoredSeconds 每次 ToArray 遍历队列（表现层每帧读会 GC）
+    private float latestSnapshotTime = 0f;
 
     // 玩家根 Transform、移动脚本和物理刚体
     private Transform playerTransform;
@@ -135,6 +155,7 @@ public class ReincarnationManager : RewindableBase
         }
 
         snapshots.Clear();
+        latestSnapshotTime = 0f;
         isRewinding = false;
         isRewindCoolingDown = false;
         currentRewoundGameTime = 0f;
@@ -179,6 +200,8 @@ public class ReincarnationManager : RewindableBase
 
         // 3. 入队并按可回溯时间窗口裁剪过期快照（算法在基类）
         EnqueueAndTrim(snapshots, snap, rewindableSeconds);
+        // 缓存最新快照时间戳，供 CurrentStoredSeconds 零分配读取
+        latestSnapshotTime = snap.time;
     }
 
     public override void StartRewind()
@@ -237,6 +260,7 @@ public class ReincarnationManager : RewindableBase
     protected override void ClearSnapshots()
     {
         snapshots.Clear();
+        latestSnapshotTime = 0f;
     }
 
     protected override bool ShouldContinueRewind()
