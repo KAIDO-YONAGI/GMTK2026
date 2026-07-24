@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 玩家轮回回溯：继承 RewindableBase，实现 Player 专属的快照抓取/还原/冻结。
@@ -21,6 +22,10 @@ public class ReincarnationManager : RewindableBase
 
     [Tooltip("每次 apply 应用快照后广播该快照的时间戳（snap.time）。表现层可据此显示「倒回到了哪个时刻」。")]
     [SerializeField] private FloatEventSO snapshotAppliedEvent;
+
+    [Header("Movement Events")]
+    [SerializeField] private VoidEventSO MovementBegEventSO;
+    [SerializeField] private VoidEventSO MovementEndEventSO;
 
     [Header("Rewind Time Window")]
     [Tooltip("完全年轻（agingRate=1）时的可回溯秒数。")]
@@ -57,8 +62,9 @@ public class ReincarnationManager : RewindableBase
     }
 
     [Header("Rewind Playback")]
-    [Tooltip("回溯播放倍速。1 = 与记录时 1:1 实时倒放；数值越大倒带越快。按真实流逝时间驱动，非固定步长。")]
-    [SerializeField] private float rewindSpeed = 1f;
+    [FormerlySerializedAs("rewindSpeed")]
+    [Tooltip("Recorded snapshot seconds consumed per real second. 1 = one recorded second per real second. Independent of Age Per Second.")]
+    [SerializeField, Min(0f)] private float rewindConsumptionPerSecond = 1f;
 
     [Tooltip("回溯播放结束后、恢复记录新快照前的冷却秒数。期间输入立即恢复，只是不记录。")]
     [SerializeField] private float rewindCooldownSeconds = 1f;
@@ -191,7 +197,7 @@ public class ReincarnationManager : RewindableBase
     {
         // 倒放和冷却期间不记录新快照，避免与回放互相干扰。
         if (IsRewindOperationLocked) return;
-        
+
         RecordSnapshot();
     }
 
@@ -222,11 +228,11 @@ public class ReincarnationManager : RewindableBase
         if (IsRewindOperationLocked) return;
         if (snapshots.Count == 0) return;
 
-        // 队列转数组（按时间升序），交给基类倒放协程；时间参数由本类（玩家专属）传入
+        // 消耗速率直接映射到快照时间轴，保证表现层读取的倒回秒数与实际应用快照一致。
         StartCoroutine(RewindBackwards(
             snapshots.ToArray(),
             ApplySnapshot,
-            rewindSpeed,
+            Mathf.Max(0f, rewindConsumptionPerSecond),
             CalculateCurrentRewindableSeconds,
             rewindCooldownSeconds));
     }
@@ -235,6 +241,9 @@ public class ReincarnationManager : RewindableBase
     protected override void OnFreeze()
     {
         hasFrozenPlayerState = true;
+
+        // 通过移动事件管线停止玩家输入。
+        if (MovementBegEventSO != null) MovementBegEventSO.OnEventRaised();
 
         // 回溯真正开始：广播 beg 事件（此时基类 isRewinding 已为 true）
         if (reincarnationBegEvent != null) reincarnationBegEvent.OnEventRaised();
@@ -265,6 +274,9 @@ public class ReincarnationManager : RewindableBase
         }
 
         hasFrozenPlayerState = false;
+
+        // 通过移动事件管线恢复玩家输入。
+        if (MovementEndEventSO != null) MovementEndEventSO.OnEventRaised();
 
         // 回溯真正结束：广播 end 事件以恢复输入（此时基类 isRewinding 已为 false，冷却尚未开始）
         if (reincarnationEndEvent != null) reincarnationEndEvent.OnEventRaised();

@@ -2236,6 +2236,14 @@ PrefabInstance:
       propertyPath: rewindCooldownSeconds
       value: 0.2
       objectReference: {fileID: 0}
+    - target: {fileID: 5846675653859473895, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
+      propertyPath: stopInputEvent
+      value:
+      objectReference: {fileID: 11400000, guid: b0c54761287e6b94da400ffc4d5c9c46, type: 2}
+    - target: {fileID: 5846675653859473895, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
+      propertyPath: startInputEvent
+      value:
+      objectReference: {fileID: 11400000, guid: d1be32208aed32d47bbf516fc6248eb6, type: 2}
     - target: {fileID: 7136176016375389579, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_Name
       value: Player

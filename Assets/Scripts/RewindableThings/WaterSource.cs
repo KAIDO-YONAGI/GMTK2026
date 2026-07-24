@@ -11,7 +11,8 @@ using UnityEngine;
 ///    - 命中 Ground/Platform → 停止继续向下生成（已有单元继续推进到 Stage2 / 可结冰）。
 ///    - 命中 PressurePlate（tag）→ 调其 Activate() 后停止。
 /// 2. 状态推进：所有 Stage1 单元出生 stage1ToStage2Seconds 秒后自动切 Stage2。
-/// 3. 结冰：StartFreezing 启动 freezeDelay 倒计时，到点把所有 Stage2 单元切 Frozen（带碰撞 + Ice 标记）。
+/// 3. 结冰：StartFreezing 启动 freezeDelay 倒计时，到点把所有 Stage2 单元切 Frozen；
+///    此后新成熟的水流单元也会直接切 Frozen（带碰撞 + Ice 标记）。
 /// 4. 碎冰：Ice 被销毁时回调 NotifyUnitBroken → 该单元切 Broken（关碰撞、不再结冰）。
 ///
 /// 回溯策略（事件驱动稀疏快照，区别于 FlyingSpike 的每帧快照）：
@@ -40,7 +41,7 @@ public class WaterSource : RewindableBase
     [SerializeField] private float stage1ToStage2Seconds = 1f;
 
     [Header("Freeze")]
-    [Tooltip("StartFreezing 触发后多少秒把所有 Stage2 单元结冰。")]
+    [Tooltip("StartFreezing 触发后多少秒进入冻结状态。现有及后续成熟的水流单元都会结冰。")]
     [SerializeField] private float freezeDelay = 2f;
 
     [Header("Collision Detection")]
@@ -72,7 +73,7 @@ public class WaterSource : RewindableBase
     private int stepCount;
 
     private bool isFlowing;     // 是否在向下扩散
-    private bool isFrozen;      // 整体是否已结冰（防止重复结冰）
+    private bool isFrozen;      // 冻结状态是否已生效；后续成熟的单元也会直接结冰
     // 是否已经完成过一次流水（流到底/被阻挡停过）。流过一次后忽略所有 StartFlowing 调用，
     // 直到回溯（OnReincarnationEnd）重置才能被 trigger 再次触发。
     private bool hasFlowedOnce;
@@ -188,7 +189,7 @@ public class WaterSource : RewindableBase
         flowCoroutine = null;
     }
 
-    // ===== 状态推进协程：轮询所有 Stage1 单元到点切 Stage2 =====
+    // ===== 状态推进协程：轮询 Stage1 单元，成熟后切 Stage2 或 Frozen =====
     private IEnumerator AdvanceLoop()
     {
         while (true)
@@ -205,7 +206,9 @@ public class WaterSource : RewindableBase
                     !u.LockAtStage1 &&
                     now - u.BirthTime >= stage1ToStage2Seconds)
                 {
-                    u.SetPhase(WaterFlowUnit.WaterPhase.Stage2);
+                    u.SetPhase(isFrozen
+                        ? WaterFlowUnit.WaterPhase.Frozen
+                        : WaterFlowUnit.WaterPhase.Stage2);
                     anyChanged = true;
                 }
             }
@@ -303,6 +306,7 @@ public class WaterSource : RewindableBase
         StopAllCoroutines();
         OnUnfreeze();
         if (this == null) return;
+        RemoveDiscardedUnits();
         ClearSnapshots();
         isRewinding = false;
         isRewindCoolingDown = false;
@@ -330,6 +334,35 @@ public class WaterSource : RewindableBase
             var u = units[i];
             if (u == null) continue;
             if (u.BirthTime > snapshotTime) u.gameObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// 回溯结束后移除已被隐藏的未来单元。
+    /// 若只隐藏不移除，续流会在相同格子追加新单元，下一次回溯又会激活旧单元并造成重叠。
+    /// </summary>
+    private void RemoveDiscardedUnits()
+    {
+        for (int i = units.Count - 1; i >= 0; i--)
+        {
+            WaterFlowUnit unit = units[i];
+            if (unit == null)
+            {
+                units.RemoveAt(i);
+                continue;
+            }
+
+            if (unit.gameObject.activeSelf) continue;
+
+            units.RemoveAt(i);
+            if (Application.isPlaying)
+            {
+                Destroy(unit.gameObject);
+            }
+            else
+            {
+                DestroyImmediate(unit.gameObject);
+            }
         }
     }
 
