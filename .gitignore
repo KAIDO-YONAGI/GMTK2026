@@ -126,3 +126,14 @@ Desktop.ini
 $RECYCLE.BIN/
 GameJam.code-workspace
 .zcode/
+
+# ==========================
+# 嵌入式包 Packages/NB_FX 临时备份（迁出嵌套 git 时遗留）
+# ==========================
+**/.git.bak/
+
+# ==========================
+# JetBrains Rider IDE 本地缓存（来自 NB_FX 嵌入包，上游已 tracked 的保留）
+# ==========================
+[Pp]ackages/NB_FX/**/.idea/workspace.xml
+[Pp]ackages/NB_FX/**/.idea/shelf/
