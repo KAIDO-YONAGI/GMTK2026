@@ -308,6 +308,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spikeLauncher: {fileID: 4820085334413409041}
+  disableRotation: 0
+  disabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!1 &6479035280894071616
 GameObject:
   m_ObjectHideFlags: 0

@@ -26,4 +26,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/PersistentScene_1.unity
     guid: e956b5f550b9ae042a2749df25e0e54c
+  - enabled: 1
+    path: Assets/Scenes/LevelScenes/TeachingLevel01.unity
+    guid: ad254bf91fd160d4b9a230debbcdb835
   m_configObjects: {}

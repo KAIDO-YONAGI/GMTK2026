@@ -123,7 +123,7 @@ public class HealthManager : MonoBehaviour
 
     private bool isDead = false;
 
-    private void OnDie()
+    public void OnDie()
     {
         if (isDead) return;
         isDead = true;
