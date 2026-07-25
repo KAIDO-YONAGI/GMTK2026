@@ -79,6 +79,14 @@ public class WaterSource : RewindableBase
     // 直到回溯（OnReincarnationEnd）重置才能被 trigger 再次触发。
     private bool hasFlowedOnce;
 
+    // 玩家是否已通过 trigger 请求结冰。与 isFrozen 解耦：
+    // - isFrozen 是「当前是否已结冰」（随相位/快照变化）
+    // - freezeRequested 是「玩家意图」（跨回溯保留）
+    // 语义：踩 trigger → true；冰被击碎 → false；回溯时跟随快照还原。
+    // 这样回溯到「结冰前」时 freezeRequested 仍为 true → 自动重新结冰；
+    // 只有冰被击碎（玩家主动行为）才清除意图，要求重新踩 trigger。
+    private bool freezeRequested;
+
     private Coroutine flowCoroutine;
     private Coroutine advanceCoroutine;
     private Coroutine freezeCoroutine;
@@ -105,6 +113,7 @@ public class WaterSource : RewindableBase
         public bool isFrozen;               // 是否已结冰
         public bool isFlowing;              // 是否正在流
         public int stepCount;               // 当前向下生成的格数（决定继续流的位置）
+        public bool freezeRequested;        // 玩家是否已请求结冰（意图，跨回溯保留）
 
         public float Time => time;
     }
@@ -126,12 +135,20 @@ public class WaterSource : RewindableBase
         RecordSnapshot(); // 状态转变：开始流水
     }
 
-    /// <summary>启动结冰倒计时；已冻结后仍可让碎冰水块再次结冰。</summary>
+    /// <summary>
+    /// 启动结冰倒计时（由 WaterFreezeTrigger 调用）。
+    /// 请求语义：踩 trigger = 玩家意图结冰，设 freezeRequested=true。
+    /// 是否真正启动协程看当前是否已经「冰完整且无碎冰水」——是则幂等忽略，否则启动倒计时。
+    /// 回溯时若还原到 freezeRequested=true 但 isFrozen=false 的时刻，OnReincarnationEnd 会自动重新结冰。
+    /// </summary>
     public void StartFreezing()
     {
         if (IsRewindOperationLocked) return;
 
-        // 未进入冻结模式时允许首次结冰；已进入冻结模式时只为碎冰后留下的 Stage2 水块重新计时。
+        // 记录玩家意图。即使当前已结冰也接受请求（幂等），以便回溯到结冰前能自动重新结冰。
+        freezeRequested = true;
+
+        // 已结冰且无 Stage2（碎冰水）需要重冻 → 已是终态，幂等忽略，不重复启动协程。
         if (isFrozen && !HasStage2Units()) return;
         if (freezeCoroutine != null) return;
 
@@ -158,6 +175,11 @@ public class WaterSource : RewindableBase
         if (unit == null) return;
         // 碎冰后切回 Stage2（满水），IceImg 子物体未销毁，后续可被 WaterFreezeTrigger 再次结冰。
         unit.ForcePhase(WaterFlowUnit.WaterPhase.Stage2);
+        // 冰被击碎 = 玩家主动行为，清除结冰意图：必须重新踩 trigger 才能再次结冰。
+        // 不清除的话，只要有一格 Stage2 存在，AdvanceLoop/FreezeAfterDelay 就会让水自动重冻——
+        // 这违背「击碎后需重新触发」的设计。
+        // 注意：不清 isFrozen。其他未碎冰的单元仍是冰；这一格变 Stage2 等待重新被请求结冰。
+        freezeRequested = false;
         RecordSnapshot(); // 状态转变：碎冰→变回水
     }
 
@@ -342,6 +364,13 @@ public class WaterSource : RewindableBase
             flowCoroutine = StartCoroutine(FlowLoop());
             advanceCoroutine = StartCoroutine(AdvanceLoop());
         }
+
+        // 请求驱动结冰：回溯结束后，若 freezeRequested=true 但尚未真正结冰（isFrozen=false），
+        // 自动重新启动结冰倒计时。覆盖"回溯到结冰前"的场景：水会自动重新结冰，不需玩家再踩 trigger。
+        if (freezeRequested && !isFrozen && freezeCoroutine == null)
+        {
+            freezeCoroutine = StartCoroutine(FreezeAfterDelay());
+        }
     }
 
     private void OnSnapshotApplied(float snapshotTime)
@@ -398,7 +427,8 @@ public class WaterSource : RewindableBase
             hasFlowedOnce = hasFlowedOnce,
             isFrozen = isFrozen,
             isFlowing = isFlowing,
-            stepCount = stepCount
+            stepCount = stepCount,
+            freezeRequested = freezeRequested
         };
         EnqueueAndTrim(snapshots, snap, GetRewindableSeconds());
     }
@@ -449,13 +479,15 @@ public class WaterSource : RewindableBase
             if (units[i] != null) units[i].gameObject.SetActive(false);
         }
 
-        // 还原水源级状态：回溯到的那个时刻的 hasFlowedOnce/isFrozen/isFlowing/stepCount。
+        // 还原水源级状态：回溯到的那个时刻的 hasFlowedOnce/isFrozen/isFlowing/stepCount/freezeRequested。
         // 这里只更新数据，不重启协程（回溯期间协程保持停止，回溯结束后由 OnReincarnationEnd 按
-        // 还原后的 isFlowing 决定是否重启 FlowLoop，从当前 stepCount 继续向下生成）。
+        // 还原后的 isFlowing 决定是否重启 FlowLoop，从当前 stepCount 继续向下生成；
+        // 按 freezeRequested && !isFrozen 决定是否自动重新结冰）。
         hasFlowedOnce = snap.hasFlowedOnce;
         isFrozen = snap.isFrozen;
         isFlowing = snap.isFlowing;     // 仅记录状态，真正是否继续流由 OnReincarnationEnd 判定
         stepCount = snap.stepCount;
+        freezeRequested = snap.freezeRequested;
     }
 
     private float GetRewindableSeconds()

@@ -192,6 +192,10 @@ IceBlock            [Ice + IceBlock + BoxCollider2D]
 ### UI 与验证
 
 - **面板系统**：`UIManager` 事件驱动；当前实际 Canvas 名称是 `ESCCanvas`、`GuideCanvas`、`GameOverCanvas`、`HUDCanvas` 和 `FadeCanvas`，不再以 `ESCPanel` 作为场景对象名记录。
+- **ESCCanvas 按钮**（`Assets/Scenes/PersistentScene.unity`，2026-07-25 核实）：现有三个按钮，垂直顺序自上而下 `ResumeButton`(y=0) → `MenuButton`(y=-80) → `RetryButton`(y=-160)。三者 OnClick 都绑到 ESCCanvas 上的 `ESCMenuManager` 组件：
+  - `OnResumeButton`：仅关闭 ESC 面板（`UIManager.RequestCanvasClose(ESC)`）。
+  - `OnReturnToMenuButton`：关闭面板 + 用 `SceneChanger.loadEventSO` 加载 `initScene`（返回主菜单）。
+  - `OnRetryButton`（新增）：关闭面板 + `TimeManager.ForceResumeGame()` + `retryEventSO.OnEventRaised()`；`ESCMenuManager.retryEventSO` 引用 `Assets/SOs/Events/RetryEvent.asset`（GUID `4088e814...`，与 GameOver 面板的 `ButtonSceneToggler.retryEventSO` 共用同一 SO），由每场景的 `RetryManager` 监听后执行 `HealthManager.ResetHealth()` + 重载当前场景。**行为完全对齐 GameOver 的 Retry**。
 - **`CanvasToToggle` 枚举**：`ESC / GameOver / Dialog / Default`，定义于 `Assets/Scripts/MyEnums.cs:56-66`；`Default` 仍表示无面板打开，不作为真实面板目标。
 - **场景加载代码**：`InitialLoad` 以 Additive 方式加载配置的持久场景，`SceneChanger` 以 Additive 方式加载目标场景并在完成后触发 `sceneLoadedEvent`；依据 `Assets/Scripts/InitialLoad.cs:8-43`、`Assets/Scripts/Scene/SceneChanger.cs:197-252`。
 - **验证时状态**：编辑器未编译、未运行 Play Mode；控制台未发现 C# error，仅有 Unity MCP WebSocket/批处理提示。`IceBlock.cs` 的脚本诊断为 0 errors、2 warnings，属于工具启发式提示，后续测试时仍需关注。
@@ -206,3 +210,4 @@ IceBlock            [Ice + IceBlock + BoxCollider2D]
 | 2026-07-18 | 初始版本，汇总所有用户提出的持续性规范 |
 | 2026-07-23 | 附录标注渲染管线计划迁移到 URP，记录迁移尚未执行 |
 | 2026-07-24 | 依据 Unity MCP 实时状态更新项目路径、渲染管线、Build Settings、编辑器场景状态、Canvas、回溯系统 |
+| 2026-07-25 | ESCCanvas 新增 RetryButton（OnRetryButton），行为对齐 GameOver 面板的 Retry，复用 RetryEvent.asset |
