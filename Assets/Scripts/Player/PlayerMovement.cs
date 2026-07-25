@@ -51,7 +51,7 @@ public class PlayerMovement : MonoBehaviour
     /// 这是 buff 状态的单一判断入口：所有读取 buff 是否激活的地方都走这里，
     /// 不要再用「倍率 &gt; 1」之类的反推条件，避免判定标准分裂。
     /// </summary>
-    bool IsSpeedBoostActive => Time.time < speedBoostEndTime;
+    public bool IsSpeedBoostActive => Time.time < speedBoostEndTime;
 
     /// <summary>
     /// 当前水平移动速度，包含衰老减速和回溯结束后的加速倍率。
