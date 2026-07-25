@@ -165,17 +165,6 @@ Transform:
   - {fileID: 728539833}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1895847262 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1168334578244036141, guid: 7262689743604654294b93111288406d, type: 3}
-  m_PrefabInstance: {fileID: 1642202654080057322}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &1258117131961250442
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -281,38 +270,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1795018739}
     m_Modifications:
-    - target: {fileID: 1168334578244036141, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_fontSize
-      value: 72
-      objectReference: {fileID: 0}
-    - target: {fileID: 1168334578244036141, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_fontColor.b
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1168334578244036141, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_fontColor.g
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1168334578244036141, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_fontColor.r
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1168334578244036141, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_enableAutoSizing
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1168334578244036141, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_fontColor32.rgba
-      value: 4278190080
-      objectReference: {fileID: 0}
-    - target: {fileID: 1915421256755255245, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 300
-      objectReference: {fileID: 0}
-    - target: {fileID: 1915421256755255245, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 60
-      objectReference: {fileID: 0}
     - target: {fileID: 2777368398886928515, guid: 7262689743604654294b93111288406d, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -393,47 +350,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4622975460273878247, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_fontSize
-      value: 53.7
-      objectReference: {fileID: 0}
-    - target: {fileID: 4622975460273878247, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_enableAutoSizing
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6640132882095502779, guid: 7262689743604654294b93111288406d, type: 3}
       propertyPath: m_Name
       value: GameOverCanvas
-      objectReference: {fileID: 0}
-    - target: {fileID: 7010862047656139672, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_Alpha
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8351963644772558159, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: deathText
-      value: 
-      objectReference: {fileID: 1895847262}
-    - target: {fileID: 8351963644772558159, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: brutalDeathMessage
-      value: You Died Hard!
-      objectReference: {fileID: 0}
-    - target: {fileID: 8351963644772558159, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: peacefulDeathMessage
-      value: 'You Died
-
-        A peaceful end'
-      objectReference: {fileID: 0}
-    - target: {fileID: 9107353233703059197, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_Color.b
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9107353233703059197, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_Color.g
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9107353233703059197, guid: 7262689743604654294b93111288406d, type: 3}
-      propertyPath: m_Color.r
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -548,10 +467,6 @@ PrefabInstance:
     - target: {fileID: 3708655197922957265, guid: 2814db402cac3824395491cf7ccf0cda, type: 3}
       propertyPath: m_Name
       value: AgeManager
-      objectReference: {fileID: 0}
-    - target: {fileID: 9158868109060796969, guid: 2814db402cac3824395491cf7ccf0cda, type: 3}
-      propertyPath: agePerSecond
-      value: 0.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

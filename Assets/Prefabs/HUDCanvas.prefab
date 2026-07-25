@@ -92,7 +92,7 @@ MonoBehaviour:
   usableImage: {fileID: 5385857379618039229}
   colorGradient:
     serializedVersion: 2
-    key0: {r: 0.83396226, g: 0.47164798, b: 0.18095396, a: 1}
+    key0: {r: 0.46980855, g: 0.46979097, b: 0.4716981, a: 1}
     key1: {r: 0.5245282, g: 0.20554657, b: 0, a: 1}
     key2: {r: 0, g: 0, b: 0, a: 0}
     key3: {r: 0, g: 0, b: 0, a: 0}
