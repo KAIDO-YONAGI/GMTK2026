@@ -202,8 +202,14 @@ MonoBehaviour:
   maxHealth: 3
   currentHealth: 3
   deathEvent: {fileID: 11400000, guid: 8dca7fcc25850a547b132efa5717da16, type: 2}
+  SceneLoadedEvent: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
   healthChangedEvent: {fileID: 11400000, guid: 9cefeb31f41307444b80469d48e17b9b, type: 2}
   hurtParticle: {fileID: 6061273827704097398}
+  shakeEvent: {fileID: 11400000, guid: 713707974d4e29f40b560088833b02c2, type: 2}
+  hitShakeParams:
+    intensity: 5
+    duration: 0.2
+    frequency: 0.1
 --- !u!1 &6037709841802087982
 GameObject:
   m_ObjectHideFlags: 0
@@ -248,6 +254,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1a4a39f8f2819f48b21a6aa6d06a8f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sceneLoadedEvent: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
 --- !u!1 &7136176016375389579
 GameObject:
   m_ObjectHideFlags: 0

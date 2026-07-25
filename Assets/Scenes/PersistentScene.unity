@@ -2305,26 +2305,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 2335072288856054525, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: shakeEvent
-      value: 
-      objectReference: {fileID: 11400000, guid: 713707974d4e29f40b560088833b02c2, type: 2}
-    - target: {fileID: 2335072288856054525, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: SceneLoadedEvent
-      value: 
-      objectReference: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
-    - target: {fileID: 2335072288856054525, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: hitShakeParams.duration
-      value: 0.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 2335072288856054525, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: hitShakeParams.frequency
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2335072288856054525, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: hitShakeParams.intensity
-      value: 5
-      objectReference: {fileID: 0}
     - target: {fileID: 2939508182233482846, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -2364,14 +2344,6 @@ PrefabInstance:
     - target: {fileID: 2939508182233482846, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3926923858612492624, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: m_Material
-      value: 
-      objectReference: {fileID: 6200000, guid: e21774f6b40a03841b7b99f4ff3710fb, type: 2}
-    - target: {fileID: 6061273827704097398, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: CollisionModule.m_Planes.Array.data[0]
-      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 7136176016375389579, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_Name
