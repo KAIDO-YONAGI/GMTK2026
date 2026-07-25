@@ -1345,7 +1345,6 @@ MonoBehaviour:
   newPosition: {x: -3, y: 0, z: 0}
   sceneToLoad:
   - {fileID: 11400000, guid: 04fa262fc057c7747a2f528ec2102d6d, type: 2}
-  - {fileID: 11400000, guid: d0bc0f95eabc5e84cac62158689aec79, type: 2}
   isToFade: 1
 --- !u!61 &1266651857
 BoxCollider2D:
