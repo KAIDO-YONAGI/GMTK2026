@@ -47,6 +47,13 @@ public class PlayerMovement : MonoBehaviour
     Coroutine speedUpFeedbackRoutine;
 
     /// <summary>
+    /// 回溯加速 buff 当前是否生效。
+    /// 这是 buff 状态的单一判断入口：所有读取 buff 是否激活的地方都走这里，
+    /// 不要再用「倍率 &gt; 1」之类的反推条件，避免判定标准分裂。
+    /// </summary>
+    bool IsSpeedBoostActive => Time.time < speedBoostEndTime;
+
+    /// <summary>
     /// 当前水平移动速度，包含衰老减速和回溯结束后的加速倍率。
     /// </summary>
     public float CurrentMoveSpeed
@@ -118,7 +125,11 @@ public class PlayerMovement : MonoBehaviour
 
     void OnReincarnationEnd()
     {
-        // 加速时间从回溯结束这一刻开始计算；重复触发会重新开始一段完整加速。
+        // 加速 buff 生效期间不重复触发：避免多次回溯结束导致 buff 时间不断被刷新/延长。
+        if (IsSpeedBoostActive)
+            return;
+
+        // 加速时间从回溯结束这一刻开始计算。
         speedBoostEndTime = Time.time + rewindSpeedBoostDuration;
 
         // 立即提升当前竖直运动速度，同时后续跳跃会使用同一倍率。
@@ -215,8 +226,8 @@ public class PlayerMovement : MonoBehaviour
 
     float GetSpeedMultiplier()
     {
-        // 加速是否生效只由结束时间判断，保证移动和 UI 使用同一段 Buff 时间。
-        return Time.time < speedBoostEndTime
+        // 倍率本身只描述「生效时是几倍」，是否生效交给 IsSpeedBoostActive。
+        return IsSpeedBoostActive
             ? Mathf.Max(1f, rewindSpeedMultiplier)
             : 1f;
     }
@@ -227,7 +238,7 @@ public class PlayerMovement : MonoBehaviour
         speedUpFeedbackGroup.alpha = 0f;
         yield return FadeSpeedUpFeedback(0f, 1f, speedUpFadeInDuration);
 
-        while (Time.time < speedBoostEndTime)
+        while (IsSpeedBoostActive)
             yield return null;
 
         yield return FadeSpeedUpFeedback(1f, 0f, speedUpFadeOutDuration);
