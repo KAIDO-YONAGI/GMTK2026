@@ -6,7 +6,7 @@ public class SpikeLauncherRingInput : MonoBehaviour, IPointerDownHandler, IDragH
 {
     [SerializeField] private SpikeLauncher spikeLauncher;
 
-    [Header("Disable State")]
+    [Header("勾选后禁用旋转")]
     public bool disableRotation;
     public Color disabledColor = Color.gray;
 

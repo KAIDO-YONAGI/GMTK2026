@@ -12,6 +12,10 @@ public class PressurePlate : MonoBehaviour
     [Tooltip("解除时播放的动画 Clip 名称。")]
     [SerializeField] private string deactivateClipName = "Deactivate";
 
+    [Header("勾选后，第一次 Activate 后销毁自身")]
+    [Tooltip("勾选后，第一次 Activate 后销毁自身")]
+    [SerializeField] private bool destroyOnActivate;
+
     [Header("Events")]
     [Tooltip("被激活时触发。水流末端命中此压力板或玩家进入 trigger 区域时调用。")]
     [SerializeField] private UnityEvent onActivate;
@@ -44,6 +48,7 @@ public class PressurePlate : MonoBehaviour
     {
         if (animator != null) animator.Play(activateClipName);
         onActivate?.Invoke();
+        if (destroyOnActivate) Destroy(gameObject);
     }
 
     /// <summary>解除激活（玩家离开 trigger 时自动调用，或外部手动调用）。</summary>
