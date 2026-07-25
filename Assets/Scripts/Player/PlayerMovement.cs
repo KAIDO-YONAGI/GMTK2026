@@ -132,9 +132,6 @@ public class PlayerMovement : MonoBehaviour
         // 加速时间从回溯结束这一刻开始计算。
         speedBoostEndTime = Time.time + rewindSpeedBoostDuration;
 
-        // 立即提升当前竖直运动速度，同时后续跳跃会使用同一倍率。
-        ApplyVerticalSpeedBoost();
-
         if (speedUpFeedbackGroup == null)
             return;
 
@@ -193,12 +190,12 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleJumpInput()
     {
-        // 跳跃属于竖直移动，回溯结束后的加速倍率同样作用于跳跃冲量。
+        // 跳跃属于竖直移动，加速 buff 不作用于竖直方向，因此只受衰老减速影响。
         if (rb == null || !Input.GetButtonDown("Jump") || !isGrounded)
             return;
 
         Vector2 velocity = rb.velocity;
-        velocity.y = jumpForce * agingRate * GetSpeedMultiplier();
+        velocity.y = jumpForce * agingRate;
         rb.velocity = velocity;
     }
 
@@ -211,17 +208,6 @@ public class PlayerMovement : MonoBehaviour
         // y 速度交给物理系统保留，避免覆盖重力和跳跃。
         float x = Input.GetAxisRaw("Horizontal");
         rb.velocity = new Vector2(x * CurrentMoveSpeed, rb.velocity.y);
-    }
-
-    void ApplyVerticalSpeedBoost()
-    {
-        if (rb == null)
-            return;
-
-        // 回溯结束时只对当下已有的竖直速度应用一次倍率，
-        // 避免在每个 FixedUpdate 中重复放大导致速度指数增长。
-        float speedMultiplier = GetSpeedMultiplier();
-        rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * speedMultiplier);
     }
 
     float GetSpeedMultiplier()
