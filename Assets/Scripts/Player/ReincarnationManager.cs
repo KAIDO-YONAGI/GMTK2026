@@ -287,9 +287,10 @@ public class ReincarnationManager : RewindableBase
 
     public override void StartRewind()
     {
-        // 防重入 + 空队列保护
+        // 防重入 + 空队列保护。ghost（残影）是纯表现层，不参与能否回溯的判定：
+        // 玩家原地不动时 ghost 列表为空，但位置快照仍在记录，应允许回溯（血量/时间倒回）。
         if (IsRewindOperationLocked) return;
-        if (snapshots.Count == 0 || ghosts.Count == 0) return;
+        if (snapshots.Count == 0) return;
 
         rewindLimitForCurrentOperation = CalculateCurrentRewindableSeconds();
 
@@ -371,11 +372,12 @@ public class ReincarnationManager : RewindableBase
             return rewindLimitForCurrentOperation;
 
         float ageLimitedSeconds = CalculateAgeLimitedRewindableSeconds();
-        if (ghosts.Count == 0)
+        // 可回溯窗口由位置快照的存储时长决定；ghost（残影）是纯表现层，不参与窗口计算。
+        if (snapshots.Count == 0)
             return 0f;
 
-        float ghostHistorySeconds = Mathf.Max(0f, latestSnapshotTime - ghosts[0].snapshotTime);
-        return Mathf.Min(ageLimitedSeconds, ghostHistorySeconds);
+        float storedSeconds = Mathf.Max(0f, latestSnapshotTime - snapshots.Peek().time);
+        return Mathf.Min(ageLimitedSeconds, storedSeconds);
     }
 
     private float CalculateAgeLimitedRewindableSeconds()
