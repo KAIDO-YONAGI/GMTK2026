@@ -46,6 +46,10 @@ public class ReincarnationManager : RewindableBase
     [SerializeField] private SpriteRenderer playerSpriteRenderer;
     [Tooltip("Sorting order offset applied to ghosts relative to the player SpriteRenderer.")]
     [SerializeField] private int ghostSortingOrderOffset = -1;
+    [Tooltip("Prefab for pooled ghost objects. If unassigned, a template is auto-generated at runtime.")]
+    [SerializeField] private PlayerGhost ghostPrefab;
+    [Tooltip("Number of ghost objects to pre-instantiate.")]
+    [SerializeField] private int ghostPrewarmCount = 20;
 
     // 外部只读访问：回溯窗口及当前实时上限（UI 显示、外部系统查询用）
     public float MaxRewindBaseSeconds => maxRewindBaseSeconds;
@@ -115,7 +119,8 @@ public class ReincarnationManager : RewindableBase
         public float snapshotTime;
         public float fadeElapsed;
         public Color sourceColor;
-        public SpriteRenderer renderer;
+        public PlayerGhost ghost;
+        public SpriteRenderer Renderer => ghost != null ? ghost.Renderer : null;
     }
 
     // 快照队列（容器留子类，基类只提供算法）
@@ -129,6 +134,7 @@ public class ReincarnationManager : RewindableBase
     private bool hasPreviousGhostVisualState;
     private float rewindLimitForCurrentOperation;
     private float lastGhostFadeTime;
+    private ObjectPool<PlayerGhost> ghostPool;
 
     // 玩家根 Transform 和物理刚体
     private Transform playerTransform;
@@ -167,6 +173,22 @@ public class ReincarnationManager : RewindableBase
             previousGhostVisualState = CaptureGhostVisualState();
             hasPreviousGhostVisualState = true;
         }
+
+        SetupGhostPool();
+    }
+
+    private void SetupGhostPool()
+    {
+        PlayerGhost prefab = ghostPrefab;
+        if (prefab == null)
+        {
+            var template = new GameObject("GhostTemplate");
+            template.SetActive(false);
+            template.AddComponent<SpriteRenderer>();
+            prefab = template.AddComponent<PlayerGhost>();
+            prefab.transform.SetParent(transform);
+        }
+        ghostPool = new ObjectPool<PlayerGhost>(prefab, ghostPrewarmCount, transform);
     }
 
     private void OnEnable()
@@ -198,6 +220,8 @@ public class ReincarnationManager : RewindableBase
         {
             Instance = null;
         }
+
+        ghostPool?.Clear();
     }
 
     private void TrySubscribeSceneLoadedEvent()
@@ -426,13 +450,16 @@ public class ReincarnationManager : RewindableBase
 
     private void CreateGhost(float snapshotTime, GhostVisualState state)
     {
-        GameObject ghostObject = new GameObject("PlayerGhost");
-        Transform ghostTransform = ghostObject.transform;
+        PlayerGhost ghost = ghostPool.Get();
+        if (ghost == null) return;
+
+        Transform ghostTransform = ghost.transform;
+        ghostTransform.SetParent(null);
         ghostTransform.position = state.position;
         ghostTransform.rotation = state.rotation;
         ghostTransform.localScale = state.scale;
 
-        SpriteRenderer ghostRenderer = ghostObject.AddComponent<SpriteRenderer>();
+        SpriteRenderer ghostRenderer = ghost.Renderer;
         ghostRenderer.sprite = state.sprite;
         ghostRenderer.color = state.color;
         ghostRenderer.flipX = state.flipX;
@@ -450,7 +477,7 @@ public class ReincarnationManager : RewindableBase
             snapshotTime = snapshotTime,
             fadeElapsed = 0f,
             sourceColor = state.color,
-            renderer = ghostRenderer
+            ghost = ghost
         });
     }
 
@@ -486,7 +513,7 @@ public class ReincarnationManager : RewindableBase
             Color color = ghost.sourceColor;
             float remainingAlpha = Mathf.Clamp01(1f - ghost.fadeElapsed / fadeDuration) * 0.6f;
             color.a = ghost.sourceColor.a * remainingAlpha * remainingAlpha;
-            ghost.renderer.color = color;
+            ghost.Renderer.color = color;
         }
     }
 
@@ -512,8 +539,8 @@ public class ReincarnationManager : RewindableBase
     {
         GhostSnapshot ghost = ghosts[index];
         ghosts.RemoveAt(index);
-        if (ghost.renderer != null)
-            Destroy(ghost.renderer.gameObject);
+        if (ghost.ghost != null)
+            ghostPool.Return(ghost.ghost);
     }
 
     private void ClearGhosts()
