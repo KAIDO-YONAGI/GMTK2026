@@ -10,6 +10,7 @@ public class AgeManager : MonoBehaviour
     [SerializeField] private float agePerSecond = 1f;
     [SerializeField] private DeathEventSO_ deathEventSO;
     [SerializeField] private SceneLoadEventSO sceneLoadEventSO;
+    [SerializeField] private DifficultySettingsSO difficultySettings;
 
     private bool isInLevel;
     private float currentAge;
@@ -40,8 +41,18 @@ public class AgeManager : MonoBehaviour
 
     private void OnSceneLoadRequest(List<GameSceneSO> scenes, Vector3 position, bool isToFade)
     {
-        bool hasLocation = scenes != null && scenes.Exists(s => s != null && s.sceneType == MyEnums.SceneType.Location);
-        if (!hasLocation) return;
+        if (difficultySettings != null && difficultySettings.entries != null && scenes != null && scenes.Count > 0)
+        {
+            GameSceneSO targetScene = scenes[0];
+            foreach (var entry in difficultySettings.entries)
+            {
+                if (entry.scene == targetScene)
+                {
+                    agePerSecond = entry.agePerSecond;
+                    break;
+                }
+            }
+        }
 
         isInLevel = true;
         currentAge = startingAge;

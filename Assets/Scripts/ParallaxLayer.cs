@@ -7,12 +7,6 @@ public class ParallaxLayer : MonoBehaviour
     [Tooltip("(0,0)=static far bg, (0.5,0.5)=midground half speed, (1,1)=normal scene, (2,1)=fast foreground")]
     [SerializeField] private Vector2 parallaxFactor = Vector2.one;
 
-    [Header("Auto Tile")]
-    [Tooltip("Enable to wrap horizontally for seamless tiling")]
-    [SerializeField] private bool autoTile;
-    [Tooltip("Width of one tile segment")]
-    [SerializeField] private float tileWidth = 5f;
-
     private Vector3 startPosition;
     private Vector3 cameraStartPosition;
     private Vector3? lastAppliedPosition;
@@ -37,17 +31,7 @@ public class ParallaxLayer : MonoBehaviour
             0f
         );
 
-        Vector3 pos = startPosition + offset;
-
-        if (autoTile && tileWidth > 0f)
-        {
-            float hw = tileWidth * 0.5f;
-            float xOffset = pos.x - startPosition.x;
-            xOffset = Mathf.Repeat(xOffset + hw, tileWidth) - hw;
-            pos.x = startPosition.x + xOffset;
-        }
-
-        lastAppliedPosition = pos;
-        transform.position = pos;
+        lastAppliedPosition = startPosition + offset;
+        transform.position = lastAppliedPosition.Value;
     }
 }
