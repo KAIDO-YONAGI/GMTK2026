@@ -8,7 +8,7 @@ public class AgeManager : MonoBehaviour
     [SerializeField] private float startingAge = 20f;
     [SerializeField] private float maxAge = 100f;
     [SerializeField] private float agePerSecond = 1f;
-    [SerializeField] private DeathEventSO deathEventSO;
+    [SerializeField] private DeathEventSO_ deathEventSO;
     [SerializeField] private SceneLoadEventSO sceneLoadEventSO;
 
     private bool isInLevel;

@@ -4,7 +4,7 @@ public class DeathManager : MonoBehaviour
 {
     public static DeathManager instance;
 
-    [SerializeField] private DeathEventSO deathEventSO;
+    [SerializeField] private DeathEventSO_ deathEventSO;
     [SerializeField] private ToggleCanvasEventSO gameOverToggleEventSO;
 
     public MyEnums.DeathType LastDeathType { get; private set; }

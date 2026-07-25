@@ -12,7 +12,7 @@ public class HealthManager : MonoBehaviour
     [SerializeField] private int currentHealth;
 
     [Header("Death Event")]
-    [SerializeField] private DeathEventSO deathEvent;
+    [SerializeField] private DeathEventSO_ deathEvent;
 
     [SerializeField] private VoidEventSO SceneLoadedEvent;
 
