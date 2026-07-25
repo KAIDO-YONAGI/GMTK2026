@@ -9,7 +9,7 @@ public interface IPoolable
 }
 
 /// <summary>通用泛型对象池，支持预热预制体</summary>
-public class ObjectPool<T> where T : MonoBehaviour
+public class ObjectPool<T> where T : Component
 {
     private readonly T _prefab;
     private readonly Transform _parent;

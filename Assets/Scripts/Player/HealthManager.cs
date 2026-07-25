@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class HealthManager : MonoBehaviour
@@ -21,7 +23,8 @@ public class HealthManager : MonoBehaviour
     [SerializeField] private IntEventSO healthChangedEvent;
     
     [Header("受伤粒子")]
-    [SerializeField] private ParticleSystem hurtParticle;
+    [SerializeField] private ParticleSystem hurtParticlePrefab;
+    [SerializeField] private int hurtParticlePrewarmCount = 3;
 
     [Header("Shake Event")]
     [SerializeField] private ShakeEventSO shakeEvent;
@@ -33,6 +36,9 @@ public class HealthManager : MonoBehaviour
     };
     
     
+
+    private ObjectPool<ParticleSystem> hurtParticlePool;
+    private readonly List<ParticleSystem> activeHurtParticles = new();
 
     // 当前生命值只读访问（外部查询用，修改请走 ChangeHealth）
     public int CurrentHealth => currentHealth;
@@ -49,14 +55,41 @@ public class HealthManager : MonoBehaviour
         Instance = this;
 
         currentHealth = maxHealth;
-        
-        // 强制受伤粒子使用 unscaled time，保证玩家死亡触发 PauseGame(timeScale=0) 后仍能正常播放。
-        // useUnscaledTime 属于 ParticleSystem.MainModule，需要通过 main 访问器设置。
-        if (hurtParticle != null)
-        {
-            var main = hurtParticle.main;
-            main.useUnscaledTime = true;
-        }
+        SetupHurtParticlePool();
+    }
+
+    private void SetupHurtParticlePool()
+    {
+        if (hurtParticlePrefab == null) return;
+
+        // 令预制体各实例使用 unscaled time，保证暂停时仍能正常播放
+        var main = hurtParticlePrefab.main;
+        main.useUnscaledTime = true;
+
+        hurtParticlePool = new ObjectPool<ParticleSystem>(hurtParticlePrefab, hurtParticlePrewarmCount, transform);
+    }
+
+    private void PlayHurtParticle()
+    {
+        if (hurtParticlePool == null) return;
+        ParticleSystem ps = hurtParticlePool.Get();
+        if (ps == null) return;
+
+        ps.transform.SetParent(null);
+        ps.transform.position = transform.position;
+        ps.Play();
+        activeHurtParticles.Add(ps);
+        StartCoroutine(ReturnParticleWhenDone(ps));
+    }
+
+    private IEnumerator ReturnParticleWhenDone(ParticleSystem ps)
+    {
+        // 等待粒子播放完成
+        while (ps.isPlaying)
+            yield return null;
+
+        hurtParticlePool.Return(ps);
+        activeHurtParticles.Remove(ps);
     }
 
     private void OnEnable()
@@ -82,6 +115,8 @@ public class HealthManager : MonoBehaviour
         {
             Instance = null;
         }
+
+        hurtParticlePool?.Clear();
     }
 
     /// <summary>
@@ -97,8 +132,7 @@ public class HealthManager : MonoBehaviour
         
         if (amount < 0)
         {
-            if (hurtParticle !=null)
-                hurtParticle.Play();
+            PlayHurtParticle();
 
             if (shakeEvent != null)
                 shakeEvent.RaiseShakeEvent(hitShakeParams);
@@ -173,6 +207,16 @@ public class HealthManager : MonoBehaviour
 
     private void OnSceneLoaded()
     {
-        hurtParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        StopAllCoroutines();
+        for (int i = activeHurtParticles.Count - 1; i >= 0; i--)
+        {
+            var ps = activeHurtParticles[i];
+            if (ps != null)
+            {
+                ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                hurtParticlePool.Return(ps);
+            }
+        }
+        activeHurtParticles.Clear();
     }
 }
