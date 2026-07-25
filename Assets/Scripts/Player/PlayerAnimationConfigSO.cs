@@ -12,6 +12,7 @@ public class PlayerAnimationConfigSO : ScriptableObject
 {
     public PlayerAnimationEntry idle;
     public PlayerAnimationEntry walk;
+    public PlayerAnimationEntry run;
     public PlayerAnimationEntry hurt;
     public PlayerAnimationEntry dead;
 }

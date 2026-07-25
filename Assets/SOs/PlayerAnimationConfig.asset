@@ -13,28 +13,35 @@ MonoBehaviour:
   m_Name: PlayerAnimationConfig
   m_EditorClassIdentifier: 
   idle:
-    clip: {fileID: 0}
+    clip: {fileID: 7400000, guid: f81ce415e4ecacc4585379f409b88d71, type: 2}
     parameters:
       speedScale: 0
       startNormalizedTime: 0
       loop: 0
       layer: 0
   walk:
-    clip: {fileID: 0}
+    clip: {fileID: 7400000, guid: f81ce415e4ecacc4585379f409b88d71, type: 2}
+    parameters:
+      speedScale: 0
+      startNormalizedTime: 0
+      loop: 0
+      layer: 0
+  run:
+    clip: {fileID: 7400000, guid: f81ce415e4ecacc4585379f409b88d71, type: 2}
     parameters:
       speedScale: 0
       startNormalizedTime: 0
       loop: 0
       layer: 0
   hurt:
-    clip: {fileID: 0}
+    clip: {fileID: 7400000, guid: f81ce415e4ecacc4585379f409b88d71, type: 2}
     parameters:
       speedScale: 0
       startNormalizedTime: 0
       loop: 0
       layer: 0
   dead:
-    clip: {fileID: 0}
+    clip: {fileID: 7400000, guid: f81ce415e4ecacc4585379f409b88d71, type: 2}
     parameters:
       speedScale: 0
       startNormalizedTime: 0

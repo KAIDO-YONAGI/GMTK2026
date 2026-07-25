@@ -35,6 +35,11 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField, Min(0f)] private float speedUpFadeInDuration = 0.2f;
     [SerializeField, Min(0f)] private float speedUpFadeOutDuration = 0.4f;
 
+    [Header("Animation")]
+    [Tooltip("Animator player component. Must be on the same GameObject with an Animator.")]
+    [SerializeField] private UnityAnimatorPlayer animatorPlayer;
+    [SerializeField] private PlayerAnimationConfigSO animationConfig;
+
     [Header("Ground Check")]
     public LayerMask groundLayer;            // 地面 Layer（Ground/Platform 等）
     public Transform groundCheck;            // 脚下检测点（Player 底部）
@@ -45,6 +50,10 @@ public class PlayerMovement : MonoBehaviour
     bool isInputEnabled = true;
     float speedBoostEndTime = float.NegativeInfinity;
     Coroutine speedUpFeedbackRoutine;
+
+    private enum PlayerAnimState { Idle, Run, Hurt, Dead }
+    private PlayerAnimState currentAnimState;
+    private bool pendingHurt;
 
     /// <summary>
     /// 回溯加速 buff 当前是否生效。
@@ -185,7 +194,80 @@ public class PlayerMovement : MonoBehaviour
             if(runParticleSystem.isPlaying)
                 runParticleSystem.Stop();
         }
-            
+
+        UpdateMovementAnimation();
+
+    }
+
+    void UpdateMovementAnimation()
+    {
+        if (animatorPlayer == null || animationConfig == null)
+            return;
+
+        if (pendingHurt)
+        {
+            pendingHurt = false;
+            PlayClipOrStay(PlayerAnimState.Hurt);
+            return;
+        }
+
+        PlayerAnimState newState = isGrounded && Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.01f
+            ? PlayerAnimState.Run
+            : PlayerAnimState.Idle;
+
+        PlayClipOrStay(newState);
+    }
+
+    void PlayClipOrStay(PlayerAnimState state)
+    {
+        if (state == currentAnimState)
+            return;
+
+        currentAnimState = state;
+        AnimationClip clip = GetClipForState(state);
+        if (clip != null)
+            animatorPlayer.Play(clip, GetParamsForState(state));
+    }
+
+    AnimationClip GetClipForState(PlayerAnimState state)
+    {
+        return state switch
+        {
+            PlayerAnimState.Idle => animationConfig.idle.clip,
+            PlayerAnimState.Run => animationConfig.run.clip,
+            PlayerAnimState.Hurt => animationConfig.hurt.clip,
+            PlayerAnimState.Dead => animationConfig.dead.clip,
+            _ => null
+        };
+    }
+
+    AnimationPlayParameters GetParamsForState(PlayerAnimState state)
+    {
+        return state switch
+        {
+            PlayerAnimState.Idle => animationConfig.idle.parameters,
+            PlayerAnimState.Run => animationConfig.run.parameters,
+            PlayerAnimState.Hurt => animationConfig.hurt.parameters,
+            PlayerAnimState.Dead => animationConfig.dead.parameters,
+            _ => AnimationPlayParameters.Default
+        };
+    }
+
+    public void PlayHurtAnimation()
+    {
+        if (animatorPlayer == null || animationConfig == null || animationConfig.hurt.clip == null)
+            return;
+
+        pendingHurt = true;
+    }
+
+    public void PlayDeadAnimation()
+    {
+        if (animatorPlayer == null || animationConfig == null || animationConfig.dead.clip == null)
+            return;
+
+        currentAnimState = PlayerAnimState.Dead;
+        animatorPlayer.Play(animationConfig.dead.clip, animationConfig.dead.parameters);
     }
 
     void HandleJumpInput()
