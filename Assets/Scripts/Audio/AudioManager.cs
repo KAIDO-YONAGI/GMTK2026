@@ -39,9 +39,16 @@ public class AudioManager : MonoBehaviour
         _bgmSource.loop = true;
     }
 
+    [Header("Startup")]
+    [Tooltip("启动时自动播放的 BGM 类型。设为 Default 则不自动播放。")]
+    [SerializeField] private MyEnums.BGMType startupBGM = MyEnums.BGMType.Gaming;
+
     private void Start()
     {
         Prewarm();
+        // 启动时自动播放全局 BGM（AudioConfig 未配置该类型时安全跳过）
+        if (startupBGM != MyEnums.BGMType.Default)
+            PlayBGM(startupBGM);
     }
 
     private void Prewarm()

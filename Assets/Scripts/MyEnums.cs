@@ -96,6 +96,8 @@ namespace MyEnums
     public enum BGMType
     {
         Menu,
-        Gaming
+        Gaming,
+         //default没有功能性索引，建议新的枚举在此之前添加
+        Default
     }
 }

@@ -15,4 +15,8 @@ MonoBehaviour:
   sfxEntries:
   - type: 0
     items: []
-  bgmEntries: []
+  bgmEntries:
+  - type: 1
+    items:
+    - clip: {fileID: 8300000, guid: f0276008d2644fe4bb96c8c8e10c0da0, type: 3}
+      weight: 1
