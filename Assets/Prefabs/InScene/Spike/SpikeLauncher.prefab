@@ -191,6 +191,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spikeLauncher: {fileID: 2380219757260346464}
+  disableRotation: 0
+  disabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!1 &6383880685809342620
 GameObject:
   m_ObjectHideFlags: 0
@@ -267,7 +269,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.19496846, g: 0.19496846, b: 0.19496846, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
