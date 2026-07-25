@@ -31,6 +31,15 @@ public class IceBlock : RewindableBase
     [Header("Reincarnation Events")]
     [SerializeField] private VoidEventSO reincarnationBegEvent;
     [SerializeField] private VoidEventSO reincarnationEndEvent;
+    
+    [Header("Shake Event")]
+    [SerializeField] private ShakeEventSO shakeEvent;
+    [SerializeField] private CameraShake.ShakeParameters hitShakeParams = new CameraShake.ShakeParameters
+    {
+        intensity = 5f,
+        duration = 0.2f,
+        frequency = 0.1f
+    };
 
     private BoxCollider2D blockCollider;
     private Ice ice;
@@ -83,6 +92,7 @@ public class IceBlock : RewindableBase
     {
         SetBroken(true);
         RecordSnapshot();
+        shakeEvent.RaiseShakeEvent(hitShakeParams);
     }
 
     /// <summary>切换碎裂/完整状态（视觉 + 碰撞）。</summary>

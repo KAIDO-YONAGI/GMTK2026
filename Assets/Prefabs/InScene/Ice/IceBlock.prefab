@@ -195,3 +195,8 @@ MonoBehaviour:
   rewindCooldownSeconds: 1
   reincarnationBegEvent: {fileID: 11400000, guid: f37a074e87627f8498ef5a4e37f6d6ee, type: 2}
   reincarnationEndEvent: {fileID: 11400000, guid: 92fba088eb8a33d448de9ab09aa82b8e, type: 2}
+  shakeEvent: {fileID: 11400000, guid: 713707974d4e29f40b560088833b02c2, type: 2}
+  hitShakeParams:
+    intensity: 5
+    duration: 0.2
+    frequency: 0.1

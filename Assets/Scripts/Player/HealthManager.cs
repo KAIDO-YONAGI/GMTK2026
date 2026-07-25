@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class HealthManager : MonoBehaviour
@@ -13,12 +14,25 @@ public class HealthManager : MonoBehaviour
     [Header("Death Event")]
     [SerializeField] private DeathEventSO deathEvent;
 
+    [SerializeField] private VoidEventSO SceneLoadedEvent;
+
     [Header("Health Changed Event")]
     [Tooltip("血量变化时广播当前血量值（IntEventSO）。血量 HUD 订阅它来更新显示。")]
     [SerializeField] private IntEventSO healthChangedEvent;
     
     [Header("受伤粒子")]
     [SerializeField] private ParticleSystem hurtParticle;
+
+    [Header("Shake Event")]
+    [SerializeField] private ShakeEventSO shakeEvent;
+    [SerializeField] private CameraShake.ShakeParameters hitShakeParams = new CameraShake.ShakeParameters
+    {
+        intensity = 0.5f,
+        duration = 0.3f,
+        frequency = 1f
+    };
+    
+    
 
     // 当前生命值只读访问（外部查询用，修改请走 ChangeHealth）
     public int CurrentHealth => currentHealth;
@@ -35,6 +49,30 @@ public class HealthManager : MonoBehaviour
         Instance = this;
 
         currentHealth = maxHealth;
+        
+        // 强制受伤粒子使用 unscaled time，保证玩家死亡触发 PauseGame(timeScale=0) 后仍能正常播放。
+        // useUnscaledTime 属于 ParticleSystem.MainModule，需要通过 main 访问器设置。
+        if (hurtParticle != null)
+        {
+            var main = hurtParticle.main;
+            main.useUnscaledTime = true;
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (SceneLoadedEvent != null)
+        {
+            SceneLoadedEvent.VoidEvent += OnSceneLoaded;
+        }
+    }
+    
+    private void OnDisable()
+    {
+        if (SceneLoadedEvent != null)
+        {
+            SceneLoadedEvent.VoidEvent -= OnSceneLoaded;
+        }
     }
 
     private void OnDestroy()
@@ -57,10 +95,13 @@ public class HealthManager : MonoBehaviour
 
         currentHealth += amount;
         
-        if (amount < 0 && hurtParticle != null)
+        if (amount < 0)
         {
-            if(!hurtParticle.isPlaying)
+            if (hurtParticle !=null)
                 hurtParticle.Play();
+
+            if (shakeEvent != null)
+                shakeEvent.RaiseShakeEvent(hitShakeParams);
         }
 
         // 上界保护
@@ -127,5 +168,11 @@ public class HealthManager : MonoBehaviour
     {
         if (healthChangedEvent != null)
             healthChangedEvent.OnEventRaised(currentHealth);
+    }
+
+
+    private void OnSceneLoaded()
+    {
+        hurtParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 }

@@ -144,6 +144,7 @@ GameObject:
   - component: {fileID: 35010389}
   - component: {fileID: 35010388}
   - component: {fileID: 35010387}
+  - component: {fileID: 35010391}
   m_Layer: 0
   m_Name: VirtualCamera
   m_TagString: Untagged
@@ -235,6 +236,20 @@ Transform:
   - {fileID: 544299409}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &35010391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 35010386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e437c9ca2621bd42a2a6884c0a32c2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shakeEvent: {fileID: 11400000, guid: 713707974d4e29f40b560088833b02c2, type: 2}
+  virtualCamera: {fileID: 35010389}
 --- !u!1 &119303424
 GameObject:
   m_ObjectHideFlags: 0
@@ -1357,6 +1372,7 @@ GameObject:
   - component: {fileID: 1203163736}
   - component: {fileID: 1203163738}
   - component: {fileID: 1203163737}
+  - component: {fileID: 1203163739}
   m_Layer: 0
   m_Name: cm
   m_TagString: Untagged
@@ -1434,6 +1450,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac0b09e7857660247b1477e93731de29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1203163739
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1203163735}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68bb026fafb42b14791938953eaace77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_NoiseProfile: {fileID: 11400000, guid: 69ce8388f6785dd4c8c39915efece2f4, type: 2}
+  m_PivotOffset: {x: 0, y: 0, z: 0}
+  m_AmplitudeGain: 1
+  m_FrequencyGain: 1
+  mNoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &1441200312
 GameObject:
   m_ObjectHideFlags: 0
@@ -2221,6 +2254,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2335072288856054525, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
+      propertyPath: shakeEvent
+      value: 
+      objectReference: {fileID: 11400000, guid: 713707974d4e29f40b560088833b02c2, type: 2}
+    - target: {fileID: 2335072288856054525, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
+      propertyPath: hitShakeParams.duration
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2335072288856054525, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
+      propertyPath: hitShakeParams.frequency
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2335072288856054525, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
+      propertyPath: hitShakeParams.intensity
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 2939508182233482846, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
