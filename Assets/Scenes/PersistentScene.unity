@@ -1421,10 +1421,10 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1471093296}
   - {fileID: 1600124932}
   - {fileID: 1946034692}
   - {fileID: 770467901}
-  - {fileID: 1471093296}
   - {fileID: 1611935819}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1934,7 +1934,7 @@ MonoBehaviour:
   initialPosition: {x: 0, y: 0, z: 0}
   fadeDuration: 1
   initScene:
-  - {fileID: 11400000, guid: 10fd3d9f63b336742a59724491f0d794, type: 2}
+  - {fileID: 11400000, guid: e76f057f942010e418b9d660a649c6c1, type: 2}
   player: {fileID: 27706796}
   fadeCanva: {fileID: 383477868}
   loadEventSO: {fileID: 11400000, guid: 820c6319319801a4987f94ab3d435c01, type: 2}

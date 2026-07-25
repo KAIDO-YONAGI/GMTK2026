@@ -184,9 +184,37 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1795018739}
     m_Modifications:
+    - target: {fileID: 2657781574569372966, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
+      propertyPath: m_SortingOrder
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3516731398032200250, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
       propertyPath: m_Name
       value: HUDCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 3696543959449738910, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 3696543959449738910, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3696543959449738910, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3696543959449738910, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 3696543959449738910, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -402
+      objectReference: {fileID: 0}
+    - target: {fileID: 3696543959449738910, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -90
       objectReference: {fileID: 0}
     - target: {fileID: 5382924639195656398, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
       propertyPath: m_Pivot.x
