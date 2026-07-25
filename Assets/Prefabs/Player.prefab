@@ -54,7 +54,7 @@ MonoBehaviour:
   maxRewindBaseSeconds: 8
   minRewindBaseSeconds: 1
   rewindWindowMultiplier: 1
-  ghostSamplingMultiplier: 0.07
+  ghostSamplingMultiplier: 0.055
   playerSpriteRenderer: {fileID: 4404007958458381322}
   ghostSortingOrderOffset: -1
   ghostPrefab: {fileID: 0}
