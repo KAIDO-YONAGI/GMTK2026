@@ -19,6 +19,10 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private VoidEventSO startInputEvent;
     [SerializeField] private VoidEventSO stopInputEvent;
 
+    [Header("Scene Load")]
+    [Tooltip("场景加载完成事件。每次切场景后清空刚体速度，避免上一场景的残留速度带到新场景。")]
+    [SerializeField] private VoidEventSO sceneLoadedEvent;
+
     [Header("Rewind Speed Boost")]
     [SerializeField] private VoidEventSO reincarnationEndEvent;
     [Tooltip("Speed multiplier after rewind. 1.5 means 150% of the normal speed.")]
@@ -71,6 +75,9 @@ public class PlayerMovement : MonoBehaviour
             stopInputEvent.VoidEvent += OnStopInput;
         if (reincarnationEndEvent != null)
             reincarnationEndEvent.VoidEvent += OnReincarnationEnd;
+        // 监听场景加载完成事件：每次切场景清空刚体速度，防止残留位移。
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent += OnSceneLoaded;
     }
 
     void OnDisable()
@@ -82,6 +89,8 @@ public class PlayerMovement : MonoBehaviour
             stopInputEvent.VoidEvent -= OnStopInput;
         if (reincarnationEndEvent != null)
             reincarnationEndEvent.VoidEvent -= OnReincarnationEnd;
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent -= OnSceneLoaded;
 
         // 离开场景或禁用组件时，清除加速状态和反馈显示。
         speedBoostEndTime = float.NegativeInfinity;
@@ -123,6 +132,13 @@ public class PlayerMovement : MonoBehaviour
             StopCoroutine(speedUpFeedbackRoutine);
 
         speedUpFeedbackRoutine = StartCoroutine(PlaySpeedUpFeedback());
+    }
+
+    void OnSceneLoaded()
+    {
+        // 每次切场景加载完成后清空刚体速度，避免上一场景的残留速度带到新场景。
+        if (rb != null)
+            rb.velocity = Vector2.zero;
     }
 
     void Update()

@@ -2261,38 +2261,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3189143564253261891, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: playOnAwake
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470325760390854201, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470325760390854201, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.4
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470325760390854201, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6061273827704097398, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: playOnAwake
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6408282719847275732, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6408282719847275732, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6408282719847275732, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 7136176016375389579, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_Name
       value: Player
