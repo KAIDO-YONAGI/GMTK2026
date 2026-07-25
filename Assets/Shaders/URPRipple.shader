@@ -6,8 +6,10 @@ Shader "Custom/URPRipple"
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         _Smoothness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
-        _RippleTex ("RippleTex", 2D) = "white" {}
-        _RippleScale ("RippleScale", Range(1,10)) = 1
+        _RippleSpeed ("Ripple Speed", Float) = 2
+        _RippleFrequency ("Ripple Frequency", Range(1, 50)) = 15
+        _RippleAmplitude ("Ripple Amplitude", Range(0, 0.5)) = 0.05
+        _RippleDamping ("Ripple Damping", Range(0, 10)) = 3
     }
 
     SubShader
@@ -69,24 +71,45 @@ Shader "Custom/URPRipple"
             half4 _Color;
             half _Smoothness;
             half _Metallic;
-            float4 _RippleTex_ST;
-            float _RippleScale;
+            float _RippleSpeed;
+            float _RippleFrequency;
+            float _RippleAmplitude;
+            float _RippleDamping;
             CBUFFER_END
 
             TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
-            TEXTURE2D(_RippleTex); SAMPLER(sampler_RippleTex);
 
             #define PI 3.14159265359
 
             float3 ComputeRipple(float2 uv, float t)
             {
-                float4 ripple = SAMPLE_TEXTURE2D(_RippleTex, sampler_RippleTex, uv);
-                ripple.yz = ripple.yz * 2.0 - 1.0;
-                float dropFrac = frac(ripple.a + t);
-                float timeFrac = dropFrac - 1.0 + ripple.x;
-                float dropFactor = 1.0 - saturate(dropFrac);
-                float final = dropFactor * sin(clamp(timeFrac * 9.0, 0.0, 4.0) * PI);
-                return float3(ripple.yz * final, 1.0);
+                float2 dx = float2(0.005, 0);
+                float2 dy = float2(0, 0.005);
+
+                float h = 0, hx = 0, hy = 0;
+
+                float2 centers[4] = { float2(0.23, 0.27), float2(0.78, 0.22), float2(0.72, 0.75), float2(0.28, 0.73) };
+
+                for (int i = 0; i < 4; i++)
+                {
+                    float phase = t * _RippleSpeed + (float)i * 1.57;
+                    float dist = length(uv - centers[i]);
+                    float envelope = exp(-dist * _RippleDamping);
+                    float wave = sin(dist * _RippleFrequency - phase);
+                    h += wave * envelope;
+
+                    float distx = length(uv + dx - centers[i]);
+                    hx += sin(distx * _RippleFrequency - phase) * exp(-distx * _RippleDamping);
+
+                    float disty = length(uv + dy - centers[i]);
+                    hy += sin(disty * _RippleFrequency - phase) * exp(-disty * _RippleDamping);
+                }
+
+                h *= _RippleAmplitude;
+                hx *= _RippleAmplitude;
+                hy *= _RippleAmplitude;
+
+                return normalize(float3(-(hx - h), -(hy - h), 1.0));
             }
 
             Varyings LitPassVertex(Attributes input)
@@ -122,7 +145,7 @@ Shader "Custom/URPRipple"
 
                 half4 albedoAlpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv) * _Color;
 
-                float3 rippleTS = ComputeRipple(input.uv / _RippleScale, _Time.y);
+                float3 rippleTS = ComputeRipple(input.uv, _Time.y);
                 half3 normalTS = normalize(rippleTS);
 
                 float sgn = input.tangentWS.w;
