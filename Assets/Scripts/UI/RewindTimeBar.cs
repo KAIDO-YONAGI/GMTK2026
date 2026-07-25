@@ -76,7 +76,7 @@ public class RewindTimeBar : MonoBehaviour
         fillRect.sizeDelta = size;
         fillImage.color = colorGradient.Evaluate(AgeManager.instance.AgeNormalized);
 
-        float storedSeconds = ReincarnationManager.Instance.CurrentRewindableSeconds;
+        float storedSeconds = ReincarnationManager.Instance.CurrentStoredSeconds;
         float storeFactor = storedSeconds > 0f && rewindableSeconds > 0f
             ?  storedSeconds / rewindableSeconds : 0f;
 
