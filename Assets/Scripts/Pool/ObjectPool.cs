@@ -70,7 +70,9 @@ public class ObjectPool<T> where T : Component
         if (obj == null) return;
         (obj as IPoolable)?.OnPoolReturn();
         obj.gameObject.SetActive(false);
-        obj.transform.SetParent(_parent);
+        // 父级正在反激活时跳过 SetParent，避免 "Cannot set parent while activating/deactivating"
+        if (_parent != null && _parent.gameObject.activeInHierarchy)
+            obj.transform.SetParent(_parent);
         _pool.Enqueue(obj);
     }
 
