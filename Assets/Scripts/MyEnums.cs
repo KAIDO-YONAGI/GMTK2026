@@ -77,4 +77,25 @@ namespace MyEnums
         OldDead,
         UnnormalDead
     }
+    public enum SFXType
+    {
+        None,
+        Walk,
+        IceBroken,
+        IceFreeze,
+        Hurt,
+        SpikeLaunch,
+        LoadScene,
+        Dead,
+        SpringBounce,
+        SpeedUp,
+        Land,
+        Jump,
+        PickUp
+    }
+    public enum BGMType
+    {
+        Menu,
+        Gaming
+    }
 }
