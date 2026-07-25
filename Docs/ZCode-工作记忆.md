@@ -196,6 +196,11 @@ IceBlock            [Ice + IceBlock + BoxCollider2D]
   - `OnResumeButton`：仅关闭 ESC 面板（`UIManager.RequestCanvasClose(ESC)`）。
   - `OnReturnToMenuButton`：关闭面板 + 用 `SceneChanger.loadEventSO` 加载 `initScene`（返回主菜单）。
   - `OnRetryButton`（新增）：关闭面板 + `TimeManager.ForceResumeGame()` + `retryEventSO.OnEventRaised()`；`ESCMenuManager.retryEventSO` 引用 `Assets/SOs/Events/RetryEvent.asset`（GUID `4088e814...`，与 GameOver 面板的 `ButtonSceneToggler.retryEventSO` 共用同一 SO），由每场景的 `RetryManager` 监听后执行 `HealthManager.ResetHealth()` + 重载当前场景。**行为完全对齐 GameOver 的 Retry**。
+- **GameOverCanvas 死亡提示词**（`Assets/Scenes/PersistentScene_1.unity`，2026-07-25 核实）：`GameOverManager.OnGameOver(true)` 根据 `DeathManager.LastDeathType` 动态设置 `DeathText`(TMP_Text) 的文本：
+  - `OldDead`（老死）→ `peacefulDeathMessage` = `"Rest in peace..."`（你死得很安详~）。
+  - `UnnormalDead`（被打死/暴毙）→ `brutalDeathMessage` = `"Slaughtered without mercy!"`（你暴毙而亡！）。
+  - 字段 `deathText` / `peacefulDeathMessage` / `brutalDeathMessage` 均在 Inspector 可配；原 `peacefulDeathText`(GameObject) 字段已废弃，改为始终显示 DeathText、仅切换文本。
+- **GameOverCanvas RetryButton 样式**（2026-07-25）：已向 ESC 面板靠拢——`Image.sprite = null`、`sizeDelta = (300, 60)`、Label `fontSize = 36`，与 ESCCanvas 的三个按钮视觉一致。
 - **`CanvasToToggle` 枚举**：`ESC / GameOver / Dialog / Default`，定义于 `Assets/Scripts/MyEnums.cs:56-66`；`Default` 仍表示无面板打开，不作为真实面板目标。
 - **场景加载代码**：`InitialLoad` 以 Additive 方式加载配置的持久场景，`SceneChanger` 以 Additive 方式加载目标场景并在完成后触发 `sceneLoadedEvent`；依据 `Assets/Scripts/InitialLoad.cs:8-43`、`Assets/Scripts/Scene/SceneChanger.cs:197-252`。
 - **验证时状态**：编辑器未编译、未运行 Play Mode；控制台未发现 C# error，仅有 Unity MCP WebSocket/批处理提示。`IceBlock.cs` 的脚本诊断为 0 errors、2 warnings，属于工具启发式提示，后续测试时仍需关注。
@@ -211,3 +216,4 @@ IceBlock            [Ice + IceBlock + BoxCollider2D]
 | 2026-07-23 | 附录标注渲染管线计划迁移到 URP，记录迁移尚未执行 |
 | 2026-07-24 | 依据 Unity MCP 实时状态更新项目路径、渲染管线、Build Settings、编辑器场景状态、Canvas、回溯系统 |
 | 2026-07-25 | ESCCanvas 新增 RetryButton（OnRetryButton），行为对齐 GameOver 面板的 Retry，复用 RetryEvent.asset |
+| 2026-07-25 | GameOverCanvas 死亡提示词按 DeathType 动态切换（老死 "Rest in peace..." / 暴毙 "Slaughtered without mercy!"）；GameOver RetryButton 样式向 ESC 靠拢（无 sprite / 300×60 / 字号 36） |

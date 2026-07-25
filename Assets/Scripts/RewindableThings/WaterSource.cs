@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using WaterMechanism;
 
 /// <summary>
 /// 水源管理器：水流机关的核心，继承 RewindableBase 实现回溯。
@@ -74,18 +75,16 @@ public class WaterSource : RewindableBase
     private int stepCount;
 
     private bool isFlowing;     // 是否在向下扩散
-    private bool isFrozen;      // 冻结状态是否已生效；后续成熟的单元也会直接结冰
     // 是否已经完成过一次流水（流到底/被阻挡停过）。流过一次后忽略所有 StartFlowing 调用，
     // 直到回溯（OnReincarnationEnd）重置才能被 trigger 再次触发。
     private bool hasFlowedOnce;
 
-    // 玩家是否已通过 trigger 请求结冰。与 isFrozen 解耦：
-    // - isFrozen 是「当前是否已结冰」（随相位/快照变化）
-    // - freezeRequested 是「玩家意图」（跨回溯保留）
-    // 语义：踩 trigger → true；冰被击碎 → false；回溯时跟随快照还原。
-    // 这样回溯到「结冰前」时 freezeRequested 仍为 true → 自动重新结冰；
-    // 只有冰被击碎（玩家主动行为）才清除意图，要求重新踩 trigger。
-    private bool freezeRequested;
+    // 冻结状态机（替代原 isFrozen + freezeRequested 两个 bool）。
+    // 三态：Idle（未请求）/ Requested（已踩 trigger 倒计时中）/ Frozen（已结冰）。
+    // 状态转换走 FreezeStateMachine，避免 bool 组合产生不合法中间态。
+    // 踩 trigger → Requested；倒计时到点 → Frozen；冰被击碎 → Idle（需重新踩 trigger）。
+    // 回溯时随快照还原：回溯到 Requested 态会自动重新结冰。
+    private FreezeState freezeState = FreezeState.Idle;
 
     private Coroutine flowCoroutine;
     private Coroutine advanceCoroutine;
@@ -110,10 +109,9 @@ public class WaterSource : RewindableBase
         public UnitSnapshot[] unitStates;   // 全部单元状态快照
         // 水源级状态：回溯时要一并还原，决定"回溯后是否继续流/能否再被触发"
         public bool hasFlowedOnce;          // 是否已触发过流水
-        public bool isFrozen;               // 是否已结冰
         public bool isFlowing;              // 是否正在流
         public int stepCount;               // 当前向下生成的格数（决定继续流的位置）
-        public bool freezeRequested;        // 玩家是否已请求结冰（意图，跨回溯保留）
+        public FreezeState freezeState;     // 冻结状态机（Idle/Requested/Frozen）
 
         public float Time => time;
     }
@@ -137,19 +135,19 @@ public class WaterSource : RewindableBase
 
     /// <summary>
     /// 启动结冰倒计时（由 WaterFreezeTrigger 调用）。
-    /// 请求语义：踩 trigger = 玩家意图结冰，设 freezeRequested=true。
+    /// 走状态机：踩 trigger → freezeState 转 Requested。
     /// 是否真正启动协程看当前是否已经「冰完整且无碎冰水」——是则幂等忽略，否则启动倒计时。
-    /// 回溯时若还原到 freezeRequested=true 但 isFrozen=false 的时刻，OnReincarnationEnd 会自动重新结冰。
+    /// 回溯时若还原到 Requested 态（请求了但未结冰），OnReincarnationEnd 会自动重新结冰。
     /// </summary>
     public void StartFreezing()
     {
         if (IsRewindOperationLocked) return;
 
-        // 记录玩家意图。即使当前已结冰也接受请求（幂等），以便回溯到结冰前能自动重新结冰。
-        freezeRequested = true;
+        // 记录玩家意图（Idle→Requested；已 Requested/Frozen 则幂等）。
+        FreezeStateMachine.Request(ref freezeState);
 
-        // 已结冰且无 Stage2（碎冰水）需要重冻 → 已是终态，幂等忽略，不重复启动协程。
-        if (isFrozen && !HasStage2Units()) return;
+        // 已结冰（Frozen）且无 Stage2（碎冰水）需要重冻 → 已是终态，不重复启动协程。
+        if (FreezeStateMachine.IsFrozen(freezeState) && !HasStage2Units()) return;
         if (freezeCoroutine != null) return;
 
         freezeCoroutine = StartCoroutine(FreezeAfterDelay());
@@ -175,11 +173,9 @@ public class WaterSource : RewindableBase
         if (unit == null) return;
         // 碎冰后切回 Stage2（满水），IceImg 子物体未销毁，后续可被 WaterFreezeTrigger 再次结冰。
         unit.ForcePhase(WaterFlowUnit.WaterPhase.Stage2);
-        // 冰被击碎 = 玩家主动行为，清除结冰意图：必须重新踩 trigger 才能再次结冰。
-        // 不清除的话，只要有一格 Stage2 存在，AdvanceLoop/FreezeAfterDelay 就会让水自动重冻——
-        // 这违背「击碎后需重新触发」的设计。
-        // 注意：不清 isFrozen。其他未碎冰的单元仍是冰；这一格变 Stage2 等待重新被请求结冰。
-        freezeRequested = false;
+        // 冰被击碎 = 玩家主动行为，撤回结冰意图：必须重新踩 trigger 才能再次结冰。
+        // Frozen→Idle。其他未碎冰的单元视觉上仍是冰；这一格变 Stage2 等待重新被请求结冰。
+        FreezeStateMachine.Break(ref freezeState);
         RecordSnapshot(); // 状态转变：碎冰→变回水
     }
 
@@ -238,6 +234,8 @@ public class WaterSource : RewindableBase
 
             bool anyChanged = false;
             float now = Time.time;
+            // 走状态机判定：已 Frozen 态下，新成熟单元直接进 Frozen 相位；否则进 Stage2。
+            bool frozenMode = FreezeStateMachine.IsFrozen(freezeState);
             for (int i = 0; i < units.Count; i++)
             {
                 var u = units[i];
@@ -246,7 +244,7 @@ public class WaterSource : RewindableBase
                     !u.LockAtStage1 &&
                     now - u.BirthTime >= stage1ToStage2Seconds)
                 {
-                    u.SetPhase(isFrozen
+                    u.SetPhase(frozenMode
                         ? WaterFlowUnit.WaterPhase.Frozen
                         : WaterFlowUnit.WaterPhase.Stage2);
                     anyChanged = true;
@@ -268,7 +266,8 @@ public class WaterSource : RewindableBase
             yield return null;
         }
 
-        isFrozen = true;
+        // 倒计时到点：状态机 Requested→Frozen。此后新成熟单元也直接结冰（AdvanceLoop 据此分流）。
+        FreezeStateMachine.ConfirmFrozen(ref freezeState);
         bool anyChanged = false;
         for (int i = 0; i < units.Count; i++)
         {
@@ -351,7 +350,7 @@ public class WaterSource : RewindableBase
         isRewinding = false;
         isRewindCoolingDown = false;
         // 协程已被 StopAllCoroutines 停掉，清空引用。
-        // 注意：不重置 hasFlowedOnce/isFrozen/isFlowing/stepCount——这些已由 ApplySnapshot
+        // 注意：不重置 hasFlowedOnce/freezeState/isFlowing/stepCount——这些已由 ApplySnapshot
         // 还原到回溯到的那个快照的值，必须保留以正确反映"回溯后的状态"。
         flowCoroutine = null;
         advanceCoroutine = null;
@@ -365,9 +364,9 @@ public class WaterSource : RewindableBase
             advanceCoroutine = StartCoroutine(AdvanceLoop());
         }
 
-        // 请求驱动结冰：回溯结束后，若 freezeRequested=true 但尚未真正结冰（isFrozen=false），
+        // 请求驱动结冰：回溯结束后，若处于 Requested 态（请求了但尚未真正结冰），
         // 自动重新启动结冰倒计时。覆盖"回溯到结冰前"的场景：水会自动重新结冰，不需玩家再踩 trigger。
-        if (freezeRequested && !isFrozen && freezeCoroutine == null)
+        if (FreezeStateMachine.IsPendingFreeze(freezeState) && freezeCoroutine == null)
         {
             freezeCoroutine = StartCoroutine(FreezeAfterDelay());
         }
@@ -425,10 +424,9 @@ public class WaterSource : RewindableBase
             time = Time.time,
             unitStates = CaptureAllUnits(),
             hasFlowedOnce = hasFlowedOnce,
-            isFrozen = isFrozen,
             isFlowing = isFlowing,
             stepCount = stepCount,
-            freezeRequested = freezeRequested
+            freezeState = freezeState
         };
         EnqueueAndTrim(snapshots, snap, GetRewindableSeconds());
     }
@@ -479,15 +477,14 @@ public class WaterSource : RewindableBase
             if (units[i] != null) units[i].gameObject.SetActive(false);
         }
 
-        // 还原水源级状态：回溯到的那个时刻的 hasFlowedOnce/isFrozen/isFlowing/stepCount/freezeRequested。
+        // 还原水源级状态：回溯到的那个时刻的 hasFlowedOnce/isFlowing/stepCount/freezeState。
         // 这里只更新数据，不重启协程（回溯期间协程保持停止，回溯结束后由 OnReincarnationEnd 按
         // 还原后的 isFlowing 决定是否重启 FlowLoop，从当前 stepCount 继续向下生成；
-        // 按 freezeRequested && !isFrozen 决定是否自动重新结冰）。
+        // 按 freezeState == Requested 决定是否自动重新结冰）。
         hasFlowedOnce = snap.hasFlowedOnce;
-        isFrozen = snap.isFrozen;
         isFlowing = snap.isFlowing;     // 仅记录状态，真正是否继续流由 OnReincarnationEnd 判定
         stepCount = snap.stepCount;
-        freezeRequested = snap.freezeRequested;
+        freezeState = snap.freezeState;
     }
 
     private float GetRewindableSeconds()
