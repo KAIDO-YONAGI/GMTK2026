@@ -19,9 +19,6 @@ public class RewindTimeBar : MonoBehaviour
     // private float lastAppliedSnapshotTime;
     private float lastUsableImageWidth;
 
-    float MaxSec => ReincarnationManager.Instance.MaxRewindBaseSeconds;
-    float MinSec => ReincarnationManager.Instance.MinRewindBaseSeconds;
-
     private float currentUsabelWidth;
 
     private void Awake()
@@ -70,7 +67,7 @@ public class RewindTimeBar : MonoBehaviour
         if (AgeManager.instance == null || ReincarnationManager.Instance == null) return;
 
         float agingRate = 1f - AgeManager.instance.AgeNormalized;
-        float rewindableSeconds = Mathf.Lerp(MinSec, MaxSec, agingRate);
+        float rewindableSeconds = ReincarnationManager.Instance.AgeLimitedRewindableSeconds;
         float fillAmount = agingRate;
 
         Vector2 size = fillRect.sizeDelta;
@@ -79,7 +76,7 @@ public class RewindTimeBar : MonoBehaviour
         fillRect.sizeDelta = size;
         fillImage.color = colorGradient.Evaluate(AgeManager.instance.AgeNormalized);
 
-        float storedSeconds = ReincarnationManager.Instance.CurrentStoredSeconds;
+        float storedSeconds = ReincarnationManager.Instance.CurrentRewindableSeconds;
         float storeFactor = storedSeconds > 0f && rewindableSeconds > 0f
             ?  storedSeconds / rewindableSeconds : 0f;
 
