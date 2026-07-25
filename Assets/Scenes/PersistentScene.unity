@@ -1988,6 +1988,7 @@ MonoBehaviour:
   crossfadeDuration: 1
   sfxVolume: 0.5
   bgmVolume: 0.5
+  startupBGM: 1
 --- !u!1 &1709013563
 GameObject:
   m_ObjectHideFlags: 0

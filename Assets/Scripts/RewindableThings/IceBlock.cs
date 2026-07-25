@@ -58,6 +58,10 @@ public class IceBlock : RewindableBase
 
     private readonly List<IceBlockSnapshot> snapshots = new List<IceBlockSnapshot>();
 
+    // 倒放数组对象池：复用 StartRewind 时由列表转出的数组，消除每次回溯的分配
+    private readonly ArrayPool<IceBlockSnapshot> snapshotArrayPool = new ArrayPool<IceBlockSnapshot>();
+    private IceBlockSnapshot[] borrowedPlaybackArray;
+
     private void Awake()
     {
         ice = GetComponent<Ice>();
@@ -152,13 +156,18 @@ public class IceBlock : RewindableBase
         float now = Time.time;
         TrimExpiredSnapshots(now, GetRewindableSeconds());
 
-        IceBlockSnapshot[] playbackSnapshots = snapshots.ToArray();
-        int lastIndex = playbackSnapshots.Length - 1;
-        IceBlockSnapshot current = playbackSnapshots[lastIndex];
-        current.time = now;
-        playbackSnapshots[lastIndex] = current;
+        // 倒放数组从池借出（Length 可能 ≥ 实际数），CopyTo 填入；协程内部用 count 而非 Length
+        int count = snapshots.Count;
+        borrowedPlaybackArray = snapshotArrayPool.Get(count);
+        snapshots.CopyTo(borrowedPlaybackArray, 0);
 
-        StartCoroutine(RewindBackwards(playbackSnapshots, ApplySnapshot, rewindSpeed,
+        // 关键行为：倒放起点的最后一帧时间戳改成 now，保证从当前时刻开始倒退
+        int lastIndex = count - 1;
+        IceBlockSnapshot current = borrowedPlaybackArray[lastIndex];
+        current.time = now;
+        borrowedPlaybackArray[lastIndex] = current;
+
+        StartCoroutine(RewindBackwards(borrowedPlaybackArray, count, ApplySnapshot, rewindSpeed,
             GetRewindableSeconds, rewindCooldownSeconds));
     }
 
@@ -216,5 +225,14 @@ public class IceBlock : RewindableBase
 
     protected override void OnUnfreeze() { /* 无需解冻处理 */ }
 
-    protected override void ClearSnapshots() => snapshots.Clear();
+    protected override void ClearSnapshots()
+    {
+        snapshots.Clear();
+        // 归还倒放数组到池（与 StartRewind 的借出配对）
+        if (borrowedPlaybackArray != null)
+        {
+            snapshotArrayPool.Return(borrowedPlaybackArray);
+            borrowedPlaybackArray = null;
+        }
+    }
 }

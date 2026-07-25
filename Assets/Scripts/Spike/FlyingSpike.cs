@@ -27,6 +27,10 @@ public class FlyingSpike : RewindableBase
 
     private readonly Queue<SpikeSnapshot> snapshots = new Queue<SpikeSnapshot>();
 
+    // 倒放数组对象池：复用 StartRewind 时由队列转出的数组，消除每次回溯的分配
+    private readonly ArrayPool<SpikeSnapshot> snapshotArrayPool = new ArrayPool<SpikeSnapshot>();
+    private SpikeSnapshot[] borrowedPlaybackArray;
+
     private float GetRewindableSeconds()
     {
         if (ReincarnationManager.Instance != null)
@@ -139,7 +143,12 @@ public class FlyingSpike : RewindableBase
         if (IsRewindOperationLocked) return;
         if (snapshots.Count == 0) return;
 
-        StartCoroutine(RewindBackwards(snapshots.ToArray(), ApplySnapshot, rewindSpeed,
+        // 倒放数组从池借出，CopyTo 填入；协程内部用 count 而非 Length（池借出的 Length 可能更大）
+        int count = snapshots.Count;
+        borrowedPlaybackArray = snapshotArrayPool.Get(count);
+        snapshots.CopyTo(borrowedPlaybackArray, 0);
+
+        StartCoroutine(RewindBackwards(borrowedPlaybackArray, count, ApplySnapshot, rewindSpeed,
             GetRewindableSeconds, rewindCooldownSeconds));
     }
 
@@ -166,5 +175,11 @@ public class FlyingSpike : RewindableBase
     protected override void ClearSnapshots()
     {
         snapshots.Clear();
+        // 归还倒放数组到池（与 StartRewind 的借出配对）
+        if (borrowedPlaybackArray != null)
+        {
+            snapshotArrayPool.Return(borrowedPlaybackArray);
+            borrowedPlaybackArray = null;
+        }
     }
 }

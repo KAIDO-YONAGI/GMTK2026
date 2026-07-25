@@ -118,6 +118,10 @@ public class WaterSource : RewindableBase
 
     private readonly Queue<WaterSourceSnapshot> snapshots = new Queue<WaterSourceSnapshot>();
 
+    // 倒放数组对象池：复用 StartRewind 时由队列转出的数组，消除每次回溯的分配
+    private readonly ArrayPool<WaterSourceSnapshot> snapshotArrayPool = new ArrayPool<WaterSourceSnapshot>();
+    private WaterSourceSnapshot[] borrowedPlaybackArray;
+
     // ===== 公有接口 =====
 
     /// <summary>启动流水。流过一次后被锁死（hasFlowedOnce），回溯（OnReincarnationEnd）后才解锁。</summary>
@@ -452,7 +456,11 @@ public class WaterSource : RewindableBase
     {
         if (IsRewindOperationLocked) return;
         if (snapshots.Count == 0) return;
-        StartCoroutine(RewindBackwards(snapshots.ToArray(), ApplySnapshot, rewindSpeed,
+        // 倒放数组从池借出，CopyTo 填入；协程内部用 count 而非 Length（池借出的 Length 可能更大）
+        int count = snapshots.Count;
+        borrowedPlaybackArray = snapshotArrayPool.Get(count);
+        snapshots.CopyTo(borrowedPlaybackArray, 0);
+        StartCoroutine(RewindBackwards(borrowedPlaybackArray, count, ApplySnapshot, rewindSpeed,
             GetRewindableSeconds, rewindCooldownSeconds));
     }
 
@@ -515,12 +523,24 @@ public class WaterSource : RewindableBase
     protected override void ClearSnapshots()
     {
         snapshots.Clear();
+        // 归还倒放数组到池（与 StartRewind 的借出配对）
+        if (borrowedPlaybackArray != null)
+        {
+            snapshotArrayPool.Return(borrowedPlaybackArray);
+            borrowedPlaybackArray = null;
+        }
     }
 
     // ===== 清理：销毁时连带单元一起销毁 =====
     private void OnDestroy()
     {
         StopAllCoroutines();
+        // 协程被中断时补归还借出的倒放数组，避免泄漏
+        if (borrowedPlaybackArray != null)
+        {
+            snapshotArrayPool.Return(borrowedPlaybackArray);
+            borrowedPlaybackArray = null;
+        }
         for (int i = 0; i < units.Count; i++)
         {
             if (units[i] != null) Destroy(units[i].gameObject);

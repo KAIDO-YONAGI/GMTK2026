@@ -79,13 +79,15 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
     /// 时间参数（倍速、冷却）由子类传入，基类不持有任何时间窗口字段——机关等其它子类可传自己的常量。
     /// 子类在 StartRewind 里调 StartCoroutine(RewindBackwards(...))。
     /// </summary>
-    /// <param name="snapshots">已转为数组的快照（通常 snapshots.ToArray()），按时间升序。</param>
+    /// <param name="snapshots">已转为数组的快照（通常 snapshots.ToArray() 或从池借的数组），按时间升序。</param>
+    /// <param name="count">数组中有效快照数量（数组 Length 可能更大，只有前 count 个有效）。</param>
     /// <param name="apply">把单个快照应用回对象的方法（通常是 ApplySnapshot）。</param>
     /// <param name="rewindSpeed">回溯播放倍速。1 = 1:1 实时倒放。</param>
     /// <param name="getMaxRewindSeconds">倒放期间实时获取当前可回溯上限的函数。</param>
     /// <param name="cooldownSeconds">倒放结束后、恢复记录前的冷却秒数。</param>
     protected IEnumerator RewindBackwards<T>(
         T[] snapshots,
+        int count,
         Action<T> apply,
         float rewindSpeed,
         Func<float> getMaxRewindSeconds,
@@ -95,7 +97,7 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
         currentRewoundGameTime = 0f;
         OnFreeze();
 
-        int idx = snapshots.Length - 1;
+        int idx = count - 1;
         float latestTime = snapshots[idx].Time;     // 回溯起点的游戏时间
         float rewindStartReal = Time.time;           // 回溯开始的真实时间
 
@@ -114,18 +116,18 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
                 currentRewoundGameTime = 0f;
                 break;
             }
-            
+
             float maxRewindSeconds = Mathf.Max(0f, getMaxRewindSeconds());
             float elapsedRewoundGameTime = (Time.time - rewindStartReal) * rewindSpeed;
             float desiredTargetTime = latestTime - elapsedRewoundGameTime;
-            
+
             // 快照的有效范围相对当前时刻计算，倒放期间旧快照会持续过期。
             float oldestAllowedTime = latestTime - maxRewindSeconds;
             float targetTime = Mathf.Max(desiredTargetTime, oldestAllowedTime);
             currentRewoundGameTime = Mathf.Max(0f, latestTime - targetTime);
 
             // 每帧从完整快照数组定位，窗口缩短时可回到较新的有效快照。
-            int targetIndex = FindFirstSnapshotAtOrAfter(snapshots, targetTime);
+            int targetIndex = FindFirstSnapshotAtOrAfter(snapshots, count, targetTime);
             if (targetIndex != idx)
             {
                 idx = targetIndex;
@@ -158,11 +160,24 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
         isRewindCoolingDown = false;
     }
 
-    /// <summary>返回时间戳不早于目标时间的第一个快照索引。</summary>
-    private static int FindFirstSnapshotAtOrAfter<T>(T[] snapshots, float targetTime) where T : struct, IRewindSnapshot
+    /// <summary>
+    /// 倒放协程（向后兼容重载）：count 默认取数组全长。已迁移到对象池的子类应使用带 count 的重载。
+    /// </summary>
+    protected IEnumerator RewindBackwards<T>(
+        T[] snapshots,
+        Action<T> apply,
+        float rewindSpeed,
+        Func<float> getMaxRewindSeconds,
+        float cooldownSeconds) where T : struct, IRewindSnapshot
+    {
+        return RewindBackwards(snapshots, snapshots.Length, apply, rewindSpeed, getMaxRewindSeconds, cooldownSeconds);
+    }
+
+    /// <summary>返回时间戳不早于目标时间的第一个快照索引（只在 [0, count) 范围查找）。</summary>
+    private static int FindFirstSnapshotAtOrAfter<T>(T[] snapshots, int count, float targetTime) where T : struct, IRewindSnapshot
     {
         int low = 0;
-        int high = snapshots.Length - 1;
+        int high = count - 1;
         int result = high;
 
         while (low <= high)

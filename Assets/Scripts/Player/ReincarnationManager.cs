@@ -127,6 +127,11 @@ public class ReincarnationManager : RewindableBase
     private readonly Queue<PlayerSnapshot> snapshots = new Queue<PlayerSnapshot>();
     private readonly List<GhostSnapshot> ghosts = new List<GhostSnapshot>();
 
+    // 倒放数组对象池：复用 StartRewind 时由队列转出的 T[]，消除每次回溯的数组分配。
+    // 借出存 borrowedPlaybackArray，ClearSnapshots 时归还，借还闭环在本类内部。
+    private readonly ArrayPool<PlayerSnapshot> snapshotArrayPool = new ArrayPool<PlayerSnapshot>();
+    private PlayerSnapshot[] borrowedPlaybackArray;
+
     // 缓存最新快照时间戳，避免 CurrentStoredSeconds 每次 ToArray 遍历队列（表现层每帧读会 GC）
     private float latestSnapshotTime = 0f;
     private float ghostSamplingAccumulator = 0f;
@@ -258,6 +263,12 @@ public class ReincarnationManager : RewindableBase
         hasPreviousGhostVisualState = false;
         rewindLimitForCurrentOperation = 0f;
         lastGhostFadeTime = Time.time;
+        // 中断协程（StopAllCoroutines）时协程不会走到 ClearSnapshots，这里补归还借出的倒放数组
+        if (borrowedPlaybackArray != null)
+        {
+            snapshotArrayPool.Return(borrowedPlaybackArray);
+            borrowedPlaybackArray = null;
+        }
         isRewinding = false;
         isRewindCoolingDown = false;
         currentRewoundGameTime = 0f;
@@ -318,9 +329,16 @@ public class ReincarnationManager : RewindableBase
 
         rewindLimitForCurrentOperation = CalculateCurrentRewindableSeconds();
 
+        // 倒放数组：从池借出（复用），CopyTo 填入当前快照，避免每次 ToArray 分配。
+        // 注意必须传 count：池借出的数组 Length 可能 ≥ 实际快照数，协程内部用 count 而非 Length。
+        int count = snapshots.Count;
+        borrowedPlaybackArray = snapshotArrayPool.Get(count);
+        snapshots.CopyTo(borrowedPlaybackArray, 0);
+
         // 消耗速率直接映射到快照时间轴，保证表现层读取的倒回秒数与实际应用快照一致。
         StartCoroutine(RewindBackwards(
-            snapshots.ToArray(),
+            borrowedPlaybackArray,
+            count,
             ApplySnapshot,
             Mathf.Max(0f, rewindConsumptionPerSecond),
             CalculateCurrentRewindableSeconds,
@@ -381,6 +399,12 @@ public class ReincarnationManager : RewindableBase
         hasPreviousGhostVisualState = false;
         rewindLimitForCurrentOperation = 0f;
         lastGhostFadeTime = Time.time;
+        // 归还倒放数组到池（与 StartRewind 的借出配对）
+        if (borrowedPlaybackArray != null)
+        {
+            snapshotArrayPool.Return(borrowedPlaybackArray);
+            borrowedPlaybackArray = null;
+        }
     }
 
     protected override bool ShouldContinueRewind()
