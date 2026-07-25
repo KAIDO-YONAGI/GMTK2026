@@ -12,9 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eafb41c5b74b8244abac549cc35a12a5, type: 3}
   m_Name: AudioConfig
   m_EditorClassIdentifier: 
-  sfxEntries:
-  - type: 0
-    items: []
+  sfxEntries: []
   bgmEntries:
   - type: 1
     items:

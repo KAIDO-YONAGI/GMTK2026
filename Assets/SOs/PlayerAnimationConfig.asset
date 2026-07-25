@@ -15,7 +15,7 @@ MonoBehaviour:
   idle:
     clip: {fileID: 7400000, guid: c85d20b1e3779b24d9c486a97e132d4d, type: 2}
     parameters:
-      speedScale: 0
+      speedScale: 1
       startNormalizedTime: 0
       loop: 1
       layer: 0
@@ -29,21 +29,21 @@ MonoBehaviour:
   run:
     clip: {fileID: 7400000, guid: f81ce415e4ecacc4585379f409b88d71, type: 2}
     parameters:
-      speedScale: 0
+      speedScale: 1
       startNormalizedTime: 0
       loop: 1
       layer: 0
   hurt:
     clip: {fileID: 7400000, guid: 8e9eb359a40a8a148b89ae5c36e6785c, type: 2}
     parameters:
-      speedScale: 0
+      speedScale: 1
       startNormalizedTime: 0
       loop: 0
       layer: 1
   dead:
     clip: {fileID: 7400000, guid: 00aa61cbab0134a47a482d490860c4cc, type: 2}
     parameters:
-      speedScale: 0
+      speedScale: 1
       startNormalizedTime: 0
       loop: 0
       layer: 0
