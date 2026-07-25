@@ -12,9 +12,14 @@ public class SpikeLauncher : MonoBehaviour
     [SerializeField] private VoidEventSO reincarnationBegEvent;
     [SerializeField] private VoidEventSO reincarnationEndEvent;
 
+    [Header("Animation")]
+    [SerializeField] private AnimationClip fireClip;
+    [SerializeField] private Animator animator;
+
     private bool isActive;
     private bool isPaused;
     private float timer;
+    private int fireClipHash;
 
     private void OnEnable()
     {
@@ -22,6 +27,9 @@ public class SpikeLauncher : MonoBehaviour
             reincarnationBegEvent.VoidEvent += OnReincarnationBeg;
         if (reincarnationEndEvent != null)
             reincarnationEndEvent.VoidEvent += OnReincarnationEnd;
+        
+        string stateName = fireClip.name;
+        fireClipHash = Animator.StringToHash(stateName);
     }
 
     private void OnDisable()
@@ -63,8 +71,9 @@ public class SpikeLauncher : MonoBehaviour
         timer += Time.deltaTime;
         if (timer >= launchInterval)
         {
+            Debug.Log("Launch");
             timer = 0f;
-            Fire();
+            FireAnim();
         }
     }
 
@@ -83,6 +92,15 @@ public class SpikeLauncher : MonoBehaviour
         spike.transform.SetParent(null);
 
         spike.Launch(transform.up);
+    }
+
+    public void FireAnim()
+    {
+        if (animator != null)
+        {
+            Debug.Log("Fire");
+            animator.Play(fireClipHash, 0, 0f);
+        }
     }
 
     private void OnDrawGizmosSelected()
