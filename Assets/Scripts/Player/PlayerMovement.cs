@@ -227,6 +227,7 @@ public class PlayerMovement : MonoBehaviour
         AnimationClip clip = GetClipForState(state);
         if (clip != null)
             animatorPlayer.Play(clip, GetParamsForState(state));
+        Debug.Log($"Player animation state changed to {state}, playing clip: {clip?.name}");
     }
 
     AnimationClip GetClipForState(PlayerAnimState state)
