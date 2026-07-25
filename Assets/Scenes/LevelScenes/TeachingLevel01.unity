@@ -1171,7 +1171,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5793661410055102399, guid: 905a1c71670d50440b1f315bbe5d5aa8, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -3.7425466
+      value: -3.96
       objectReference: {fileID: 0}
     - target: {fileID: 5793661410055102399, guid: 905a1c71670d50440b1f315bbe5d5aa8, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1711,10 +1711,10 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: -9.479025, y: -5.357145}
-      - {x: 21.923166, y: -5.3348374}
-      - {x: 21.77868, y: 10.009631}
-      - {x: -9.527525, y: 10.003195}
+    - - {x: -11.286807, y: -6.129811}
+      - {x: 32.69058, y: -6.090545}
+      - {x: 32.418034, y: 15.000669}
+      - {x: -10.402845, y: 15.05938}
   m_UseDelaunayMesh: 0
 --- !u!4 &1419460763
 Transform:
