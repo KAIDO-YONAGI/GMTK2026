@@ -46,6 +46,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startingAge: 20
   maxAge: 100
-  agePerSecond: 1
+  agePerSecond: 0.5
   deathEventSO: {fileID: 11400000, guid: 8dca7fcc25850a547b132efa5717da16, type: 2}
   sceneLoadEventSO: {fileID: 11400000, guid: 820c6319319801a4987f94ab3d435c01, type: 2}

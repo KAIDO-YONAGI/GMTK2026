@@ -71,7 +71,7 @@ TextureImporter:
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 4
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
@@ -137,8 +137,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e7ddd701e91cdd549ae5cdc0e73fa27d
-      internalID: -626977405
+      spriteID: 2b98d12023864584dbc2412cc0b1392d
+      internalID: -877091667
       vertices: []
       indices: 
       edges: []
@@ -158,8 +158,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8f25e237fc10d0d49b9ce83b0138660f
-      internalID: -473413574
+      spriteID: e65da0b1f1dd7864a990a9adfc82543f
+      internalID: 575236460
       vertices: []
       indices: 
       edges: []
@@ -179,8 +179,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 991e296547fbc4042925d8dd64e7a12e
-      internalID: -1198576539
+      spriteID: 8c708712a552a844aa4bc869ff5b7e7d
+      internalID: 644694303
       vertices: []
       indices: 
       edges: []
@@ -196,9 +196,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      "\u5730\u677F_0": -626977405
-      "\u5730\u677F_1": -473413574
-      "\u5730\u677F_2": -1198576539
+      "\u5730\u677F_0": -877091667
+      "\u5730\u677F_1": 575236460
+      "\u5730\u677F_2": 644694303
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
