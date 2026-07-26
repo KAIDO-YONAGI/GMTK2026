@@ -188,13 +188,26 @@ public class PlayerMovement : MonoBehaviour
         isInputEnabled = true;
         pendingJump = false;
         isGrounded = false;
+        wasGrounded = true;
         agingRate = 1f;
         speedBoostEndTime = float.NegativeInfinity;
 
         if (rb != null)
             rb.velocity = Vector2.zero;
 
+        if (runParticleSystem != null)
+            runParticleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
         StopAllCoroutines();
+        speedUpFeedbackRoutine = null;
+
+        if (speedUpFeedbackGroup != null)
+        {
+            speedUpFeedbackGroup.alpha = 0f;
+            speedUpFeedbackGroup.interactable = false;
+            speedUpFeedbackGroup.blocksRaycasts = false;
+        }
+
         for (int i = activeLandParticles.Count - 1; i >= 0; i--)
         {
             var ps = activeLandParticles[i];
