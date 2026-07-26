@@ -3237,19 +3237,19 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 194542073093597360, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_Size.x
-      value: 0.8846581
+      value: 0.9
       objectReference: {fileID: 0}
     - target: {fileID: 194542073093597360, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_Size.y
-      value: 0.9058118
+      value: 0.9000002
       objectReference: {fileID: 0}
     - target: {fileID: 194542073093597360, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_Offset.x
-      value: 0
+      value: 0.16680378
       objectReference: {fileID: 0}
     - target: {fileID: 194542073093597360, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_Offset.y
-      value: 0
+      value: 0.4332912
       objectReference: {fileID: 0}
     - target: {fileID: 2939508182233482846, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3298,7 +3298,11 @@ PrefabInstance:
     - target: {fileID: 3543142745095717395, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: movementEndEvent
       value: 
-      objectReference: {fileID: 11400000, guid: d1be32208aed32d47bbf516fc6248eb6, type: 2}
+      objectReference: {fileID: 11400000, guid: b0c54761287e6b94da400ffc4d5c9c46, type: 2}
+    - target: {fileID: 3906752416153645843, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.94
+      objectReference: {fileID: 0}
     - target: {fileID: 4470325760390854201, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0
@@ -3317,7 +3321,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8907707060987149877, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.02
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3366,7 +3370,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3696543959449738910, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -402
+      value: -401.99997
       objectReference: {fileID: 0}
     - target: {fileID: 3696543959449738910, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
