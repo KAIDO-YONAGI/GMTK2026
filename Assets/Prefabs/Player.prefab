@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 9071326902670838322}
   - component: {fileID: 4166633020081661392}
+  - component: {fileID: 7335102864981736401}
+  - component: {fileID: 7335102864981736402}
   m_Layer: 0
   m_Name: ReincarnationManager
   m_TagString: Untagged
@@ -49,18 +51,42 @@ MonoBehaviour:
   reincarnationBegEvent: {fileID: 11400000, guid: f37a074e87627f8498ef5a4e37f6d6ee, type: 2}
   reincarnationEndEvent: {fileID: 11400000, guid: 92fba088eb8a33d448de9ab09aa82b8e, type: 2}
   snapshotAppliedEvent: {fileID: 11400000, guid: 3ae4240a4cb67964c9246f0c3e832efb, type: 2}
-  MovementBegEventSO: {fileID: 11400000, guid: b0c54761287e6b94da400ffc4d5c9c46, type: 2}
-  MovementEndEventSO: {fileID: 11400000, guid: d1be32208aed32d47bbf516fc6248eb6, type: 2}
   maxRewindBaseSeconds: 8
   minRewindBaseSeconds: 1
   rewindWindowMultiplier: 1
-  ghostSamplingMultiplier: 0.055
-  playerSpriteRenderer: {fileID: 4404007958458381322}
-  ghostSortingOrderOffset: -1
-  ghostPrefab: {fileID: 0}
-  ghostPrewarmCount: 20
   rewindConsumptionPerSecond: 1
   rewindCooldownSeconds: 0.2
+--- !u!114 &7335102864981736401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330692087618559376}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90ce216fff6267949a94b03fc0cf3904, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  movementBegEvent: {fileID: 11400000, guid: b0c54761287e6b94da400ffc4d5c9c46, type: 2}
+  movementEndEvent: {fileID: 11400000, guid: d1be32208aed32d47bbf516fc6248eb6, type: 2}
+--- !u!114 &7335102864981736402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330692087618559376}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf84e5c2a56507c4fb7aeb623e99e4f6, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  samplingMultiplier: 0.055
+  sourceRenderer: {fileID: 4404007958458381322}
+  sortingOrderOffset: -1
+  ghostPrefab: {fileID: 0}
+  prewarmCount: 20
 --- !u!1 &648484207695740893
 GameObject:
   m_ObjectHideFlags: 0
