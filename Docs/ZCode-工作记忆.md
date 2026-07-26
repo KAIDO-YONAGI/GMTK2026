@@ -2,7 +2,7 @@
 
 > 本文件记录用户对 ZCode 在本项目中提出的所有持续性要求。**每次会话开始时应优先读取本文件并严格遵守。**
 > 路径：`D:\Unity\Projects\GameJam2607\Docs\ZCode-工作记忆.md`
-> 更新日期：2026-07-24
+> 更新日期：2026-07-26
 
 ---
 
@@ -118,11 +118,10 @@ Unity MCP 每次调用都会返回大量结构化 JSON，容易快速消耗额�
 - **Unity 版本**：2022.3.62f3c1 LTS
 - **目标平台**：StandaloneWindows64
 - **项目类型**：横版解谜（GameJam）
-- **渲染管线**：当前仍为 Built-in
-  - `GraphicsSettings.currentRenderPipeline` 和默认管线资产均为 `null`。
-  - `Packages/manifest.json` 已安装 `com.unity.render-pipelines.universal` 14.0.12，`com.unity.feature.2d` 为 2.0.1。
-  - `Assets/URPAssets/New Universal Render Pipeline Asset.asset` 已存在，但尚未分配到 Graphics/Quality 设置。
-  - URP 迁移仍是计划事项；迁移完成后需在此处记录实际使用的 URP Asset 路径。
+- **渲染管线**：已迁移到 **URP**（2026-07-26 核实）
+  - `ProjectSettings/GraphicsSettings.asset` 的 `m_CustomRenderPipeline` 指向 `Assets/URPAssets/New Universal Render Pipeline Asset.asset`（GUID `70dcfc058211a7045b83134a5d1c3e5d`）。
+  - `Packages/manifest.json` 安装 `com.unity.render-pipelines.universal` 14.0.12，`com.unity.feature.2d` 为 2.0.1。
+  - `PersistentScene` Hierarchy 中新增 `Global Volume Manager` 对象，挂 `Volume + VolumeManager` 组件，用于全局后处理。
 - **代码与资源目录**：
   - 核心脚本：`Assets/Scripts/`
   - 预制件：`Assets/Prefabs/`
@@ -135,45 +134,41 @@ Unity MCP 每次调用都会返回大量结构化 JSON，容易快速消耗额�
 
 ### 场景与编辑器状态
 
-- **Build Settings**：以下 7 个场景全部 enabled。
+- **Build Settings**：共 10 条，其中 9 个 enabled，1 个 disabled（2026-07-26 通过 `EditorBuildSettings.scenes` 核实）。
 
-| Build Index | 场景 |
+| enabled | 场景 |
 |---|---|
-| 0 | `Assets/Scenes/InitialScene.unity` |
-| 1 | `Assets/Scenes/PersistentScene.unity` |
-| 2 | `Assets/Scenes/StartingMenu.unity` |
-| 3 | `Assets/Scenes/LevelScenes/Level01Test.unity` |
-| 4 | `Assets/Scenes/LevelScenes/Level02Test.unity` |
-| 5 | `Assets/Scenes/LevelScenes/Level02Test 1.unity` |
-| 6 | `Assets/Scenes/PersistentScene_1.unity` |
+| ON | `Assets/Scenes/InitialScene.unity` |
+| ON | `Assets/Scenes/PersistentScene.unity` |
+| ON | `Assets/Scenes/StartingMenu.unity` |
+| ON | `Assets/Scenes/LevelScenes/Level01Test.unity` |
+| ON | `Assets/Scenes/LevelScenes/Level02Test.unity` |
+| off | `Assets/Scenes/LevelScenes/Level02Test 1.unity`（已从磁盘删除，Build Settings 残留条目；待清理） |
+| ON | `Assets/Scenes/PersistentScene_1.unity` |
+| ON | `Assets/Scenes/LevelScenes/TeachingLevel01.unity`（教学关卡，新增） |
+| ON | `Assets/Scenes/LevelScenes/NormalLevel01.unity`（正式关卡 1，新增） |
+| ON | `Assets/Scenes/LevelScenes/NormalLevel02.unity`（正式关卡 2，新增） |
 
-- **编辑器核实时状态**：
+> 注：`Level01Test` / `Level02Test` 与 `NormalLevel0X` 是**并存**关系，Normal 系列是平行新增的正式关卡，不是 Test 的改名。
+
+- **编辑器核实时状态**（2026-07-26）：
   - Play Mode：未运行；未暂停。
   - 当前活动场景：`PersistentScene`。
-  - 实际 loaded：`PersistentScene`、`PersistentScene_1`、`Level01Test`。
-  - 当前保留为 unload：`StartingMenu`、`Level02Test`、`Level02Test 1`。
-  - 按场景规范，开发最终状态应为 `PersistentScene` loaded、其余内容场景 unload；当前额外加载了 `PersistentScene_1` 和 `Level01Test`，属于待整理的编辑器状态，本次仅记录，不自动改场景。
-- **`PersistentScene` 当前层级摘要**：
+  - 实际 loaded：`PersistentScene`、`PersistentScene_1`。
+  - 当前 unload：`NormalLevel01`、`NormalLevel02`（在 Hierarchy 但未加载）。
+  - 注意：早期记录里出现的 `IceBlock`（`Ice + IceBlock`）等对象已不在当前 loaded 场景的根级摘要中——这些关卡机关现置于各 Level 场景内，而非 PersistentScene。
+- **`PersistentScene` 当前层级摘要**（仅根级对象 + 直接组件，2026-07-26 核实）：
 
 ```text
-VirtualCamera       [CinemachineVirtualCamera + CinemachineConfiner2D + ConfinerFinder]
-Player              [PlayerMovement + Rigidbody2D + CircleCollider2D]
-├── WearablePoint   [WearableManager]
-├── GroundCheck
-├── ReincarnationManager
-└── HealthManager
-Managers
-├── SceneChanger    [SceneChanger]
-│   └── FadeCanvas  [Canvas + CanvasGroup + CanvasScaler + GraphicRaycaster]
-├── TimeManager     [TimeManager]
-├── UIManager       [UIManager]
-└── EventSystem     [EventSystem + StandaloneInputModule]
-Canvases
-├── ESCCanvas       [ESCMenuManager]
-└── GuideCanvas     [GuideCanvas]
-IceBlock            [Ice + IceBlock + BoxCollider2D]
-└── IntactVisual    [SpriteRenderer]
+VirtualCamera       [CinemachineVirtualCamera + CinemachineConfiner2D + ConfinerFinder + CameraShake]
+Player              [SpriteRenderer + Rigidbody2D + Animator + UnityAnimatorPlayer + CapsuleCollider2D]
+Managers            [空根容器，子对象见下]
+Canvases            [空根容器 ×2]
+AudioManager        [AudioManager]            ← 新增，挂 PersistentScene 根
+Global Volume Manager [Volume + VolumeManager] ← URP 全局后处理
 ```
+
+> 与 2026-07-24 快照相比：① `VirtualCamera` 新增 `CameraShake`；② `Player` 现挂 `Animator + UnityAnimatorPlayer + CapsuleCollider2D`（原记录为 `CircleCollider2D`，已改）；③ 新增 `AudioManager` 和 `Global Volume Manager`；④ 原 `IceBlock` / `WearablePoint` / `GroundCheck` / `ReincarnationManager` / `HealthManager` 等子对象因当前为根级摘要未展开，**修改前请用 MCP 实时核实**而非依赖此快照。
 
 - **Canvas 配置**：当前核实到的 5 个 Canvas 均为 `ScreenSpaceOverlay`，`ScaleWithScreenSize`，参考分辨率 `(1920, 1080)`，`matchWidthOrHeight=0`：
   - `PersistentScene`：`FadeCanvas`、`ESCCanvas`、`GuideCanvas`
@@ -188,6 +183,48 @@ IceBlock            [Ice + IceBlock + BoxCollider2D]
   - `Assets/Scripts/RewindableThings/IceBlock.cs:5-209` 继承 `RewindableBase`，在完整/碎裂之间切换视觉和碰撞，并仅记录状态变化快照。
   - `Assets/Prefabs/Ice/IceBlock.prefab` 已被 Unity 识别；当前 `PersistentScene` 中已有 `IceBlock` 实例，带 `Ice`、`IceBlock`、`BoxCollider2D` 和 `IntactVisual`。
 - **本次核实的工作区状态（2026-07-24）**：除本工作记忆文件外，`git status` 未显示其他未提交变更；`IceBlock.cs` 与 `IceBlock.prefab` 已被 Git 跟踪。
+
+### 音效系统（2026-07-26 新增记录）
+
+- **核心三件套**（脚本在 `2aa1e85` 提交引入，2026-07-25；音效 mp3 与配置在 `d10f4c6`、调用点在 `d1e3860`，2026-07-26）：
+  - `Assets/Scripts/Audio/AudioConfigSO.cs:25` —— `public class AudioConfigSO : ScriptableObject`，菜单 `Audio/AudioConfig`，含 `SFXEntry[] sfxEntries` 和 `BGMEntry[] bgmEntries`，按权重随机 (`PickWeighted`)。
+  - `Assets/Scripts/Audio/AudioManager.cs:7` —— 单例 `public static AudioManager Instance`，`Awake` 里 `DontDestroyOnLoad`，挂在 **`PersistentScene` 根对象 `AudioManager`** 上（已核实）。
+  - `Assets/Scripts/Audio/AudioPlayer.cs:3-46` —— 带 `AudioSource` 的池元素，播完自动 `ReturnPlayer`。
+- **播放机制**：`Queue<AudioPlayer> _pool`，预热 `warmupCount=4`、上限 `maxPoolSize=16`。入口 `AudioManager.PlaySFX(MyEnums.SFXType)` / `PlayBGM(MyEnums.BGMType)`，启动时自动播 `startupBGM=Gaming`。
+- **SFX 类型枚举**（`Assets/Scripts/MyEnums.cs:80-97`，共 16 项）：`Walk / Run / Jump / Land / Hurt / IceBroken / IceFreeze / SpikeLaunch / PickUp / LoadScene / PressurePlate / Dead / SpringBounce / SpeedUp / ...`。当前 `AudioConfig.asset` 已配置实际 mp3 clip 的是前 11 类（Walk/Run/Jump/Land/Hurt/IceBroken/IceFreeze/SpikeLaunch/PickUp/LoadScene/PressurePlate）；`Dead/SpringBounce/SpeedUp` 枚举存在但 asset 中暂未配 clip。
+- **音效 mp3 资源**：`Assets/AudioRes/SFX/`（走路 01-04 / 跑步 01-04 / 跳跃 / 落地 / 受击 01-02 / 冰冻结 / 冰碎裂 / 弓发射 / 捡起物品 / 加载音效）。
+- **主要调用点**：脚步声在 `PlayerAnimationController.cs:237-261`（按 walk/run 间隔），跳跃起跳在 `:205`，落地在 `:279`，受击在 `HealthManager.cs:142`，冰块在 `IceBlock.cs:106/237`，发射器在 `SpikeLauncher.cs:111`，捡起在 `PickupSpike.cs:28`，加载场景在 `SceneChanger.cs:157`，压力板在 `PressurePlate.cs:55`。
+
+### 粒子预制件（2026-07-26 新增记录）
+
+`Assets/Prefabs/Particles/` 下当前 5 个（`LuoDi / IceParticle / ShootingParticle / HurtParticle / RunParticle`）：
+
+| Prefab | 触发脚本 | 行号 | 用途 |
+|---|---|---|---|
+| `LuoDi.prefab` | `PlayerMovement` `landParticlePool`（对象池，prewarm 3） | `PlayerMovement.cs:20-23,291-302` | 落地粒子 |
+| `IceParticle.prefab` | `IceBlock.iceParticlePrefab`，`PlayIceParticle()` 直接 Instantiate | `IceBlock.cs:26,120-131` | 冻结/碎裂时冰屑 |
+| `ShootingParticle.prefab` | `SpikeLauncher.shootingParticlePrefab`，发射时 Instantiate 到 `particlePoint` | `SpikeLauncher.cs:17,114-125` | 尖刺发射烟尘 |
+| `HurtParticle.prefab` | `HealthManager.hurtParticlePool`（对象池） | `HealthManager.cs:26,78-88` | 受击 |
+| `RunParticle.prefab` | `PlayerMovement.runParticleSystem`（直接挂玩家，非池） | `PlayerMovement.cs:17,271-280` | 地面奔跑拖尾 |
+
+### 濒死提示面板（2026-07-26 新增记录）
+
+- **`Assets/Scripts/UI/DyingHintManager.cs:1-92`**：血量到 0 但未真正死亡时显示的"自救"面板控制器。
+  - 订阅 `healthChangedEvent`（IntEventSO）和 `deathEvent`（DeathEventSO_）`DyingHintManager.cs:36-52`。
+  - 血量归零显示 CanvasGroup，回血或死亡时隐藏 `DyingHintManager.cs:54-67`。
+  - **Give Up 按钮**在 `Awake` 里代码绑定 `DyingHintManager.cs:31-33`，点击调用 `HealthManager.Instance.OnDie()` 放弃自救 `DyingHintManager.cs:75-82`。
+
+### 玩家动画与"loaded 状态"修复（2026-07-26 新增记录）
+
+- **PlayerAnimationController**（`Assets/Scripts/Player/PlayerAnimationController.cs`）：**不使用 Animator 参数**，而是通过 `UnityAnimatorPlayer` 直接播放 `AnimationClip`。
+  - `PlayClipOrStay(state)` (`:268-281`) 查表拿 clip + `AnimationPlayParameters` 后 `animatorPlayer.Play(...)`；clip/params 来自 `Assets/SOs/PlayerAnimationConfig.asset`（`PlayerAnimationConfigSO`）。
+  - 状态枚举含 `Idle/Walk/Run/Jump/Fall/Land/None`，本次 `ca879f8` 新增 `None` 状态 (`:28`)。
+  - 落地检测：`!wasGrounded && isGrounded` → `PlayClipOrStay(PlayerAnimState.Land)` `:157-161`。
+- **"loaded 状态"修复**（`28b5f21` + `ca879f8`）：这里的 "loaded" 指场景加载完成回调 `OnSceneLoaded()`（由 `VoidEventSO sceneLoadedEvent` 触发），**不是某个枚举字段**。修复点：
+  - `PlayerMovement.OnSceneLoaded()` (`PlayerMovement.cs:192-228`)：补上 `wasGrounded=true`、停 `runParticleSystem`、清 `speedUpFeedbackGroup` 透明度、回收所有活跃落地粒子。这是修复 **弹簧死亡 retry 后会残留死亡/加速 buff/UI 反馈/粒子** 的 bug（`2c7acfa`）。
+  - `PlayerAnimationController.OnSceneLoaded()` (`:71-77`)：重置动画瞬态、强制 `wasGrounded=false` 再播 Idle，避免切场景后落地检测残留上一场景状态。
+- **死亡时禁止移动**（`044fb85`）：在 `PlayerMovement` 三个入口加同一道闸 `if (HealthManager.Instance.IsDead && CurrentHealth <= 0f)`：`UpdateMovementState()` `:249-255`、`HandleJumpInput()` `:315-321`、`ApplyMovementVelocity()` `:340-346`（清零速度并 return）。另有一道独立的 `isInputEnabled` 开关用于回溯期停输入，与死亡无关。
+- **注**：`a44ffb3`「尝试修死后按 AD 反转角色失败」未成功，问题仍未解决，后续修改 PlayerMovement 朝向逻辑时需关注。
 
 ### UI 与验证
 
@@ -217,3 +254,6 @@ IceBlock            [Ice + IceBlock + BoxCollider2D]
 | 2026-07-24 | 依据 Unity MCP 实时状态更新项目路径、渲染管线、Build Settings、编辑器场景状态、Canvas、回溯系统 |
 | 2026-07-25 | ESCCanvas 新增 RetryButton（OnRetryButton），行为对齐 GameOver 面板的 Retry，复用 RetryEvent.asset |
 | 2026-07-25 | GameOverCanvas 死亡提示词按 DeathType 动态切换（老死 "Rest in peace..." / 暴毙 "Slaughtered without mercy!"）；GameOver RetryButton 样式向 ESC 靠拢（无 sprite / 300×60 / 字号 36） |
+| 2026-07-26 | 附录核实更新：**渲染管线已迁移到 URP**（`Assets/URPAssets/New Universal Render Pipeline Asset.asset` 已分配给 GraphicsSettings）；Build Settings 从 7 场景扩到 10 场景，新增 `TeachingLevel01` / `NormalLevel01` / `NormalLevel02`，`Level02Test 1` 已禁用且文件已删（Build Settings 残留待清理）；`PersistentScene` 新增 `AudioManager`（根对象）和 `Global Volume Manager`（URP 全局后处理），`Player` 改用 `CapsuleCollider2D + Animator + UnityAnimatorPlayer`，`VirtualCamera` 新增 `CameraShake` |
+| 2026-07-26 | 新增"音效系统"小节：`AudioConfigSO` / `AudioManager`（单例+池）/ `AudioPlayer` 三件套，16 个 SFXType 枚举与 mp3 资源；新增"粒子预制件"小节：`LuoDi`/`IceParticle`/`ShootingParticle`/`HurtParticle`/`RunParticle` 五个 prefab 及触发脚本；新增"濒死提示面板"小节：`DyingHintManager`（血量归零自救面板 + Give Up 按钮） |
+| 2026-07-26 | 新增"玩家动画与 loaded 状态修复"小节：`PlayerAnimationController` 改用 `UnityAnimatorPlayer` 直播 AnimationClip（非 Animator 参数）；`OnSceneLoaded` 回调修复弹簧死亡 retry 后状态残留（`PlayerMovement.cs:192-228`）；死亡禁止移动在 `PlayerMovement` 三处入口加闸（`:249-255/315-321/340-346`）；标注死后 AD 反转 bug 未解决（`a44ffb3` 失败） |
