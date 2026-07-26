@@ -70,6 +70,8 @@ public class WaterSource : RewindableBase
     // ===== 运行时状态 =====
     // 所有已生成的单元（按生成顺序，垂直从上到下）。索引 0 是最靠近水源的一格。
     private readonly List<WaterFlowUnit> units = new List<WaterFlowUnit>();
+    // 复用命中列表，允许同一格水流同时激活路径上的多个压力板。
+    private readonly List<PressurePlate> hitPressurePlates = new List<PressurePlate>();
 
     // 当前向下生成计数（下一个单元应位于 sourcePosition - stepCount * cellSize）
     private int stepCount;
@@ -218,14 +220,13 @@ public class WaterSource : RewindableBase
                 nextPos,
                 cellSize,
                 groundMask,
-                out PressurePlate plate,
-                out float plateDistance,
+                hitPressurePlates,
                 out RaycastHit2D groundHit);
 
-            if (plate != null &&
-                (groundHit.collider == null || plateDistance <= groundHit.distance + 0.001f))
+            for (int i = 0; i < hitPressurePlates.Count; i++)
             {
-                plate.Activate();
+                PressurePlate plate = hitPressurePlates[i];
+                if (plate != null) plate.Activate();
             }
 
             if (groundHit.collider != null)
@@ -253,12 +254,10 @@ public class WaterSource : RewindableBase
         Vector2 origin,
         float distance,
         LayerMask groundMask,
-        out PressurePlate nearestPlate,
-        out float nearestPlateDistance,
+        List<PressurePlate> pressurePlates,
         out RaycastHit2D nearestGroundHit)
     {
-        nearestPlate = null;
-        nearestPlateDistance = float.PositiveInfinity;
+        pressurePlates.Clear();
         nearestGroundHit = default;
         float nearestGroundDistance = float.PositiveInfinity;
         RaycastHit2D[] hits = Physics2D.RaycastAll(origin, Vector2.down, distance);
@@ -268,17 +267,7 @@ public class WaterSource : RewindableBase
             Collider2D hitCollider = hits[i].collider;
             if (hitCollider == null) continue;
 
-            if (hitCollider.CompareTag("PressurePlate"))
-            {
-                PressurePlate plate = hitCollider.GetComponent<PressurePlate>();
-                if (plate != null && hits[i].distance < nearestPlateDistance)
-                {
-                    nearestPlateDistance = hits[i].distance;
-                    nearestPlate = plate;
-                }
-
-                continue;
-            }
+            if (hitCollider.CompareTag("PressurePlate")) continue;
 
             int hitLayerMask = 1 << hitCollider.gameObject.layer;
             if ((groundMask.value & hitLayerMask) == 0 ||
@@ -289,6 +278,27 @@ public class WaterSource : RewindableBase
 
             nearestGroundDistance = hits[i].distance;
             nearestGroundHit = hits[i];
+        }
+
+        float maxPlateDistance = nearestGroundHit.collider != null
+            ? nearestGroundDistance + 0.001f
+            : float.PositiveInfinity;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider2D hitCollider = hits[i].collider;
+            if (hitCollider == null ||
+                !hitCollider.CompareTag("PressurePlate") ||
+                hits[i].distance > maxPlateDistance)
+            {
+                continue;
+            }
+
+            PressurePlate plate = hitCollider.GetComponent<PressurePlate>();
+            if (plate != null && !pressurePlates.Contains(plate))
+            {
+                pressurePlates.Add(plate);
+            }
         }
     }
 
