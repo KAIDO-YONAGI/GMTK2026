@@ -7650,7 +7650,7 @@ MonoBehaviour:
   loadEventSO: {fileID: 11400000, guid: 820c6319319801a4987f94ab3d435c01, type: 2}
   newPosition: {x: 3, y: 0, z: 0}
   sceneToLoad:
-  - {fileID: 11400000, guid: fb46f5dabfb5b7a40a9a466b64951181, type: 2}
+  - {fileID: 11400000, guid: 10fd3d9f63b336742a59724491f0d794, type: 2}
   isToFade: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
