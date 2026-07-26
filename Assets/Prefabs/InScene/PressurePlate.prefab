@@ -95,6 +95,7 @@ MonoBehaviour:
   animator: {fileID: 9161099433370871414}
   activateClipName: Activate
   deactivateClipName: Deactivate
+  destroyOnActivate: 0
   onActivate:
     m_PersistentCalls:
       m_Calls: []
