@@ -136,7 +136,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.5019608}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -435,6 +435,7 @@ GameObject:
   - component: {fileID: 228060871859245487}
   - component: {fileID: 7867822265364323790}
   - component: {fileID: 6983628040779037288}
+  - component: {fileID: 2727116252890910841}
   m_Layer: 0
   m_Name: RetryButton (1)
   m_TagString: Untagged
@@ -543,19 +544,25 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 7867822265364323790}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: OnRetryButton
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
+--- !u!114 &2727116252890910841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3275290131385064633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87d1fc010ab61f143bbc0071fe380f72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  loadEventSO: {fileID: 11400000, guid: 820c6319319801a4987f94ab3d435c01, type: 2}
+  sceneToLoad: []
+  ButtonCanvas: {fileID: 7010862047656139672}
+  newPosition: {x: 0, y: 0, z: 0}
+  isToFade: 1
+  retryEventSO: {fileID: 11400000, guid: 4088e8149793bac45899281c41132346, type: 2}
 --- !u!1 &6640132882095502779
 GameObject:
   m_ObjectHideFlags: 0
