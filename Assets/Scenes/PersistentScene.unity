@@ -317,7 +317,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfa595c1f9198954ea8da443a27b7b87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxVignetteIntensity: 0.35
+  maxVignetteIntensity: 0.5
 --- !u!1 &119303424
 GameObject:
   m_ObjectHideFlags: 0
