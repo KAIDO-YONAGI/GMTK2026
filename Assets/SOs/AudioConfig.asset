@@ -17,6 +17,60 @@ MonoBehaviour:
     items:
     - clip: {fileID: 8300000, guid: 21f3918fcc7007042b0e5ecc83aa14c1, type: 3}
       weight: 1
+  - type: 1
+    items:
+    - clip: {fileID: 8300000, guid: 088893d4f96cb134c9fc3659c36f42bc, type: 3}
+      weight: 0.25
+    - clip: {fileID: 8300000, guid: ff96a018f9a9e2042861aba5e430c21f, type: 3}
+      weight: 0.25
+    - clip: {fileID: 8300000, guid: 05f86725aa1682548bd099f55b34bf42, type: 3}
+      weight: 0.25
+    - clip: {fileID: 8300000, guid: 3316e914ec38d4848abbab60053faeb1, type: 3}
+      weight: 0.25
+  - type: 2
+    items:
+    - clip: {fileID: 8300000, guid: 56738d72ee5e6e94eaad8abb96f93de0, type: 3}
+      weight: 1
+  - type: 3
+    items:
+    - clip: {fileID: 8300000, guid: 697379e75e6e2ca43b4acbcf263cf7ec, type: 3}
+      weight: 1
+  - type: 4
+    items:
+    - clip: {fileID: 8300000, guid: f7e6aa6d8e9a6484c981102972d7268a, type: 3}
+      weight: 0.5
+    - clip: {fileID: 8300000, guid: b5cc4e5a322a0384e81e18a4b2f2a8b0, type: 3}
+      weight: 0.5
+  - type: 5
+    items:
+    - clip: {fileID: 8300000, guid: a04794f2251dfe142a76c0bb8ccde08e, type: 3}
+      weight: 1
+  - type: 6
+    items:
+    - clip: {fileID: 8300000, guid: 2f18cb98ff53edd41873fe0e21f5a679, type: 3}
+      weight: 1
+  - type: 10
+    items:
+    - clip: {fileID: 8300000, guid: 5ecdfcbcc22b2e34a9e4d0c8c97cc695, type: 3}
+      weight: 1
+  - type: 11
+    items:
+    - clip: {fileID: 8300000, guid: 9823651425b60fc41aad8ae07401d5ed, type: 3}
+      weight: 1
+  - type: 12
+    items:
+    - clip: {fileID: 8300000, guid: 73894094c9210dd43830e5774504fd43, type: 3}
+      weight: 1
+  - type: 14
+    items:
+    - clip: {fileID: 8300000, guid: ae1ad12daf0049d499629740e7817ffe, type: 3}
+      weight: 1
+    - clip: {fileID: 8300000, guid: 77aef2779c228324fb23012a17ca72be, type: 3}
+      weight: 1
+    - clip: {fileID: 8300000, guid: 706c6a9e2890c55489d7c16aa0a45709, type: 3}
+      weight: 1
+    - clip: {fileID: 8300000, guid: 3689dce863fcb5745a60eb7e1e5206c8, type: 3}
+      weight: 1
   bgmEntries:
   - type: 1
     items:
