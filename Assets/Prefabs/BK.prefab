@@ -136,8 +136,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parallaxFactor: {x: 0.01, y: 0.01}
-  autoTile: 0
-  tileWidth: 5
 --- !u!1 &3526062812984345658
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,8 +234,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parallaxFactor: {x: 0.03, y: 0.01}
-  autoTile: 0
-  tileWidth: 5
 --- !u!1 &3806224545994547416
 GameObject:
   m_ObjectHideFlags: 0
@@ -336,8 +332,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parallaxFactor: {x: 0.03, y: 0.01}
-  autoTile: 0
-  tileWidth: 5
 --- !u!1 &7193278104284550924
 GameObject:
   m_ObjectHideFlags: 0
@@ -436,8 +430,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parallaxFactor: {x: 0.03, y: 0.01}
-  autoTile: 0
-  tileWidth: 5
 --- !u!1 &7995674272784311486
 GameObject:
   m_ObjectHideFlags: 0
@@ -536,8 +528,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parallaxFactor: {x: 0, y: 0}
-  autoTile: 0
-  tileWidth: 5
 --- !u!1 &8251501911027700621
 GameObject:
   m_ObjectHideFlags: 0
@@ -635,9 +625,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fa0e1b4fd634cb2b235b0b2de5d9ee5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  parallaxFactor: {x: 0.6, y: 0.8}
-  autoTile: 1
-  tileWidth: 5
+  parallaxFactor: {x: 0.6, y: 0}
 --- !u!1 &8460969774340891315
 GameObject:
   m_ObjectHideFlags: 0
@@ -736,5 +724,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parallaxFactor: {x: 0.01, y: 0.01}
-  autoTile: 0
-  tileWidth: 5
