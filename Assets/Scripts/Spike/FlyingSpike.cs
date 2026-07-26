@@ -185,16 +185,16 @@ public class FlyingSpike : RewindableBase
 
     public void SetSpeed(float newSpeed)
     {
-        speed = Mathf.Max(0f, speed);
+        speed = Mathf.Max(0f, newSpeed);
     }
     
     public void SetLifetime(float newLifetime)
     {
-        lifetime = Mathf.Max(0f, lifetime);
+        lifetime = Mathf.Max(0f, newLifetime);
     }
     
     public void SetDamage(int newDamage)
     {
-        damage = Mathf.Max(0, damage);
+        damage = Mathf.Max(0, newDamage);
     }
 }
