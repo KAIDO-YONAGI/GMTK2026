@@ -182,4 +182,19 @@ public class FlyingSpike : RewindableBase
             borrowedPlaybackArray = null;
         }
     }
+
+    public void SetSpeed(float newSpeed)
+    {
+        speed = Mathf.Max(0f, speed);
+    }
+    
+    public void SetLifetime(float newLifetime)
+    {
+        lifetime = Mathf.Max(0f, lifetime);
+    }
+    
+    public void SetDamage(int newDamage)
+    {
+        damage = Mathf.Max(0, damage);
+    }
 }

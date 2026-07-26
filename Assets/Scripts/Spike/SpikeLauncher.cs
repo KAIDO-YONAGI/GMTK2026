@@ -11,6 +11,11 @@ public class SpikeLauncher : MonoBehaviour
     [SerializeField] private float launchInterval = 0f;
     [SerializeField] private VoidEventSO reincarnationBegEvent;
     [SerializeField] private VoidEventSO reincarnationEndEvent;
+    
+    [Header("Spike 参数")]
+    [SerializeField] private float spikeSpeed = 5f;
+    [SerializeField] private float spikeLifetime = 5f;
+    [SerializeField] private int spikeDamage = 1;
 
     [Header("Animation")]
     [SerializeField] private AnimationClip fireClip;
@@ -90,6 +95,10 @@ public class SpikeLauncher : MonoBehaviour
 
         FlyingSpike spike = Instantiate(spikePrefab, transform.position, Quaternion.identity, transform);
         spike.transform.SetParent(null);
+        
+        spike.SetDamage(spikeDamage);
+        spike.SetSpeed(spikeSpeed);
+        spike.SetLifetime(spikeLifetime);
 
         spike.Launch(transform.up);
     }
