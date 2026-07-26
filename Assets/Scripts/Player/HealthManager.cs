@@ -44,6 +44,12 @@ public class HealthManager : MonoBehaviour
     public int CurrentHealth => currentHealth;
     public int MaxHealth => maxHealth;
 
+    // 濒死状态：机关扣血到 0 后进入。玩家以极低移速行动，可回溯回血自救。
+    // 不同于 isDead（真正死亡），濒死时游戏继续运行、不弹 GameOver 面板。
+    private bool isDying = false;
+    public bool IsDying => isDying;
+    public bool IsDead => isDead;
+
     private void Awake()
     {
         // 单例设置：重复实例时销毁自身，保证全局唯一
@@ -122,7 +128,7 @@ public class HealthManager : MonoBehaviour
     /// <summary>
     /// 修改生命值。正数治疗，负数伤害。
     /// 自动做上下界保护：不会超过 maxHealth，不会低于 0。
-    /// 降到 0 时触发死亡事件（UnnormalDead），仅触发一次。
+    /// 机关扣血到 0 时进入濒死状态（isDying），不直接死亡——玩家可回溯回血自救。
     /// </summary>
     public void ChangeHealth(int amount)
     {
@@ -144,11 +150,13 @@ public class HealthManager : MonoBehaviour
             currentHealth = maxHealth;
         }
 
-        // 下界保护：扣到 0 触发死亡
+        // 下界保护：机关扣血到 0 进入濒死（而非直接死亡）。
+        // 玩家以极低移速行动，可回溯回血自救；放弃自救时由濒死提示的 Give Up 按钮触发 OnDie。
+        // 幂等：濒死期间继续受伤不会重复触发。
         if (currentHealth <= 0)
         {
             currentHealth = 0;
-            OnDie();
+            if (!isDying) isDying = true;
         }
 
         // 广播最新血量供 UI 更新（治疗/扣血都触发）
@@ -174,25 +182,27 @@ public class HealthManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 重试关卡时恢复满血并清除死亡状态，不触发治疗或死亡事件。
+    /// 重试关卡时恢复满血并清除死亡/濒死状态，不触发治疗或死亡事件。
     /// </summary>
     public void ResetHealth()
     {
         currentHealth = maxHealth;
         isDead = false;
+        isDying = false;
         RaiseHealthChanged(); // 重试回满血：广播更新 UI
     }
 
     /// <summary>
     /// 回溯/轮回专用：直接把血量设置到指定值，绕过死亡判定。
-    /// 血量会钳制到 [0, maxHealth]。若目标血量 > 0，同时清除死亡状态（复活）。
+    /// 血量会钳制到 [0, maxHealth]。若目标血量 > 0，同时清除死亡和濒死状态（复活）。
     /// </summary>
     public void SetHealthForReincarnation(int value)
     {
         currentHealth = Mathf.Clamp(value, 0, maxHealth);
         if (currentHealth > 0)
         {
-            isDead = false; // 回到有血的状态：复活
+            isDead = false;  // 回到有血的状态：复活
+            isDying = false; // 退出濒死
         }
         RaiseHealthChanged(); // 回溯还原血量：广播更新 UI
     }

@@ -66,11 +66,20 @@ public class PlayerMovement : MonoBehaviour
     public bool IsSpeedBoostActive => Time.time < speedBoostEndTime;
 
     /// <summary>
-    /// 当前水平移动速度，包含衰老减速和回溯结束后的加速倍率。
+    /// 当前水平移动速度，包含衰老减速、回溯加速倍率和濒死减速。
     /// </summary>
     public float CurrentMoveSpeed
     {
-        get => moveSpeed * agingRate * GetSpeedMultiplier();
+        get => moveSpeed * agingRate * GetSpeedMultiplier() * GetDyingMultiplier();
+    }
+
+    /// <summary>
+    /// 濒死状态下的移动/跳跃倍率。读 HealthManager.IsDying，
+    /// 作为衰老减速和加速 buff 之外的独立倍率，在 agingRate 的 0.3 下限钳制之后生效。
+    /// </summary>
+    float GetDyingMultiplier()
+    {
+        return HealthManager.Instance != null && HealthManager.Instance.IsDying ? 0.1f : 1f;
     }
 
     void Awake()
@@ -289,7 +298,7 @@ public class PlayerMovement : MonoBehaviour
             return;
 
         Vector2 velocity = rb.velocity;
-        velocity.y = jumpForce * agingRate;
+        velocity.y = jumpForce * agingRate * GetDyingMultiplier();
         rb.velocity = velocity;
     }
 

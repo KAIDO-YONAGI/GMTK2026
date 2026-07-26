@@ -572,6 +572,71 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b8efea141ac62794f83836d7e3c6489c, type: 3}
+--- !u!1001 &1891774633
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4930035616447117866, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
+      propertyPath: m_Name
+      value: WaterSource
+      objectReference: {fileID: 0}
+    - target: {fileID: 5040195206652993983, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.26
+      objectReference: {fileID: 0}
+    - target: {fileID: 5040195206652993983, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.89
+      objectReference: {fileID: 0}
+    - target: {fileID: 5964988899062064222, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 3.063342
+      objectReference: {fileID: 0}
+    - target: {fileID: 5964988899062064222, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.5024408
+      objectReference: {fileID: 0}
+    - target: {fileID: 5964988899062064222, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5964988899062064222, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5964988899062064222, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5964988899062064222, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5964988899062064222, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5964988899062064222, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5964988899062064222, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5964988899062064222, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2acaecba67df61e45b0a815aaf3d33a9, type: 3}
 --- !u!1001 &1981020108
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -694,6 +759,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 966345960937521242, guid: 32caca81ea51f9743b6f8c1fa6c99dce, type: 3}
+      propertyPath: m_TagString
+      value: PressurePlate
+      objectReference: {fileID: 0}
     - target: {fileID: 3879732106663880943, guid: 32caca81ea51f9743b6f8c1fa6c99dce, type: 3}
       propertyPath: m_Name
       value: "\u8FDE\u53D1\u5C16\u523A\u9677\u9631"
@@ -751,6 +820,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 694454724265857395, guid: 7ed454778aa8401418360add31c7b7b5, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 3.13
+      objectReference: {fileID: 0}
+    - target: {fileID: 694454724265857395, guid: 7ed454778aa8401418360add31c7b7b5, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -2.51
+      objectReference: {fileID: 0}
     - target: {fileID: 1320570972098700274, guid: 7ed454778aa8401418360add31c7b7b5, type: 3}
       propertyPath: m_Name
       value: "\u5355\u53D1\u5C16\u523A\u9677\u9631"
@@ -795,6 +872,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8286614310151219025, guid: 7ed454778aa8401418360add31c7b7b5, type: 3}
+      propertyPath: m_TagString
+      value: PressurePlate
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -811,3 +892,4 @@ SceneRoots:
   - {fileID: 1282340405}
   - {fileID: 686103706683532274}
   - {fileID: 5093478310735093895}
+  - {fileID: 1891774633}
