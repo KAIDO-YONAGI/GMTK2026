@@ -7,9 +7,6 @@ public class PlayerAnimationController : MonoBehaviour
     [SerializeField] private UnityAnimatorPlayer animatorPlayer;
     [SerializeField] private PlayerAnimationConfigSO animationConfig;
 
-    [Header("Events")]
-    [SerializeField] private IntEventSO healthChangeEvent;
-
     private enum PlayerAgeStage { Youth, Adult, Elder, Frail }
     private enum PlayerAnimState { Idle, Walk, WalkHunched, WalkFrail, Run, Hurt, Dead }
     private PlayerAnimState currentAnimState;
@@ -26,18 +23,6 @@ public class PlayerAnimationController : MonoBehaviour
         }
     }
     private bool pendingHurt;
-
-    private void OnEnable()
-    {
-        if (healthChangeEvent != null)
-            healthChangeEvent.IntEvent += OnHurt;
-    }
-
-    private void OnDisable()
-    {
-        if (healthChangeEvent != null)
-            healthChangeEvent.IntEvent -= OnHurt;
-    }
 
     private void OnHurt(int changeHp)
     {
