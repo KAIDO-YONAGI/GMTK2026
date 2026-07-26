@@ -10,16 +10,16 @@ using WaterMechanism;
 /// 职责：
 /// 1. 流水调度：StartFlowing 后每隔 flowInterval 向下一格（cellSize 步进）生成一个 WaterFlowUnit。
 ///    - 命中 Ground/Platform → 停止继续向下生成（已有单元继续推进到 Stage2 / 可结冰）。
-///    - 命中 PressurePlate（tag）→ 调其 Activate() 后停止。
+///    - 命中 PressurePlate（tag）→ 调其 Activate()，但压力板不阻挡水流。
 /// 2. 状态推进：所有 Stage1 单元出生 stage1ToStage2Seconds 秒后自动切 Stage2。
 /// 3. 结冰：StartFreezing 启动 freezeDelay 倒计时，到点把所有 Stage2 单元切 Frozen；
 ///    此后新成熟的水流单元也会直接切 Frozen（带碰撞 + Ice 标记）。
 /// 4. 碎冰：Ice 被击碎时回调 NotifyUnitBroken → 该单元切回 Stage2（关碰撞），
 ///    再次触发结冰后可重新切 Frozen。
 ///
-/// 回溯策略（事件驱动稀疏快照，区别于 FlyingSpike 的每帧快照）：
-/// 只在状态转变时刻（单元出生 / Stage1→Stage2 / 结冰 / 碎冰）记录快照，
-/// 避免每帧记录大量单元造成内存与 GC 压力。其它无变化时间不存快照。
+/// 回溯策略：
+/// WaterFlowTrigger 触发时先记录一帧“未开启记录”的边界快照，再开始逐物理帧记录。
+/// 记录开关本身也包含在快照中，因此回溯越过触发边界后会恢复为停止记录状态。
 /// 订阅 ReincarnationBegEvent/EndEvent/RewindSnapshotAppliedEvent 与玩家回溯联动。
 /// </summary>
 [RequireComponent(typeof(Transform))]
@@ -90,6 +90,12 @@ public class WaterSource : RewindableBase
     private Coroutine advanceCoroutine;
     private Coroutine freezeCoroutine;
 
+    // Trigger 触发前不记录；该开关随快照回溯。
+    private bool isSnapshotRecording;
+
+    // 把“未记录”状态放在触发边界前，确保倒放算法能准确跨回该状态。
+    private const float RecordingBoundaryOffset = 0.0001f;
+
     // ===== 快照结构 =====
     // 单单元快照（值类型，避免 GC）
     private struct UnitSnapshot : IRewindSnapshot
@@ -112,6 +118,7 @@ public class WaterSource : RewindableBase
         public bool isFlowing;              // 是否正在流
         public int stepCount;               // 当前向下生成的格数（决定继续流的位置）
         public FreezeState freezeState;     // 冻结状态机（Idle/Requested/Frozen）
+        public bool isSnapshotRecording;    // 此时是否已开启水源快照记录
 
         public float Time => time;
     }
@@ -130,11 +137,25 @@ public class WaterSource : RewindableBase
         if (hasFlowedOnce) return;  // 已流过一次，忽略直到回溯重置
         if (isFlowing) return;
         if (IsRewindOperationLocked) return;
+
+        BeginSnapshotRecording();
         isFlowing = true;
         hasFlowedOnce = true;       // 标记已触发，FlowLoop 结束后也不再响应 trigger
         flowCoroutine = StartCoroutine(FlowLoop());
         advanceCoroutine = StartCoroutine(AdvanceLoop());
         RecordSnapshot(); // 状态转变：开始流水
+    }
+
+    /// <summary>
+    /// Trigger 首次生效时开启记录。
+    /// 开启前先补一帧边界快照，使回溯可以恢复到“尚未记录、尚未流水”的状态。
+    /// </summary>
+    private void BeginSnapshotRecording()
+    {
+        if (isSnapshotRecording) return;
+
+        EnqueueSnapshot(Time.time - RecordingBoundaryOffset);
+        isSnapshotRecording = true;
     }
 
     /// <summary>
@@ -192,11 +213,21 @@ public class WaterSource : RewindableBase
             Vector3 nextPos = (spawnRoot != null ? spawnRoot.position : transform.position)
                               + Vector3.down * (cellSize * stepCount);
 
-            // 地面检测：从下一格中心向下打 cellSize 距离的射线。
-            // 用 Raycast 而非 OverlapPoint 的原因：Tilemap 的 CompositeCollider2D 是空心薄壳，
-            // OverlapPoint 要求点落在 collider 实体内部，而格中心常落在薄壳外（哪怕视觉上"在 tile 里"），
-            // 导致永不命中。Raycast 检测射线是否穿过 collider 表面，可靠。
-            RaycastHit2D groundHit = Physics2D.Raycast(nextPos, Vector2.down, cellSize, groundMask);
+            // 扫描整格路径：压力板按 Tag 触发但不参与阻挡，只有 groundMask 内的其他碰撞体才会阻断水流。
+            FindFlowHits(
+                nextPos,
+                cellSize,
+                groundMask,
+                out PressurePlate plate,
+                out float plateDistance,
+                out RaycastHit2D groundHit);
+
+            if (plate != null &&
+                (groundHit.collider == null || plateDistance <= groundHit.distance + 0.001f))
+            {
+                plate.Activate();
+            }
+
             if (groundHit.collider != null)
             {
                 // 命中地面 / 平台：这一格贴着地面，必须生成它让水流视觉贴紧地面（不悬空），生成后停止向下扩散。
@@ -210,23 +241,55 @@ public class WaterSource : RewindableBase
                 break;
             }
 
-            // 命中压力板（按 tag 筛选）：激活后停止。
-            // 压力板是独立 BoxCollider2D，OverlapPoint 对它有效。
-            Collider2D plateHit = Physics2D.OverlapPoint(nextPos);
-            if (plateHit != null && plateHit.CompareTag("PressurePlate"))
-            {
-                var plate = plateHit.GetComponent<PressurePlate>();
-                if (plate != null) plate.Activate();
-                isFlowing = false;
-                break;
-            }
-
             SpawnUnitAt(nextPos);
             yield return new WaitForSeconds(flowInterval);
         }
 
         isFlowing = false;
         flowCoroutine = null;
+    }
+
+    private static void FindFlowHits(
+        Vector2 origin,
+        float distance,
+        LayerMask groundMask,
+        out PressurePlate nearestPlate,
+        out float nearestPlateDistance,
+        out RaycastHit2D nearestGroundHit)
+    {
+        nearestPlate = null;
+        nearestPlateDistance = float.PositiveInfinity;
+        nearestGroundHit = default;
+        float nearestGroundDistance = float.PositiveInfinity;
+        RaycastHit2D[] hits = Physics2D.RaycastAll(origin, Vector2.down, distance);
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider2D hitCollider = hits[i].collider;
+            if (hitCollider == null) continue;
+
+            if (hitCollider.CompareTag("PressurePlate"))
+            {
+                PressurePlate plate = hitCollider.GetComponent<PressurePlate>();
+                if (plate != null && hits[i].distance < nearestPlateDistance)
+                {
+                    nearestPlateDistance = hits[i].distance;
+                    nearestPlate = plate;
+                }
+
+                continue;
+            }
+
+            int hitLayerMask = 1 << hitCollider.gameObject.layer;
+            if ((groundMask.value & hitLayerMask) == 0 ||
+                hits[i].distance >= nearestGroundDistance)
+            {
+                continue;
+            }
+
+            nearestGroundDistance = hits[i].distance;
+            nearestGroundHit = hits[i];
+        }
     }
 
     // ===== 状态推进协程：轮询 Stage1 单元，成熟后切 Stage2 或 Frozen =====
@@ -332,13 +395,13 @@ public class WaterSource : RewindableBase
     }
 
     /// <summary>
-    /// 每物理帧无条件记录快照。
-    /// 必须定时记录（而非只在状态转变时记录）：才能捕获到"水流未开始"等无变化时段的状态，
-    /// 回溯时才能还原到触发前的状态。回溯期间（IsRewindOperationLocked）跳过，避免污染。
+    /// Trigger 开启记录后，每物理帧记录快照。
+    /// 回溯到 Trigger 边界前时，isSnapshotRecording 会恢复为 false，此后停止记录，
+    /// 直到 WaterFlowTrigger 再次触发。
     /// </summary>
     private void FixedUpdate()
     {
-        if (IsRewindOperationLocked) return;
+        if (IsRewindOperationLocked || !isSnapshotRecording) return;
         RecordSnapshot();
     }
 
@@ -354,7 +417,7 @@ public class WaterSource : RewindableBase
         isRewinding = false;
         isRewindCoolingDown = false;
         // 协程已被 StopAllCoroutines 停掉，清空引用。
-        // 注意：不重置 hasFlowedOnce/freezeState/isFlowing/stepCount——这些已由 ApplySnapshot
+        // 注意：不重置 hasFlowedOnce/freezeState/isFlowing/stepCount/isSnapshotRecording——这些已由 ApplySnapshot
         // 还原到回溯到的那个快照的值，必须保留以正确反映"回溯后的状态"。
         flowCoroutine = null;
         advanceCoroutine = null;
@@ -421,16 +484,22 @@ public class WaterSource : RewindableBase
 
     public override void RecordSnapshot()
     {
-        if (IsRewindOperationLocked) return;
+        if (IsRewindOperationLocked || !isSnapshotRecording) return;
 
+        EnqueueSnapshot(Time.time);
+    }
+
+    private void EnqueueSnapshot(float snapshotTime)
+    {
         var snap = new WaterSourceSnapshot
         {
-            time = Time.time,
+            time = snapshotTime,
             unitStates = CaptureAllUnits(),
             hasFlowedOnce = hasFlowedOnce,
             isFlowing = isFlowing,
             stepCount = stepCount,
-            freezeState = freezeState
+            freezeState = freezeState,
+            isSnapshotRecording = isSnapshotRecording
         };
         EnqueueAndTrim(snapshots, snap, GetRewindableSeconds());
     }
@@ -485,7 +554,8 @@ public class WaterSource : RewindableBase
             if (units[i] != null) units[i].gameObject.SetActive(false);
         }
 
-        // 还原水源级状态：回溯到的那个时刻的 hasFlowedOnce/isFlowing/stepCount/freezeState。
+        // 还原水源级状态：回溯到的那个时刻的 hasFlowedOnce/isFlowing/stepCount/freezeState/
+        // isSnapshotRecording。
         // 这里只更新数据，不重启协程（回溯期间协程保持停止，回溯结束后由 OnReincarnationEnd 按
         // 还原后的 isFlowing 决定是否重启 FlowLoop，从当前 stepCount 继续向下生成；
         // 按 freezeState == Requested 决定是否自动重新结冰）。
@@ -493,6 +563,7 @@ public class WaterSource : RewindableBase
         isFlowing = snap.isFlowing;     // 仅记录状态，真正是否继续流由 OnReincarnationEnd 判定
         stepCount = snap.stepCount;
         freezeState = snap.freezeState;
+        isSnapshotRecording = snap.isSnapshotRecording;
     }
 
     private float GetRewindableSeconds()
