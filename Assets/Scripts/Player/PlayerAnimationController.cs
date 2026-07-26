@@ -9,8 +9,10 @@ public class PlayerAnimationController : MonoBehaviour
 
     private enum PlayerAgeStage { Youth, Adult, Elder, Frail }
     private enum PlayerAnimState { Idle, Walk, WalkHunched, WalkFrail, Run, Hurt, Dead, Jump, Land }
+    private enum JumpPhase { None, WaitingForTakeoff, WaitingForAirborne, Airborne }
     private PlayerAnimState currentAnimState;
     private bool wasGrounded = true;
+    private JumpPhase jumpPhase;
 
     private PlayerAgeStage CurrentAgeStage
     {
@@ -42,7 +44,23 @@ public class PlayerAnimationController : MonoBehaviour
             PlayClipOrStay(PlayerAnimState.Hurt);
         }
 
+        // 跳跃输入 → 先播 Jump 动画，在 50% 位置执行起跳
+        if (playerMovement.TryConsumeJump())
+        {
+            PlayClipOrStay(PlayerAnimState.Jump);
+            jumpPhase = JumpPhase.WaitingForTakeoff;
+            animatorPlayer.AddNormalizedTimeCallback(0.5f, ExecuteJump);
+            wasGrounded = true;
+            return;
+        }
+
         bool isGrounded = playerMovement.IsGrounded;
+
+        if (jumpPhase != JumpPhase.None)
+        {
+            UpdateJumpPhase(isGrounded);
+            return;
+        }
 
         if (wasGrounded && !isGrounded)
         {
@@ -54,7 +72,12 @@ public class PlayerAnimationController : MonoBehaviour
         }
         else if (isGrounded)
         {
-            // Land 动画播放期间不切换，等它播完自然保持最后一帧后再切到 Idle/Walk
+            // 跳跃/落地的单次动画播放期间不切换
+            if (currentAnimState == PlayerAnimState.Jump && animatorPlayer.IsPlaying)
+            {
+                wasGrounded = true;
+                return;
+            }
             if (currentAnimState == PlayerAnimState.Land && animatorPlayer.IsPlaying)
             {
                 wasGrounded = true;
@@ -66,6 +89,43 @@ public class PlayerAnimationController : MonoBehaviour
         }
 
         wasGrounded = isGrounded;
+    }
+
+    private void ExecuteJump()
+    {
+        if (jumpPhase != JumpPhase.WaitingForTakeoff)
+            return;
+
+        playerMovement.ExecuteJump();
+        jumpPhase = JumpPhase.WaitingForAirborne;
+    }
+
+    private void UpdateJumpPhase(bool isGrounded)
+    {
+        if (jumpPhase == JumpPhase.WaitingForTakeoff)
+        {
+            wasGrounded = isGrounded;
+            return;
+        }
+
+        if (jumpPhase == JumpPhase.WaitingForAirborne)
+        {
+            if (!isGrounded)
+                jumpPhase = JumpPhase.Airborne;
+
+            wasGrounded = isGrounded;
+            return;
+        }
+
+        if (!isGrounded)
+        {
+            wasGrounded = false;
+            return;
+        }
+
+        jumpPhase = JumpPhase.None;
+        wasGrounded = true;
+        PlayClipOrStay(PlayerAnimState.Land);
     }
 
     void PlayClipOrStay(PlayerAnimState state)
