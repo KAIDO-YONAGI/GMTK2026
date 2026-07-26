@@ -189,7 +189,7 @@ public class PlayerMovement : MonoBehaviour
 
     void UpdateMovementState()
     {
-        if (HealthManager.Instance.IsDead)
+        if (HealthManager.Instance.IsDead && HealthManager.Instance.CurrentHealth <= 0f)
         {
             // 死亡时不再处理移动状态，避免残留速度。
             if (rb != null)
@@ -223,7 +223,7 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleJumpInput()
     {
-        if (HealthManager.Instance.IsDead)
+        if (HealthManager.Instance.IsDead && HealthManager.Instance.CurrentHealth <= 0f)
         {
             // 死亡时不再处理移动状态，避免残留速度。
             if (rb != null)
@@ -248,7 +248,7 @@ public class PlayerMovement : MonoBehaviour
 
     void ApplyMovementVelocity()
     {
-        if (HealthManager.Instance.IsDead)
+        if (HealthManager.Instance.IsDead && HealthManager.Instance.CurrentHealth <= 0f)
         {
             // 死亡时不再处理移动状态，避免残留速度。
             if (rb != null)
