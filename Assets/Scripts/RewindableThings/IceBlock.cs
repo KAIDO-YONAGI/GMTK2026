@@ -96,6 +96,8 @@ public class IceBlock : RewindableBase
     {
         SetBroken(true);
         RecordSnapshot();
+        if (!IsRewindOperationLocked)
+            AudioManager.Instance?.PlaySFX(MyEnums.SFXType.IceBroken);
         shakeEvent.RaiseShakeEvent(hitShakeParams);
     }
 

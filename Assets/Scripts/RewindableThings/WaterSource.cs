@@ -202,6 +202,8 @@ public class WaterSource : RewindableBase
         // Frozen→Idle。其他未碎冰的单元视觉上仍是冰；这一格变 Stage2 等待重新被请求结冰。
         FreezeStateMachine.Break(ref freezeState);
         RecordSnapshot(); // 状态转变：碎冰→变回水
+        if (!IsRewindOperationLocked)
+            AudioManager.Instance?.PlaySFX(MyEnums.SFXType.IceBroken);
     }
 
     // ===== 流水协程：每隔 flowInterval 向下一格生成单元 =====
@@ -317,7 +319,12 @@ public class WaterSource : RewindableBase
                     anyChanged = true;
                 }
             }
-            if (anyChanged) RecordSnapshot(); // 状态转变：Stage1→Stage2
+            if (anyChanged)
+            {
+                RecordSnapshot(); // 状态转变：Stage1→Stage2
+                if (frozenMode)
+                    AudioManager.Instance?.PlaySFX(MyEnums.SFXType.IceFreeze);
+            }
 
             yield return new WaitForSeconds(0.1f); // 10Hz 轮询足够
         }
@@ -346,7 +353,11 @@ public class WaterSource : RewindableBase
                 anyChanged = true;
             }
         }
-        if (anyChanged) RecordSnapshot(); // 状态转变：结冰
+        if (anyChanged)
+        {
+            RecordSnapshot(); // 状态转变：结冰
+            AudioManager.Instance?.PlaySFX(MyEnums.SFXType.IceFreeze);
+        }
         freezeCoroutine = null;
     }
 
