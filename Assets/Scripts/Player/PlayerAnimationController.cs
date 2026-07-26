@@ -8,8 +8,11 @@ public class PlayerAnimationController : MonoBehaviour
     [SerializeField] private PlayerAnimationConfigSO animationConfig;
 
     private enum PlayerAgeStage { Youth, Adult, Elder, Frail }
-    private enum PlayerAnimState { Idle, Walk, WalkHunched, WalkFrail, Run, Hurt, Dead }
+    private enum PlayerAnimState { Idle, Walk, WalkHunched, WalkFrail, Run, Hurt, Dead, Jump, Land }
+    private enum JumpPhase { None, WaitingForTakeoff, WaitingForAirborne, Airborne }
     private PlayerAnimState currentAnimState;
+    private bool wasGrounded = true;
+    private JumpPhase jumpPhase;
 
     private PlayerAgeStage CurrentAgeStage
     {
@@ -41,10 +44,88 @@ public class PlayerAnimationController : MonoBehaviour
             PlayClipOrStay(PlayerAnimState.Hurt);
         }
 
-        bool isMoving = playerMovement.IsGrounded && Mathf.Abs(playerMovement.HorizontalInput) > 0.01f;
-        PlayerAnimState newState = isMoving ? GetMoveStateByAge() : PlayerAnimState.Idle;
+        // 跳跃输入 → 先播 Jump 动画，在 50% 位置执行起跳
+        if (playerMovement.TryConsumeJump())
+        {
+            PlayClipOrStay(PlayerAnimState.Jump);
+            jumpPhase = JumpPhase.WaitingForTakeoff;
+            animatorPlayer.AddNormalizedTimeCallback(0.5f, ExecuteJump);
+            wasGrounded = true;
+            return;
+        }
 
-        PlayClipOrStay(newState);
+        bool isGrounded = playerMovement.IsGrounded;
+
+        if (jumpPhase != JumpPhase.None)
+        {
+            UpdateJumpPhase(isGrounded);
+            return;
+        }
+
+        if (wasGrounded && !isGrounded)
+        {
+            PlayClipOrStay(PlayerAnimState.Jump);
+        }
+        else if (!wasGrounded && isGrounded)
+        {
+            PlayClipOrStay(PlayerAnimState.Land);
+        }
+        else if (isGrounded)
+        {
+            // 跳跃/落地的单次动画播放期间不切换
+            if (currentAnimState == PlayerAnimState.Jump && animatorPlayer.IsPlaying)
+            {
+                wasGrounded = true;
+                return;
+            }
+            if (currentAnimState == PlayerAnimState.Land && animatorPlayer.IsPlaying)
+            {
+                wasGrounded = true;
+                return;
+            }
+
+            bool isMoving = Mathf.Abs(playerMovement.HorizontalInput) > 0.01f;
+            PlayClipOrStay(isMoving ? GetMoveStateByAge() : PlayerAnimState.Idle);
+        }
+
+        wasGrounded = isGrounded;
+    }
+
+    private void ExecuteJump()
+    {
+        if (jumpPhase != JumpPhase.WaitingForTakeoff)
+            return;
+
+        playerMovement.ExecuteJump();
+        jumpPhase = JumpPhase.WaitingForAirborne;
+    }
+
+    private void UpdateJumpPhase(bool isGrounded)
+    {
+        if (jumpPhase == JumpPhase.WaitingForTakeoff)
+        {
+            wasGrounded = isGrounded;
+            return;
+        }
+
+        if (jumpPhase == JumpPhase.WaitingForAirborne)
+        {
+            if (!isGrounded)
+                jumpPhase = JumpPhase.Airborne;
+
+            wasGrounded = isGrounded;
+            return;
+        }
+
+        if (!isGrounded)
+        {
+            wasGrounded = false;
+            return;
+        }
+
+        jumpPhase = JumpPhase.None;
+        wasGrounded = true;
+        PlayClipOrStay(PlayerAnimState.Land);
     }
 
     void PlayClipOrStay(PlayerAnimState state)
@@ -82,6 +163,8 @@ public class PlayerAnimationController : MonoBehaviour
             PlayerAnimState.WalkFrail => animationConfig.walk拄拐.clip,
             PlayerAnimState.Run => animationConfig.run.clip,
             PlayerAnimState.Hurt => animationConfig.hurt.clip,
+            PlayerAnimState.Jump => animationConfig.jump.clip,
+            PlayerAnimState.Land => animationConfig.land.clip,
             PlayerAnimState.Dead => animationConfig.dead.clip,
             _ => null
         };
@@ -97,6 +180,8 @@ public class PlayerAnimationController : MonoBehaviour
             PlayerAnimState.WalkFrail => animationConfig.walk拄拐.parameters,
             PlayerAnimState.Run => animationConfig.run.parameters,
             PlayerAnimState.Hurt => animationConfig.hurt.parameters,
+            PlayerAnimState.Jump => animationConfig.jump.parameters,
+            PlayerAnimState.Land => animationConfig.land.parameters,
             PlayerAnimState.Dead => animationConfig.dead.parameters,
             _ => AnimationPlayParameters.Default
         };

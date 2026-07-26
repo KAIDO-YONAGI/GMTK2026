@@ -47,6 +47,13 @@ public class PlayerMovement : MonoBehaviour
     bool isGrounded;
     public bool IsGrounded => isGrounded;
     public float HorizontalInput => Input.GetAxisRaw("Horizontal");
+    private bool pendingJump;
+    public bool TryConsumeJump()
+    {
+        if (!pendingJump) return false;
+        pendingJump = false;
+        return true;
+    }
     bool isInputEnabled = true;
     float speedBoostEndTime = float.NegativeInfinity;
     Coroutine speedUpFeedbackRoutine;
@@ -208,9 +215,15 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleJumpInput()
     {
-        // 跳跃属于竖直移动，加速 buff 不作用于竖直方向，因此只受衰老减速影响。
         if (rb == null || !Input.GetButtonDown("Jump") || !isGrounded)
             return;
+
+        pendingJump = true;
+    }
+
+    public void ExecuteJump()
+    {
+        if (rb == null) return;
 
         Vector2 velocity = rb.velocity;
         velocity.y = jumpForce * agingRate * GetDyingMultiplier();

@@ -20,13 +20,20 @@ public struct AnimationPlayParameters
     public int layer;
 
     /// <summary>
-    /// 默认播放参数：正常速度、从头播放、不循环、使用第 0 层。
+    /// 非循环动画完成后是否调 StopClip()（设 animator.speed = 0）。
+    /// true = 冻结在最后一帧；false = 让 Animator 自然保持最后一帧（用于跳跃/落地等预览动画）。
+    /// </summary>
+    public bool freezeOnComplete;
+
+    /// <summary>
+    /// 默认播放参数：正常速度、从头播放、不循环、使用第 0 层、完成后冻结。
     /// </summary>
     public static AnimationPlayParameters Default => new AnimationPlayParameters
     {
         speedScale = 1f,
         startNormalizedTime = 0f,
         loop = false,
-        layer = 0
+        layer = 0,
+        freezeOnComplete = true
     };
 }

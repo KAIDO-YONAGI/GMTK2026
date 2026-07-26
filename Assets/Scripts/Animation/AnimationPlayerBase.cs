@@ -28,6 +28,7 @@ public abstract class AnimationPlayerBase : MonoBehaviour, IAnimationPlayer
     private float previousNormalizedTime;
     private bool isPlaying;
     private bool isPaused;
+    private bool hasActivatedPlaybackState;
 
     /// <summary>当前是否正在播放动画。</summary>
     public bool IsPlaying => isPlaying;
@@ -93,6 +94,7 @@ public abstract class AnimationPlayerBase : MonoBehaviour, IAnimationPlayer
 
         isPlaying = false;
         isPaused = false;
+        hasActivatedPlaybackState = false;
         currentClip = null;
         ClearCallbacks();
     }
@@ -147,9 +149,15 @@ public abstract class AnimationPlayerBase : MonoBehaviour, IAnimationPlayer
 
         if (!IsPlaybackStateActive())
         {
+            // Animator.Play 的状态切换可能在本帧稍后才生效，首次激活前不能误判为中断。
+            if (!hasActivatedPlaybackState)
+                return;
+
             InterruptPlayback();
             return;
         }
+
+        hasActivatedPlaybackState = true;
 
         // 使用跨越判断而不是判断某一帧是否刚好等于目标时间，避免低帧率时漏掉回调。
         float normalizedTime = Mathf.Max(0f, GetNormalizedTime());
@@ -181,8 +189,11 @@ public abstract class AnimationPlayerBase : MonoBehaviour, IAnimationPlayer
 
         if (normalizedTime >= 1f)
         {
-            // 非循环动画结束后停在最后一帧，再触发完成回调。
-            StopClip();
+            // 非循环动画结束后停在最后一帧。
+            // freezeOnComplete=true 时调 StopClip()（设 speed=0，冻结渲染）；
+            // false 时让 Animator 自然保持最后一帧（用于跳跃/落地等预览动画）。
+            if (currentParameters.freezeOnComplete)
+                StopClip();
             isPlaying = false;
             isPaused = false;
 
@@ -237,6 +248,7 @@ public abstract class AnimationPlayerBase : MonoBehaviour, IAnimationPlayer
     {
         isPlaying = false;
         isPaused = false;
+        hasActivatedPlaybackState = false;
         currentClip = null;
         ClearCallbacks();
     }
