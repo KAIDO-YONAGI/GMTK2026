@@ -2925,6 +2925,9 @@ MonoBehaviour:
   playerMovement: {fileID: 736215035131067005}
   animatorPlayer: {fileID: 736215035131067004}
   animationConfig: {fileID: 11400000, guid: 65a02fed97456924c897b36f9ec22905, type: 2}
+  jumpDelay: 0.18
+  walkStepInterval: 0.52
+  runStepInterval: 0.4
 --- !u!1 &1600124931
 GameObject:
   m_ObjectHideFlags: 0
@@ -3859,6 +3862,10 @@ PrefabInstance:
       propertyPath: spriteRenderer
       value: 
       objectReference: {fileID: 27706802}
+    - target: {fileID: 4864055882638485167, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
+      propertyPath: landParticlePrefab
+      value: 
+      objectReference: {fileID: 7505165592076352477, guid: aebe0b4269ffc6a4fb6167d4b81ffb78, type: 3}
     - target: {fileID: 7136176016375389579, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_Name
       value: Player

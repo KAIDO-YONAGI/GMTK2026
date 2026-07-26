@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -14,6 +15,12 @@ public class PlayerMovement : MonoBehaviour
     // 刚体通过 Inspector 拖拽引用，允许移动脚本挂在 Player 的子物体上。
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private ParticleSystem runParticleSystem;
+
+    [Header("Landing Particle")]
+    [SerializeField] private ParticleSystem landParticlePrefab;
+    [SerializeField] private int landParticlePrewarmCount = 3;
+    private ObjectPool<ParticleSystem> landParticlePool;
+    private readonly List<ParticleSystem> activeLandParticles = new();
 
     [Header("Input Events")]
     [SerializeField] private VoidEventSO startInputEvent;
@@ -45,6 +52,7 @@ public class PlayerMovement : MonoBehaviour
     private float agingRate = 1f;
     
     bool isGrounded;
+    bool wasGrounded = true;
     public bool IsGrounded => isGrounded;
     public float HorizontalInput => Input.GetAxisRaw("Horizontal");
     private bool pendingJump;
@@ -92,6 +100,17 @@ public class PlayerMovement : MonoBehaviour
             speedUpFeedbackGroup.interactable = false;
             speedUpFeedbackGroup.blocksRaycasts = false;
         }
+        SetupLandingParticlePool();
+    }
+
+    private void SetupLandingParticlePool()
+    {
+        if (landParticlePrefab == null) return;
+
+        var main = landParticlePrefab.main;
+        main.useUnscaledTime = true;
+
+        landParticlePool = new ObjectPool<ParticleSystem>(landParticlePrefab, landParticlePrewarmCount, transform);
     }
 
     void OnEnable()
@@ -168,6 +187,18 @@ public class PlayerMovement : MonoBehaviour
         // 每次切场景加载完成后清空刚体速度，避免上一场景的残留速度带到新场景。
         if (rb != null)
             rb.velocity = Vector2.zero;
+
+        StopAllCoroutines();
+        for (int i = activeLandParticles.Count - 1; i >= 0; i--)
+        {
+            var ps = activeLandParticles[i];
+            if (ps != null)
+            {
+                ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                landParticlePool?.Return(ps);
+            }
+        }
+        activeLandParticles.Clear();
     }
 
     void Update()
@@ -201,6 +232,11 @@ public class PlayerMovement : MonoBehaviour
         isGrounded = groundCheck != null
             ? Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer)
             : true;
+
+        if (!wasGrounded && isGrounded)
+            PlayLandParticle();
+        wasGrounded = isGrounded;
+
         agingRate = 1f - AgeManager.instance.AgeNormalized;
         agingRate = Mathf.Max(0.4f, Mathf.Sqrt(agingRate));
         
@@ -219,6 +255,28 @@ public class PlayerMovement : MonoBehaviour
                 runParticleSystem.Stop();
         }
 
+    }
+
+    private void PlayLandParticle()
+    {
+        if (landParticlePool == null) return;
+        ParticleSystem ps = landParticlePool.Get();
+        if (ps == null) return;
+
+        ps.transform.SetParent(null);
+        ps.transform.position = groundCheck != null ? groundCheck.position : transform.position;
+        ps.Play();
+        activeLandParticles.Add(ps);
+        StartCoroutine(ReturnLandParticleWhenDone(ps));
+    }
+
+    private IEnumerator ReturnLandParticleWhenDone(ParticleSystem ps)
+    {
+        while (ps.isPlaying)
+            yield return null;
+
+        landParticlePool.Return(ps);
+        activeLandParticles.Remove(ps);
     }
 
     void HandleJumpInput()
