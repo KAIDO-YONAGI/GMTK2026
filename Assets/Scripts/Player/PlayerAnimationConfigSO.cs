@@ -14,6 +14,8 @@ public class PlayerAnimationConfigSO : ScriptableObject
     public PlayerAnimationEntry walk;
     public PlayerAnimationEntry walk驼背;
     public PlayerAnimationEntry walk拄拐;
+    public PlayerAnimationEntry jump;
+    public PlayerAnimationEntry land;
     public PlayerAnimationEntry run;
     public PlayerAnimationEntry hurt;
     public PlayerAnimationEntry dead;

@@ -181,8 +181,11 @@ public abstract class AnimationPlayerBase : MonoBehaviour, IAnimationPlayer
 
         if (normalizedTime >= 1f)
         {
-            // 非循环动画结束后停在最后一帧，再触发完成回调。
-            StopClip();
+            // 非循环动画结束后停在最后一帧。
+            // freezeOnComplete=true 时调 StopClip()（设 speed=0，冻结渲染）；
+            // false 时让 Animator 自然保持最后一帧（用于跳跃/落地等预览动画）。
+            if (currentParameters.freezeOnComplete)
+                StopClip();
             isPlaying = false;
             isPaused = false;
 

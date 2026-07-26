@@ -2586,9 +2586,6 @@ MonoBehaviour:
   playerMovement: {fileID: 736215035131067005}
   animatorPlayer: {fileID: 736215035131067004}
   animationConfig: {fileID: 11400000, guid: 65a02fed97456924c897b36f9ec22905, type: 2}
-  healthChangeEvent: {fileID: 0}
-  youngThreshold: 0.33
-  oldThreshold: 0.66
 --- !u!1 &1600124931
 GameObject:
   m_ObjectHideFlags: 0
@@ -3677,7 +3674,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3696543959449738910, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -401.99997
+      value: -401.99994
       objectReference: {fileID: 0}
     - target: {fileID: 3696543959449738910, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z

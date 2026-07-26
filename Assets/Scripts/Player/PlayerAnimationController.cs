@@ -8,8 +8,9 @@ public class PlayerAnimationController : MonoBehaviour
     [SerializeField] private PlayerAnimationConfigSO animationConfig;
 
     private enum PlayerAgeStage { Youth, Adult, Elder, Frail }
-    private enum PlayerAnimState { Idle, Walk, WalkHunched, WalkFrail, Run, Hurt, Dead }
+    private enum PlayerAnimState { Idle, Walk, WalkHunched, WalkFrail, Run, Hurt, Dead, Jump, Land }
     private PlayerAnimState currentAnimState;
+    private bool wasGrounded = true;
 
     private PlayerAgeStage CurrentAgeStage
     {
@@ -41,10 +42,30 @@ public class PlayerAnimationController : MonoBehaviour
             PlayClipOrStay(PlayerAnimState.Hurt);
         }
 
-        bool isMoving = playerMovement.IsGrounded && Mathf.Abs(playerMovement.HorizontalInput) > 0.01f;
-        PlayerAnimState newState = isMoving ? GetMoveStateByAge() : PlayerAnimState.Idle;
+        bool isGrounded = playerMovement.IsGrounded;
 
-        PlayClipOrStay(newState);
+        if (wasGrounded && !isGrounded)
+        {
+            PlayClipOrStay(PlayerAnimState.Jump);
+        }
+        else if (!wasGrounded && isGrounded)
+        {
+            PlayClipOrStay(PlayerAnimState.Land);
+        }
+        else if (isGrounded)
+        {
+            // Land 动画播放期间不切换，等它播完自然保持最后一帧后再切到 Idle/Walk
+            if (currentAnimState == PlayerAnimState.Land && animatorPlayer.IsPlaying)
+            {
+                wasGrounded = true;
+                return;
+            }
+
+            bool isMoving = Mathf.Abs(playerMovement.HorizontalInput) > 0.01f;
+            PlayClipOrStay(isMoving ? GetMoveStateByAge() : PlayerAnimState.Idle);
+        }
+
+        wasGrounded = isGrounded;
     }
 
     void PlayClipOrStay(PlayerAnimState state)
@@ -82,6 +103,8 @@ public class PlayerAnimationController : MonoBehaviour
             PlayerAnimState.WalkFrail => animationConfig.walk拄拐.clip,
             PlayerAnimState.Run => animationConfig.run.clip,
             PlayerAnimState.Hurt => animationConfig.hurt.clip,
+            PlayerAnimState.Jump => animationConfig.jump.clip,
+            PlayerAnimState.Land => animationConfig.land.clip,
             PlayerAnimState.Dead => animationConfig.dead.clip,
             _ => null
         };
@@ -97,6 +120,8 @@ public class PlayerAnimationController : MonoBehaviour
             PlayerAnimState.WalkFrail => animationConfig.walk拄拐.parameters,
             PlayerAnimState.Run => animationConfig.run.parameters,
             PlayerAnimState.Hurt => animationConfig.hurt.parameters,
+            PlayerAnimState.Jump => animationConfig.jump.parameters,
+            PlayerAnimState.Land => animationConfig.land.parameters,
             PlayerAnimState.Dead => animationConfig.dead.parameters,
             _ => AnimationPlayParameters.Default
         };

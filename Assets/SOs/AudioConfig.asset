@@ -12,7 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eafb41c5b74b8244abac549cc35a12a5, type: 3}
   m_Name: AudioConfig
   m_EditorClassIdentifier: 
-  sfxEntries: []
+  sfxEntries:
+  - type: 13
+    items:
+    - clip: {fileID: 8300000, guid: 21f3918fcc7007042b0e5ecc83aa14c1, type: 3}
+      weight: 1
   bgmEntries:
   - type: 1
     items:
