@@ -2926,6 +2926,9 @@ MonoBehaviour:
   playerMovement: {fileID: 736215035131067005}
   animatorPlayer: {fileID: 736215035131067004}
   animationConfig: {fileID: 11400000, guid: 65a02fed97456924c897b36f9ec22905, type: 2}
+  jumpDelay: 0.18
+  walkStepInterval: 0.52
+  runStepInterval: 0.4
 --- !u!1 &1600124931
 GameObject:
   m_ObjectHideFlags: 0
@@ -2974,7 +2977,7 @@ MonoBehaviour:
   initialPosition: {x: 0, y: 0, z: 0}
   fadeDuration: 1
   initScene:
-  - {fileID: 11400000, guid: 10fd3d9f63b336742a59724491f0d794, type: 2}
+  - {fileID: 11400000, guid: e76f057f942010e418b9d660a649c6c1, type: 2}
   player: {fileID: 27706796}
   fadeCanva: {fileID: 383477868}
   loadEventSO: {fileID: 11400000, guid: 820c6319319801a4987f94ab3d435c01, type: 2}

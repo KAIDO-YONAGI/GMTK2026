@@ -165,9 +165,29 @@ public class PlayerMovement : MonoBehaviour
 
     void OnSceneLoaded()
     {
-        // 每次切场景加载完成后清空刚体速度，避免上一场景的残留速度带到新场景。
+        // 每次切场景加载完成后清空上一场景残留的移动状态。
+        isInputEnabled = true;
+        pendingJump = false;
+        isGrounded = false;
+        agingRate = 1f;
+        speedBoostEndTime = float.NegativeInfinity;
+
         if (rb != null)
             rb.velocity = Vector2.zero;
+
+        if (runParticleSystem != null && runParticleSystem.isPlaying)
+            runParticleSystem.Stop();
+
+        if (speedUpFeedbackRoutine != null)
+            StopCoroutine(speedUpFeedbackRoutine);
+        speedUpFeedbackRoutine = null;
+
+        if (speedUpFeedbackGroup != null)
+        {
+            speedUpFeedbackGroup.alpha = 0f;
+            speedUpFeedbackGroup.interactable = false;
+            speedUpFeedbackGroup.blocksRaycasts = false;
+        }
     }
 
     void Update()
