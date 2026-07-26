@@ -20,6 +20,14 @@ MonoBehaviour:
       loop: 1
       layer: 0
       freezeOnComplete: 0
+  "idle\u62C4\u62D0":
+    clip: {fileID: 7400000, guid: 443cbbbfb4e4f234d995ef9316291bd9, type: 2}
+    parameters:
+      speedScale: 1
+      startNormalizedTime: 0
+      loop: 0
+      layer: 0
+      freezeOnComplete: 0
   walk:
     clip: {fileID: 7400000, guid: 30d99c09c3e17d145a5399e8f39380f2, type: 2}
     parameters:

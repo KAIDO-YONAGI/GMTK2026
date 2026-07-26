@@ -11,6 +11,7 @@ public struct PlayerAnimationEntry
 public class PlayerAnimationConfigSO : ScriptableObject
 {
     public PlayerAnimationEntry idle;
+    public PlayerAnimationEntry idle拄拐;
     public PlayerAnimationEntry walk;
     public PlayerAnimationEntry walk驼背;
     public PlayerAnimationEntry walk拄拐;

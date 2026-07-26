@@ -25,7 +25,7 @@ public class PlayerAnimationController : MonoBehaviour
     [SerializeField, Min(0.05f)] private float runStepInterval = 0.4f;
 
     private enum PlayerAgeStage { Youth, Adult, Elder, Frail }
-    private enum PlayerAnimState { None, Idle, Walk, WalkHunched, WalkFrail, Run, Hurt, Dead, Jump, Land }
+    private enum PlayerAnimState { None, Idle, IdleFrail, Walk, WalkHunched, WalkFrail, Run, Hurt, Dead, Jump, Land }
     private enum JumpPhase { None, WaitingForTakeoff, WaitingForAirborne, Airborne }
     private PlayerAnimState currentAnimState;
     private bool wasGrounded = true;
@@ -73,7 +73,7 @@ public class PlayerAnimationController : MonoBehaviour
         isRewinding = false;
         ResetTransientAnimationState();
         wasGrounded = false;
-        PlayStateAfterReset(PlayerAnimState.Idle);
+        PlayStateAfterReset(GetIdleStateByAge());
     }
 
     private void OnReincarnationBegin()
@@ -81,7 +81,7 @@ public class PlayerAnimationController : MonoBehaviour
         isRewinding = true;
         ResetTransientAnimationState();
         wasGrounded = playerMovement == null || playerMovement.IsGrounded;
-        PlayStateAfterReset(PlayerAnimState.Idle);
+        PlayStateAfterReset(GetIdleStateByAge());
     }
 
     private void OnReincarnationEnd()
@@ -91,7 +91,7 @@ public class PlayerAnimationController : MonoBehaviour
 
         bool isGrounded = playerMovement == null || playerMovement.IsGrounded;
         wasGrounded = isGrounded;
-        PlayStateAfterReset(isGrounded ? PlayerAnimState.Idle : PlayerAnimState.Jump);
+        PlayStateAfterReset(isGrounded ? GetIdleStateByAge() : PlayerAnimState.Jump);
     }
 
     private void ResetTransientAnimationState()
@@ -185,7 +185,7 @@ public class PlayerAnimationController : MonoBehaviour
             else
             {
                 ResetFootstepAudio();
-                PlayClipOrStay(PlayerAnimState.Idle);
+                PlayClipOrStay(GetIdleStateByAge());
             }
         }
         else
@@ -292,11 +292,19 @@ public class PlayerAnimationController : MonoBehaviour
         };
     }
 
+    PlayerAnimState GetIdleStateByAge()
+    {
+        return CurrentAgeStage == PlayerAgeStage.Frail
+            ? PlayerAnimState.IdleFrail
+            : PlayerAnimState.Idle;
+    }
+
     AnimationClip GetClipForState(PlayerAnimState state)
     {
         return state switch
         {
             PlayerAnimState.Idle => animationConfig.idle.clip,
+            PlayerAnimState.IdleFrail => animationConfig.idle拄拐.clip,
             PlayerAnimState.Walk => animationConfig.walk.clip,
             PlayerAnimState.WalkHunched => animationConfig.walk驼背.clip,
             PlayerAnimState.WalkFrail => animationConfig.walk拄拐.clip,
@@ -314,6 +322,7 @@ public class PlayerAnimationController : MonoBehaviour
         return state switch
         {
             PlayerAnimState.Idle => animationConfig.idle.parameters,
+            PlayerAnimState.IdleFrail => animationConfig.idle拄拐.parameters,
             PlayerAnimState.Walk => animationConfig.walk.parameters,
             PlayerAnimState.WalkHunched => animationConfig.walk驼背.parameters,
             PlayerAnimState.WalkFrail => animationConfig.walk拄拐.parameters,

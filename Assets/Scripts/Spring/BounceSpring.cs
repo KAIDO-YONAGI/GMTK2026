@@ -21,6 +21,7 @@ public class BounceSpring : MonoBehaviour
         Vector3 alongSpring = Vector3.Project(velocity, transform.up);
         Vector3 perpendicular = velocity - alongSpring;
         rb.AddForce(transform.up * bounceForce, ForceMode2D.Impulse);
+        AudioManager.Instance?.PlaySFX(MyEnums.SFXType.SpringBounce);
 
         cooldownTimer = cooldown;
 
