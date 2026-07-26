@@ -12,6 +12,8 @@ public class PlayerAnimationConfigSO : ScriptableObject
 {
     public PlayerAnimationEntry idle;
     public PlayerAnimationEntry walk;
+    public PlayerAnimationEntry walk驼背;
+    public PlayerAnimationEntry walk拄拐;
     public PlayerAnimationEntry run;
     public PlayerAnimationEntry hurt;
     public PlayerAnimationEntry dead;

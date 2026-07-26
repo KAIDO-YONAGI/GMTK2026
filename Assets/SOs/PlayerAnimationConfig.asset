@@ -20,11 +20,25 @@ MonoBehaviour:
       loop: 1
       layer: 0
   walk:
-    clip: {fileID: 7400000, guid: f81ce415e4ecacc4585379f409b88d71, type: 2}
+    clip: {fileID: 7400000, guid: 30d99c09c3e17d145a5399e8f39380f2, type: 2}
     parameters:
-      speedScale: 0.8
+      speedScale: 1
       startNormalizedTime: 0
       loop: 1
+      layer: 0
+  "walk\u9A7C\u80CC":
+    clip: {fileID: 7400000, guid: 6a16fc8ac860ed14583c8b6c80106ec7, type: 2}
+    parameters:
+      speedScale: 1
+      startNormalizedTime: 0
+      loop: 0
+      layer: 0
+  "walk\u62C4\u62D0":
+    clip: {fileID: 7400000, guid: cbf4050c8df777245896246c40fbb9ac, type: 2}
+    parameters:
+      speedScale: 1
+      startNormalizedTime: 0
+      loop: 0
       layer: 0
   run:
     clip: {fileID: 7400000, guid: f81ce415e4ecacc4585379f409b88d71, type: 2}
