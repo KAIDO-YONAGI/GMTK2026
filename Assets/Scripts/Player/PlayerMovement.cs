@@ -43,7 +43,7 @@ public class PlayerMovement : MonoBehaviour
     public Transform groundCheck;            // 脚下检测点（Player 底部）
     public float groundCheckRadius = 0.1f;   // 检测圆半径
     private float agingRate = 1f;
-
+    
     bool isGrounded;
     public bool IsGrounded => isGrounded;
     public float HorizontalInput => Input.GetAxisRaw("Horizontal");
@@ -189,6 +189,14 @@ public class PlayerMovement : MonoBehaviour
 
     void UpdateMovementState()
     {
+        if (HealthManager.Instance.IsDead)
+        {
+            // 死亡时不再处理移动状态，避免残留速度。
+            if (rb != null)
+                rb.velocity = Vector2.zero;
+            return;
+        }
+        
         // 地面检测：未配置 groundCheck 时假设始终在地面（demo 模式，玩家可空中跳）
         isGrounded = groundCheck != null
             ? Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer)
@@ -215,6 +223,14 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleJumpInput()
     {
+        if (HealthManager.Instance.IsDead)
+        {
+            // 死亡时不再处理移动状态，避免残留速度。
+            if (rb != null)
+                rb.velocity = Vector2.zero;
+            return;
+        }
+        
         if (rb == null || !Input.GetButtonDown("Jump") || !isGrounded)
             return;
 
@@ -232,6 +248,14 @@ public class PlayerMovement : MonoBehaviour
 
     void ApplyMovementVelocity()
     {
+        if (HealthManager.Instance.IsDead)
+        {
+            // 死亡时不再处理移动状态，避免残留速度。
+            if (rb != null)
+                rb.velocity = Vector2.zero;
+            return;
+        }
+        
         if (rb == null)
             return;
 
