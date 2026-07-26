@@ -2973,7 +2973,7 @@ MonoBehaviour:
   initialPosition: {x: 0, y: 0, z: 0}
   fadeDuration: 1
   initScene:
-  - {fileID: 11400000, guid: e76f057f942010e418b9d660a649c6c1, type: 2}
+  - {fileID: 11400000, guid: 10fd3d9f63b336742a59724491f0d794, type: 2}
   player: {fileID: 27706796}
   fadeCanva: {fileID: 383477868}
   loadEventSO: {fileID: 11400000, guid: 820c6319319801a4987f94ab3d435c01, type: 2}
@@ -3777,19 +3777,19 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 194542073093597360, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_Size.x
-      value: 0.9
+      value: 0.5793166
       objectReference: {fileID: 0}
     - target: {fileID: 194542073093597360, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_Size.y
-      value: 0.9000002
+      value: 0.98
       objectReference: {fileID: 0}
     - target: {fileID: 194542073093597360, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_Offset.x
-      value: 0.16680378
+      value: 0.07695163
       objectReference: {fileID: 0}
     - target: {fileID: 194542073093597360, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_Offset.y
-      value: 0.4332912
+      value: 0.5177088
       objectReference: {fileID: 0}
     - target: {fileID: 2939508182233482846, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_LocalPosition.x
