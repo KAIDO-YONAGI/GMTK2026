@@ -4,6 +4,7 @@ using UnityEngine.UI;
 /// <summary>
 /// 濒死提示控制器。
 /// 订阅 healthChangedEvent（IntEventSO）：血量到 0 显示提示，&gt; 0 隐藏。
+/// 接收到死亡事件时立即隐藏提示，由 GameOver 面板接管。
 /// Give Up 按钮由 Awake 代码绑定，点击后触发 OnDie 进入真正死亡流程（GameOver 面板接管）。
 /// </summary>
 public class DyingHintManager : MonoBehaviour
@@ -13,6 +14,9 @@ public class DyingHintManager : MonoBehaviour
 
     [Tooltip("血量变化事件。与血量 HUD 订阅同一个 IntEventSO 资产。")]
     [SerializeField] private IntEventSO healthChangedEvent;
+
+    [Tooltip("Death event used to hide the dying hint when the player dies.")]
+    [SerializeField] private DeathEventSO_ deathEvent;
 
     private void Awake()
     {
@@ -33,12 +37,18 @@ public class DyingHintManager : MonoBehaviour
     {
         if (healthChangedEvent != null)
             healthChangedEvent.IntEvent += OnHealthChanged;
+
+        if (deathEvent != null)
+            deathEvent.deathEvent += OnDeath;
     }
 
     private void OnDisable()
     {
         if (healthChangedEvent != null)
             healthChangedEvent.IntEvent -= OnHealthChanged;
+
+        if (deathEvent != null)
+            deathEvent.deathEvent -= OnDeath;
     }
 
     private void OnHealthChanged(int health)
@@ -54,6 +64,11 @@ public class DyingHintManager : MonoBehaviour
 
         // 血量到 0 显示濒死提示；回血后隐藏。
         SetVisible(health <= 0);
+    }
+
+    private void OnDeath(MyEnums.DeathType _)
+    {
+        SetVisible(false);
     }
 
     /// <summary>Give Up 按钮回调：放弃自救，触发真正死亡。</summary>

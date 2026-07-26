@@ -45,6 +45,8 @@ public class WaterSource : RewindableBase
     [Header("Freeze")]
     [Tooltip("StartFreezing 触发后多少秒进入冻结状态。现有及后续成熟的水流单元都会结冰。")]
     [SerializeField] private float freezeDelay = 2f;
+    [Tooltip("Particle effect played when a water unit freezes or breaks.")]
+    [SerializeField] private ParticleSystem iceParticlePrefab;
 
     [Header("Collision Detection")]
     [Tooltip("地面检测层（命中即停止向下生成）。默认应含 Ground、Platform。")]
@@ -194,6 +196,20 @@ public class WaterSource : RewindableBase
         return false;
     }
 
+    private void PlayIceParticle(Vector3 position)
+    {
+        if (iceParticlePrefab == null) return;
+
+        ParticleSystem particle = Instantiate(
+            iceParticlePrefab,
+            position,
+            iceParticlePrefab.transform.rotation);
+        particle.Play(true);
+
+        var main = particle.main;
+        Destroy(particle.gameObject, main.duration + main.startLifetime.constantMax);
+    }
+
     /// <summary>由 WaterFlowUnit 的 Ice.OnBroken 回调调用：单单元碎冰后变回水（Stage2），可再次结冰。</summary>
     public void NotifyUnitBroken(WaterFlowUnit unit)
     {
@@ -205,7 +221,10 @@ public class WaterSource : RewindableBase
         FreezeStateMachine.Break(ref freezeState);
         RecordSnapshot(); // 状态转变：碎冰→变回水
         if (!IsRewindOperationLocked)
+        {
+            PlayIceParticle(unit.transform.position);
             AudioManager.Instance?.PlaySFX(MyEnums.SFXType.IceBroken);
+        }
     }
 
     // ===== 流水协程：每隔 flowInterval 向下一格生成单元 =====
@@ -326,6 +345,8 @@ public class WaterSource : RewindableBase
                     u.SetPhase(frozenMode
                         ? WaterFlowUnit.WaterPhase.Frozen
                         : WaterFlowUnit.WaterPhase.Stage2);
+                    if (frozenMode)
+                        PlayIceParticle(u.transform.position);
                     anyChanged = true;
                 }
             }
@@ -360,6 +381,7 @@ public class WaterSource : RewindableBase
             if (u.Phase == WaterFlowUnit.WaterPhase.Stage2)
             {
                 u.SetPhase(WaterFlowUnit.WaterPhase.Frozen);
+                PlayIceParticle(u.transform.position);
                 anyChanged = true;
             }
         }

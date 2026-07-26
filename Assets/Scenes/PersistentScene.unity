@@ -1287,6 +1287,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dyingHintGroup: {fileID: 551455897}
   healthChangedEvent: {fileID: 11400000, guid: 9cefeb31f41307444b80469d48e17b9b, type: 2}
+  deathEvent: {fileID: 11400000, guid: 8dca7fcc25850a547b132efa5717da16, type: 2}
 --- !u!225 &551455897
 CanvasGroup:
   m_ObjectHideFlags: 0

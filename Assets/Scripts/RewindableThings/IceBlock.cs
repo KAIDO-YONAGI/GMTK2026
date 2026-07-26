@@ -21,6 +21,10 @@ public class IceBlock : RewindableBase
     [Tooltip("碎裂冰块的 SpriteRenderer（完整时隐藏）。可不配，碎裂时仅隐藏完整贴图。")]
     [SerializeField] private SpriteRenderer brokenRenderer;
 
+    [Header("Particles")]
+    [Tooltip("Particle effect played when the ice block freezes or breaks.")]
+    [SerializeField] private ParticleSystem iceParticlePrefab;
+
     [Header("Rewind")]
     [Tooltip("回溯播放倍速。1 = 1:1 实时倒放。")]
     [SerializeField] private float rewindSpeed = 1f;
@@ -97,7 +101,10 @@ public class IceBlock : RewindableBase
         SetBroken(true);
         RecordSnapshot();
         if (!IsRewindOperationLocked)
+        {
+            PlayIceParticle();
             AudioManager.Instance?.PlaySFX(MyEnums.SFXType.IceBroken);
+        }
         shakeEvent.RaiseShakeEvent(hitShakeParams);
     }
 
@@ -108,6 +115,20 @@ public class IceBlock : RewindableBase
         if (blockCollider != null) blockCollider.enabled = !broken; // 碎裂时关闭碰撞（可通行）
         if (intactRenderer != null) intactRenderer.gameObject.SetActive(!broken);
         if (brokenRenderer != null) brokenRenderer.gameObject.SetActive(broken);
+    }
+
+    private void PlayIceParticle()
+    {
+        if (iceParticlePrefab == null) return;
+
+        ParticleSystem particle = Instantiate(
+            iceParticlePrefab,
+            transform.position,
+            iceParticlePrefab.transform.rotation);
+        particle.Play(true);
+
+        var main = particle.main;
+        Destroy(particle.gameObject, main.duration + main.startLifetime.constantMax);
     }
 
     // ===== 事件 =====
@@ -210,7 +231,12 @@ public class IceBlock : RewindableBase
             SetBroken(snap.isBroken);
             // 同步 Ice 的 isBroken 标志，保持一致
             if (snap.isBroken) ice?.Break();     // 已碎则幂等
-            else ice?.Restore();
+            else
+            {
+                ice?.Restore();
+                AudioManager.Instance?.PlaySFX(MyEnums.SFXType.IceFreeze);
+                PlayIceParticle();
+            }
         }
     }
 

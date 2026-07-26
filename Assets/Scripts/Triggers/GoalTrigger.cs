@@ -53,7 +53,9 @@ public class GoalTrigger : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-            TriggerEnding(); // 兜底：若未配置全局单例，关卡实例自己触发
+        if (!collision.gameObject.CompareTag("Player")) return;
+
+        TriggerEnding(); // 兜底：若未配置全局单例，关卡实例自己触发
     }
 
     private void OnDrawGizmos()

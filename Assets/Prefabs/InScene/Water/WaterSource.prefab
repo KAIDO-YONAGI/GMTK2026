@@ -290,6 +290,7 @@ MonoBehaviour:
   flowInterval: 0.2
   stage1ToStage2Seconds: 0.1
   freezeDelay: 0.31
+  iceParticlePrefab: {fileID: 2378960507229653462, guid: d74c1355619498a47b9711276bcb25eb, type: 3}
   groundMask:
     serializedVersion: 2
     m_Bits: 1536

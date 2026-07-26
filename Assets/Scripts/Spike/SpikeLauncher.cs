@@ -11,6 +11,12 @@ public class SpikeLauncher : MonoBehaviour
     [SerializeField] private float launchInterval = 0f;
     [SerializeField] private VoidEventSO reincarnationBegEvent;
     [SerializeField] private VoidEventSO reincarnationEndEvent;
+
+    [Header("Particles")]
+    [Tooltip("Particle effect played when a spike is launched.")]
+    [SerializeField] private ParticleSystem shootingParticlePrefab;
+    [Tooltip("Transform that holds the shooting particle near the launcher head.")]
+    [SerializeField] private Transform particlePoint;
     
     [Header("Spike 参数")]
     [SerializeField] private float spikeSpeed = 5f;
@@ -101,7 +107,22 @@ public class SpikeLauncher : MonoBehaviour
         spike.SetLifetime(spikeLifetime);
 
         spike.Launch(transform.up);
+        PlayShootingParticle();
         AudioManager.Instance?.PlaySFX(MyEnums.SFXType.SpikeLaunch);
+    }
+
+    private void PlayShootingParticle()
+    {
+        if (shootingParticlePrefab == null) return;
+
+        Transform parent = particlePoint != null ? particlePoint : transform;
+        ParticleSystem particle = Instantiate(shootingParticlePrefab, parent);
+        particle.transform.localPosition = Vector3.zero;
+        particle.transform.localRotation = shootingParticlePrefab.transform.localRotation;
+        particle.Play(true);
+
+        var main = particle.main;
+        Destroy(particle.gameObject, main.duration + main.startLifetime.constantMax);
     }
 
     public void FireAnim()
