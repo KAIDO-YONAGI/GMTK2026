@@ -15,8 +15,6 @@ public sealed class PlayerRewindTarget : MonoBehaviour
     private Rigidbody2D playerRigidbody;
 
     private RigidbodyType2D bodyTypeBeforeRewind;
-    private Vector2 velocityBeforeRewind;
-    private float angularVelocityBeforeRewind;
     private bool isFrozen;
 
     public bool IsFrozen => isFrozen;
@@ -69,9 +67,6 @@ public sealed class PlayerRewindTarget : MonoBehaviour
             return;
 
         bodyTypeBeforeRewind = playerRigidbody.bodyType;
-        velocityBeforeRewind = playerRigidbody.velocity;
-        angularVelocityBeforeRewind = playerRigidbody.angularVelocity;
-
         playerRigidbody.velocity = Vector2.zero;
         playerRigidbody.angularVelocity = 0f;
         playerRigidbody.bodyType = RigidbodyType2D.Kinematic;
@@ -85,8 +80,9 @@ public sealed class PlayerRewindTarget : MonoBehaviour
         if (playerRigidbody != null)
         {
             playerRigidbody.bodyType = bodyTypeBeforeRewind;
-            playerRigidbody.velocity = velocityBeforeRewind;
-            playerRigidbody.angularVelocity = angularVelocityBeforeRewind;
+            // 回溯位置与回溯前速度不属于同一时刻，解冻时必须清空旧速度。
+            playerRigidbody.velocity = Vector2.zero;
+            playerRigidbody.angularVelocity = 0f;
         }
 
         isFrozen = false;

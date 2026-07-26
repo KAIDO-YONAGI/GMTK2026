@@ -8,6 +8,16 @@ public class PlayerAnimationController : MonoBehaviour
     [SerializeField] private PlayerAnimationConfigSO animationConfig;
     [SerializeField] private float jumpDelay = 0.18f;
 
+    [Header("Scene Load")]
+    [Tooltip("Scene loaded event used to reset animation and jump state.")]
+    [SerializeField] private VoidEventSO sceneLoadedEvent;
+
+    [Header("Rewind")]
+    [Tooltip("Rewind started event used to clear pending jump animation state.")]
+    [SerializeField] private VoidEventSO reincarnationBegEvent;
+    [Tooltip("Rewind ended event used to resync movement animation state.")]
+    [SerializeField] private VoidEventSO reincarnationEndEvent;
+
     [Header("Footsteps")]
     [Tooltip("Seconds between walk footstep SFX.")]
     [SerializeField, Min(0.05f)] private float walkStepInterval = 0.52f;
@@ -15,7 +25,7 @@ public class PlayerAnimationController : MonoBehaviour
     [SerializeField, Min(0.05f)] private float runStepInterval = 0.4f;
 
     private enum PlayerAgeStage { Youth, Adult, Elder, Frail }
-    private enum PlayerAnimState { Idle, Walk, WalkHunched, WalkFrail, Run, Hurt, Dead, Jump, Land }
+    private enum PlayerAnimState { None, Idle, Walk, WalkHunched, WalkFrail, Run, Hurt, Dead, Jump, Land }
     private enum JumpPhase { None, WaitingForTakeoff, WaitingForAirborne, Airborne }
     private PlayerAnimState currentAnimState;
     private bool wasGrounded = true;
@@ -23,6 +33,7 @@ public class PlayerAnimationController : MonoBehaviour
     private bool hasActiveFootstepState;
     private PlayerAnimState activeFootstepState;
     private float nextFootstepTime;
+    private bool isRewinding;
 
     private PlayerAgeStage CurrentAgeStage
     {
@@ -37,6 +48,70 @@ public class PlayerAnimationController : MonoBehaviour
     }
     private bool pendingHurt;
 
+    private void OnEnable()
+    {
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent += OnSceneLoaded;
+        if (reincarnationBegEvent != null)
+            reincarnationBegEvent.VoidEvent += OnReincarnationBegin;
+        if (reincarnationEndEvent != null)
+            reincarnationEndEvent.VoidEvent += OnReincarnationEnd;
+    }
+
+    private void OnDisable()
+    {
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent -= OnSceneLoaded;
+        if (reincarnationBegEvent != null)
+            reincarnationBegEvent.VoidEvent -= OnReincarnationBegin;
+        if (reincarnationEndEvent != null)
+            reincarnationEndEvent.VoidEvent -= OnReincarnationEnd;
+    }
+
+    private void OnSceneLoaded()
+    {
+        isRewinding = false;
+        ResetTransientAnimationState();
+        wasGrounded = false;
+        PlayStateAfterReset(PlayerAnimState.Idle);
+    }
+
+    private void OnReincarnationBegin()
+    {
+        isRewinding = true;
+        ResetTransientAnimationState();
+        wasGrounded = playerMovement == null || playerMovement.IsGrounded;
+        PlayStateAfterReset(PlayerAnimState.Idle);
+    }
+
+    private void OnReincarnationEnd()
+    {
+        isRewinding = false;
+        ResetTransientAnimationState();
+
+        bool isGrounded = playerMovement == null || playerMovement.IsGrounded;
+        wasGrounded = isGrounded;
+        PlayStateAfterReset(isGrounded ? PlayerAnimState.Idle : PlayerAnimState.Jump);
+    }
+
+    private void ResetTransientAnimationState()
+    {
+        pendingHurt = false;
+        jumpPhase = JumpPhase.None;
+        ResetFootstepAudio();
+        nextFootstepTime = 0f;
+        currentAnimState = PlayerAnimState.None;
+        animatorPlayer?.Stop();
+    }
+
+    private void PlayStateAfterReset(PlayerAnimState state)
+    {
+        if (animatorPlayer == null || animationConfig == null)
+            return;
+
+        PlayClipOrStay(state);
+    }
+
     private void OnHurt(int changeHp)
     {
         if (changeHp < 0)
@@ -45,7 +120,7 @@ public class PlayerAnimationController : MonoBehaviour
 
     private void Update()
     {
-        if (animatorPlayer == null || animationConfig == null || playerMovement == null)
+        if (isRewinding || animatorPlayer == null || animationConfig == null || playerMovement == null)
             return;
 
         if (pendingHurt)

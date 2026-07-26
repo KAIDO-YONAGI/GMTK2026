@@ -2927,6 +2927,9 @@ MonoBehaviour:
   animatorPlayer: {fileID: 736215035131067004}
   animationConfig: {fileID: 11400000, guid: 65a02fed97456924c897b36f9ec22905, type: 2}
   jumpDelay: 0.18
+  sceneLoadedEvent: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
+  reincarnationBegEvent: {fileID: 11400000, guid: f37a074e87627f8498ef5a4e37f6d6ee, type: 2}
+  reincarnationEndEvent: {fileID: 11400000, guid: 92fba088eb8a33d448de9ab09aa82b8e, type: 2}
   walkStepInterval: 0.52
   runStepInterval: 0.4
 --- !u!1 &1600124931

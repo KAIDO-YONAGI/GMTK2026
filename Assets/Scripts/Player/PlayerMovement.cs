@@ -150,6 +150,9 @@ public class PlayerMovement : MonoBehaviour
     void OnStartInput()
     {
         // 回溯结束后由事件恢复玩家输入。
+        pendingJump = false;
+        RefreshGroundedState();
+        wasGrounded = isGrounded;
         isInputEnabled = true;
     }
 
@@ -157,10 +160,14 @@ public class PlayerMovement : MonoBehaviour
     {
         // 回溯开始时停止读取输入，但保留竖直方向的物理速度。
         isInputEnabled = false;
+        pendingJump = false;
 
         // 清除最后一次水平输入留下的速度，竖直方向继续交给物理系统。
         if (rb != null)
             rb.velocity = new Vector2(0f, rb.velocity.y);
+
+        if (runParticleSystem != null)
+            runParticleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 
     void OnReincarnationEnd()
@@ -187,8 +194,8 @@ public class PlayerMovement : MonoBehaviour
         // 每次切场景加载完成后清空上一场景残留的移动状态。
         isInputEnabled = true;
         pendingJump = false;
-        isGrounded = false;
-        wasGrounded = true;
+        RefreshGroundedState();
+        wasGrounded = isGrounded;
         agingRate = 1f;
         speedBoostEndTime = float.NegativeInfinity;
 
@@ -248,9 +255,7 @@ public class PlayerMovement : MonoBehaviour
         }
         
         // 地面检测：未配置 groundCheck 时假设始终在地面（demo 模式，玩家可空中跳）
-        isGrounded = groundCheck != null
-            ? Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer)
-            : true;
+        RefreshGroundedState();
 
         if (!wasGrounded && isGrounded)
             PlayLandParticle();
@@ -274,6 +279,13 @@ public class PlayerMovement : MonoBehaviour
                 runParticleSystem.Stop();
         }
 
+    }
+
+    private void RefreshGroundedState()
+    {
+        isGrounded = groundCheck != null
+            ? Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer)
+            : true;
     }
 
     private void PlayLandParticle()
