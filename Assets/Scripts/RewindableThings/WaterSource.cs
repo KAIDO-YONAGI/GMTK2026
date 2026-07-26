@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using WaterMechanism;
@@ -7,15 +5,10 @@ using WaterMechanism;
 /// <summary>
 /// 水源管理器：水流机关的核心，继承 RewindableBase 实现回溯。
 ///
-/// 职责：
-/// 1. 流水调度：StartFlowing 后每隔 flowInterval 向下一格（cellSize 步进）生成一个 WaterFlowUnit。
-///    - 命中 Ground/Platform → 停止继续向下生成（已有单元继续推进到 Stage2 / 可结冰）。
-///    - 命中 PressurePlate（tag）→ 调其 Activate()，但压力板不阻挡水流。
-/// 2. 状态推进：所有 Stage1 单元出生 stage1ToStage2Seconds 秒后自动切 Stage2。
-/// 3. 结冰：StartFreezing 启动 freezeDelay 倒计时，到点把所有 Stage2 单元切 Frozen；
-///    此后新成熟的水流单元也会直接切 Frozen（带碰撞 + Ice 标记）。
-/// 4. 碎冰：Ice 被击碎时回调 NotifyUnitBroken → 该单元切回 Stage2（关碰撞），
-///    再次触发结冰后可重新切 Frozen。
+/// 本组件按职责拆分为多个 partial 文件：
+/// 1. WaterSource.Flow.cs：流水生成、碰撞检测、单元成熟与拖尾。
+/// 2. WaterSource.Freezing.cs：结冰请求、冻结推进、碎冰与粒子/音效。
+/// 3. WaterSource.Rewind.cs：快照记录、倒放还原与轮回事件联动。
 ///
 /// 回溯策略：
 /// WaterFlowTrigger 触发时先记录一帧“未开启记录”的边界快照，再开始逐物理帧记录。
@@ -23,7 +16,7 @@ using WaterMechanism;
 /// 订阅 ReincarnationBegEvent/EndEvent/RewindSnapshotAppliedEvent 与玩家回溯联动。
 /// </summary>
 [RequireComponent(typeof(Transform))]
-public class WaterSource : RewindableBase
+public partial class WaterSource : RewindableBase
 {
     // ===== 流水参数 =====
     [Header("Flow Spawn")]
@@ -45,6 +38,7 @@ public class WaterSource : RewindableBase
     [Header("Freeze")]
     [Tooltip("StartFreezing 触发后多少秒进入冻结状态。现有及后续成熟的水流单元都会结冰。")]
     [SerializeField] private float freezeDelay = 2f;
+
     [Tooltip("Particle effect played when a water unit freezes or breaks.")]
     [SerializeField] private ParticleSystem iceParticlePrefab;
 
@@ -66,19 +60,22 @@ public class WaterSource : RewindableBase
     [Header("Reincarnation Events")]
     [SerializeField] private VoidEventSO reincarnationBegEvent;
     [SerializeField] private VoidEventSO reincarnationEndEvent;
+
     [Tooltip("玩家回溯 apply 快照后广播的时间戳事件。用于判断单元是否早于出生时间。")]
     [SerializeField] private FloatEventSO snapshotAppliedEvent;
 
     // ===== 运行时状态 =====
     // 所有已生成的单元（按生成顺序，垂直从上到下）。索引 0 是最靠近水源的一格。
     private readonly List<WaterFlowUnit> units = new List<WaterFlowUnit>();
+
     // 复用命中列表，允许同一格水流同时激活路径上的多个压力板。
     private readonly List<PressurePlate> hitPressurePlates = new List<PressurePlate>();
 
     // 当前向下生成计数（下一个单元应位于 sourcePosition - stepCount * cellSize）
     private int stepCount;
 
-    private bool isFlowing;     // 是否在向下扩散
+    private bool isFlowing; // 是否在向下扩散
+
     // 是否已经完成过一次流水（流到底/被阻挡停过）。流过一次后忽略所有 StartFlowing 调用，
     // 直到回溯（OnReincarnationEnd）重置才能被 trigger 再次触发。
     private bool hasFlowedOnce;
@@ -97,568 +94,23 @@ public class WaterSource : RewindableBase
     // Trigger 触发前不记录；该开关随快照回溯。
     private bool isSnapshotRecording;
 
-    // 把“未记录”状态放在触发边界前，确保倒放算法能准确跨回该状态。
-    private const float RecordingBoundaryOffset = 0.0001f;
-
-    // ===== 快照结构 =====
-    // 单单元快照（值类型，避免 GC）
-    private struct UnitSnapshot : IRewindSnapshot
-    {
-        public float time;          // 此单元最新一次状态转变时间（用于时间窗口裁剪）
-        public Vector3 position;    // 单元世界坐标
-        public int phaseIndex;      // 相位（int，方便 struct 携带）
-        public float unitBirthTime; // 该单元出生时间（回溯时判断是否应隐藏）
-
-        public float Time => time;
-    }
-
-    // 水源整体快照（每次状态转变时记录整张单元表 + 水源级状态）
-    private struct WaterSourceSnapshot : IRewindSnapshot
-    {
-        public float time;                  // 记录时刻
-        public UnitSnapshot[] unitStates;   // 全部单元状态快照
-        // 水源级状态：回溯时要一并还原，决定"回溯后是否继续流/能否再被触发"
-        public bool hasFlowedOnce;          // 是否已触发过流水
-        public bool isFlowing;              // 是否正在流
-        public int stepCount;               // 当前向下生成的格数（决定继续流的位置）
-        public FreezeState freezeState;     // 冻结状态机（Idle/Requested/Frozen）
-        public bool isSnapshotRecording;    // 此时是否已开启水源快照记录
-
-        public float Time => time;
-    }
-
-    private readonly Queue<WaterSourceSnapshot> snapshots = new Queue<WaterSourceSnapshot>();
-
-    // 倒放数组对象池：复用 StartRewind 时由队列转出的数组，消除每次回溯的分配
-    private readonly ArrayPool<WaterSourceSnapshot> snapshotArrayPool = new ArrayPool<WaterSourceSnapshot>();
-    private WaterSourceSnapshot[] borrowedPlaybackArray;
-
-    // ===== 公有接口 =====
-
-    /// <summary>启动流水。流过一次后被锁死（hasFlowedOnce），回溯（OnReincarnationEnd）后才解锁。</summary>
-    public void StartFlowing()
-    {
-        if (hasFlowedOnce) return;  // 已流过一次，忽略直到回溯重置
-        if (isFlowing) return;
-        if (IsRewindOperationLocked) return;
-
-        BeginSnapshotRecording();
-        isFlowing = true;
-        hasFlowedOnce = true;       // 标记已触发，FlowLoop 结束后也不再响应 trigger
-        flowCoroutine = StartCoroutine(FlowLoop());
-        advanceCoroutine = StartCoroutine(AdvanceLoop());
-        RecordSnapshot(); // 状态转变：开始流水
-    }
-
-    /// <summary>
-    /// Trigger 首次生效时开启记录。
-    /// 开启前先补一帧边界快照，使回溯可以恢复到“尚未记录、尚未流水”的状态。
-    /// </summary>
-    private void BeginSnapshotRecording()
-    {
-        if (isSnapshotRecording) return;
-
-        EnqueueSnapshot(Time.time - RecordingBoundaryOffset);
-        isSnapshotRecording = true;
-    }
-
-    /// <summary>
-    /// 启动结冰倒计时（由 WaterFreezeTrigger 调用）。
-    /// 走状态机：踩 trigger → freezeState 转 Requested。
-    /// 是否真正启动协程看当前是否已经「冰完整且无碎冰水」——是则幂等忽略，否则启动倒计时。
-    /// 回溯时若还原到 Requested 态（请求了但未结冰），OnReincarnationEnd 会自动重新结冰。
-    /// </summary>
-    public void StartFreezing()
-    {
-        if (IsRewindOperationLocked) return;
-
-        // 记录玩家意图（Idle→Requested；已 Requested/Frozen 则幂等）。
-        FreezeStateMachine.Request(ref freezeState);
-
-        // 已结冰（Frozen）且无 Stage2（碎冰水）需要重冻 → 已是终态，不重复启动协程。
-        if (FreezeStateMachine.IsFrozen(freezeState) && !HasStage2Units()) return;
-        if (freezeCoroutine != null) return;
-
-        freezeCoroutine = StartCoroutine(FreezeAfterDelay());
-    }
-
-    private bool HasStage2Units()
-    {
-        for (int i = 0; i < units.Count; i++)
-        {
-            WaterFlowUnit unit = units[i];
-            if (unit != null && unit.Phase == WaterFlowUnit.WaterPhase.Stage2)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void PlayIceParticle(Vector3 position)
-    {
-        if (iceParticlePrefab == null) return;
-
-        ParticleSystem particle = Instantiate(
-            iceParticlePrefab,
-            position,
-            iceParticlePrefab.transform.rotation);
-        particle.Play(true);
-
-        var main = particle.main;
-        Destroy(particle.gameObject, main.duration + main.startLifetime.constantMax);
-    }
-
-    /// <summary>由 WaterFlowUnit 的 Ice.OnBroken 回调调用：单单元碎冰后变回水（Stage2），可再次结冰。</summary>
-    public void NotifyUnitBroken(WaterFlowUnit unit)
-    {
-        if (unit == null) return;
-        // 碎冰后切回 Stage2（满水），IceImg 子物体未销毁，后续可被 WaterFreezeTrigger 再次结冰。
-        unit.ForcePhase(WaterFlowUnit.WaterPhase.Stage2);
-        // 冰被击碎 = 玩家主动行为，撤回结冰意图：必须重新踩 trigger 才能再次结冰。
-        // Frozen→Idle。其他未碎冰的单元视觉上仍是冰；这一格变 Stage2 等待重新被请求结冰。
-        FreezeStateMachine.Break(ref freezeState);
-        RecordSnapshot(); // 状态转变：碎冰→变回水
-        if (!IsRewindOperationLocked)
-        {
-            PlayIceParticle(unit.transform.position);
-            AudioManager.Instance?.PlaySFX(MyEnums.SFXType.IceBroken);
-        }
-    }
-
-    // ===== 流水协程：每隔 flowInterval 向下一格生成单元 =====
-    private IEnumerator FlowLoop()
-    {
-        while (isFlowing && !IsRewindOperationLocked)
-        {
-            stepCount++;
-            Vector3 nextPos = (spawnRoot != null ? spawnRoot.position : transform.position)
-                              + Vector3.down * (cellSize * stepCount);
-
-            // 扫描整格路径：压力板按 Tag 触发但不参与阻挡，只有 groundMask 内的其他碰撞体才会阻断水流。
-            FindFlowHits(
-                nextPos,
-                cellSize,
-                groundMask,
-                hitPressurePlates,
-                out RaycastHit2D groundHit);
-
-            for (int i = 0; i < hitPressurePlates.Count; i++)
-            {
-                PressurePlate plate = hitPressurePlates[i];
-                if (plate != null) plate.Activate();
-            }
-
-            if (groundHit.collider != null)
-            {
-                // 命中地面 / 平台：这一格贴着地面，必须生成它让水流视觉贴紧地面（不悬空），生成后停止向下扩散。
-                // 已生成单元继续推进到 Stage2、可结冰。
-                SpawnUnitAt(nextPos);
-                // 给最后这格单元挂一个拖尾子物体：向下偏移半格，锁定 Stage1，消除视觉悬空。
-                // 拖尾不加入 units 列表、不参与回溯推进（纯视觉装饰，由父单元管理生命周期）。
-                WaterFlowUnit lastUnit = units[units.Count - 1];
-                SpawnTail(lastUnit);
-                isFlowing = false;
-                break;
-            }
-
-            SpawnUnitAt(nextPos);
-            yield return new WaitForSeconds(flowInterval);
-        }
-
-        isFlowing = false;
-        flowCoroutine = null;
-    }
-
-    private static void FindFlowHits(
-        Vector2 origin,
-        float distance,
-        LayerMask groundMask,
-        List<PressurePlate> pressurePlates,
-        out RaycastHit2D nearestGroundHit)
-    {
-        pressurePlates.Clear();
-        nearestGroundHit = default;
-        float nearestGroundDistance = float.PositiveInfinity;
-        RaycastHit2D[] hits = Physics2D.RaycastAll(origin, Vector2.down, distance);
-
-        for (int i = 0; i < hits.Length; i++)
-        {
-            Collider2D hitCollider = hits[i].collider;
-            if (hitCollider == null) continue;
-
-            if (hitCollider.CompareTag("PressurePlate")) continue;
-
-            int hitLayerMask = 1 << hitCollider.gameObject.layer;
-            if ((groundMask.value & hitLayerMask) == 0 ||
-                hits[i].distance >= nearestGroundDistance)
-            {
-                continue;
-            }
-
-            nearestGroundDistance = hits[i].distance;
-            nearestGroundHit = hits[i];
-        }
-
-        float maxPlateDistance = nearestGroundHit.collider != null
-            ? nearestGroundDistance + 0.001f
-            : float.PositiveInfinity;
-
-        for (int i = 0; i < hits.Length; i++)
-        {
-            Collider2D hitCollider = hits[i].collider;
-            if (hitCollider == null ||
-                !hitCollider.CompareTag("PressurePlate") ||
-                hits[i].distance > maxPlateDistance)
-            {
-                continue;
-            }
-
-            PressurePlate plate = hitCollider.GetComponent<PressurePlate>();
-            if (plate != null && !pressurePlates.Contains(plate))
-            {
-                pressurePlates.Add(plate);
-            }
-        }
-    }
-
-    // ===== 状态推进协程：轮询 Stage1 单元，成熟后切 Stage2 或 Frozen =====
-    private IEnumerator AdvanceLoop()
-    {
-        while (true)
-        {
-            if (IsRewindOperationLocked) { yield return null; continue; }
-
-            bool anyChanged = false;
-            float now = Time.time;
-            // 走状态机判定：已 Frozen 态下，新成熟单元直接进 Frozen 相位；否则进 Stage2。
-            bool frozenMode = FreezeStateMachine.IsFrozen(freezeState);
-            for (int i = 0; i < units.Count; i++)
-            {
-                var u = units[i];
-                if (u == null) continue;
-                if (u.Phase == WaterFlowUnit.WaterPhase.Stage1 &&
-                    !u.LockAtStage1 &&
-                    now - u.BirthTime >= stage1ToStage2Seconds)
-                {
-                    u.SetPhase(frozenMode
-                        ? WaterFlowUnit.WaterPhase.Frozen
-                        : WaterFlowUnit.WaterPhase.Stage2);
-                    if (frozenMode)
-                        PlayIceParticle(u.transform.position);
-                    anyChanged = true;
-                }
-            }
-            if (anyChanged)
-            {
-                RecordSnapshot(); // 状态转变：Stage1→Stage2
-                if (frozenMode)
-                    AudioManager.Instance?.PlaySFX(MyEnums.SFXType.IceFreeze);
-            }
-
-            yield return new WaitForSeconds(0.1f); // 10Hz 轮询足够
-        }
-    }
-
-    // ===== 结冰协程：倒计时到点把所有 Stage2 单元切 Frozen =====
-    private IEnumerator FreezeAfterDelay()
-    {
-        float elapsed = 0f;
-        while (elapsed < freezeDelay)
-        {
-            if (!IsRewindOperationLocked) elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        // 倒计时到点：状态机 Requested→Frozen。此后新成熟单元也直接结冰（AdvanceLoop 据此分流）。
-        FreezeStateMachine.ConfirmFrozen(ref freezeState);
-        bool anyChanged = false;
-        for (int i = 0; i < units.Count; i++)
-        {
-            var u = units[i];
-            if (u == null) continue;
-            if (u.Phase == WaterFlowUnit.WaterPhase.Stage2)
-            {
-                u.SetPhase(WaterFlowUnit.WaterPhase.Frozen);
-                PlayIceParticle(u.transform.position);
-                anyChanged = true;
-            }
-        }
-        if (anyChanged)
-        {
-            RecordSnapshot(); // 状态转变：结冰
-            AudioManager.Instance?.PlaySFX(MyEnums.SFXType.IceFreeze);
-        }
-        freezeCoroutine = null;
-    }
-
-    private void SpawnUnitAt(Vector3 worldPos)
-    {
-        if (unitTemplate == null)
-        {
-            Debug.LogError("[WaterSource] unitTemplate 未配置，无法生成水流单元。", this);
-            isFlowing = false;
-            return;
-        }
-        WaterFlowUnit unit = Instantiate(unitTemplate, worldPos, Quaternion.identity, spawnRoot != null ? spawnRoot : transform);
-        unit.Init(this);
-        units.Add(unit);
-        RecordSnapshot(); // 状态转变：单元出生
-    }
-
-    /// <summary>
-    /// 给最后命中地面的单元挂一个拖尾子物体，消除水流视觉悬空。
-    /// 拖尾复用 WaterFlowUnit.prefab，作为父单元的子物体（localPosition.y = -cellSize/2），
-    /// 锁定在 Stage1（不推进 Stage2），不加入 units 列表、不参与回溯推进——纯视觉装饰，随父单元销毁。
-    /// </summary>
-    private void SpawnTail(WaterFlowUnit parentUnit)
-    {
-        if (unitTemplate == null || parentUnit == null) return;
-        WaterFlowUnit tail = Instantiate(unitTemplate, parentUnit.transform);
-        tail.transform.localPosition = Vector3.down * (cellSize * 0.5f);
-        tail.Init(null); // 不传 owner：拖尾的 Ice 永不到 Frozen，不需要碎冰通知
-        tail.LockAtStage1 = true;
-        tail.SetPhase(WaterFlowUnit.WaterPhase.Stage1);
-    }
-
-    // ===== 事件订阅 =====
-    private void OnEnable()
-    {
-        if (reincarnationBegEvent != null) reincarnationBegEvent.VoidEvent += OnReincarnationBeg;
-        if (reincarnationEndEvent != null) reincarnationEndEvent.VoidEvent += OnReincarnationEnd;
-        if (snapshotAppliedEvent != null) snapshotAppliedEvent.FloatEvent += OnSnapshotApplied;
-    }
-
-    private void OnDisable()
-    {
-        if (reincarnationBegEvent != null) reincarnationBegEvent.VoidEvent -= OnReincarnationBeg;
-        if (reincarnationEndEvent != null) reincarnationEndEvent.VoidEvent -= OnReincarnationEnd;
-        if (snapshotAppliedEvent != null) snapshotAppliedEvent.FloatEvent -= OnSnapshotApplied;
-    }
-
-    /// <summary>
-    /// Trigger 开启记录后，每物理帧记录快照。
-    /// 回溯到 Trigger 边界前时，isSnapshotRecording 会恢复为 false，此后停止记录，
-    /// 直到 WaterFlowTrigger 再次触发。
-    /// </summary>
-    private void FixedUpdate()
-    {
-        if (IsRewindOperationLocked || !isSnapshotRecording) return;
-        RecordSnapshot();
-    }
-
-    private void OnReincarnationBeg() => StartRewind();
-
-    private void OnReincarnationEnd()
-    {
-        StopAllCoroutines();
-        OnUnfreeze();
-        if (this == null) return;
-        RemoveDiscardedUnits();
-        ClearSnapshots();
-        isRewinding = false;
-        isRewindCoolingDown = false;
-        // 协程已被 StopAllCoroutines 停掉，清空引用。
-        // 注意：不重置 hasFlowedOnce/freezeState/isFlowing/stepCount/isSnapshotRecording——这些已由 ApplySnapshot
-        // 还原到回溯到的那个快照的值，必须保留以正确反映"回溯后的状态"。
-        flowCoroutine = null;
-        advanceCoroutine = null;
-        freezeCoroutine = null;
-
-        // 如果回溯到的快照状态是"正在流"（已触发、未到底），回溯结束后立即从当前 stepCount 继续向下生成。
-        // isFlowing 此时是 ApplySnapshot 还原后的值。
-        if (isFlowing)
-        {
-            flowCoroutine = StartCoroutine(FlowLoop());
-            advanceCoroutine = StartCoroutine(AdvanceLoop());
-        }
-
-        // 请求驱动结冰：回溯结束后，若处于 Requested 态（请求了但尚未真正结冰），
-        // 自动重新启动结冰倒计时。覆盖"回溯到结冰前"的场景：水会自动重新结冰，不需玩家再踩 trigger。
-        if (FreezeStateMachine.IsPendingFreeze(freezeState) && freezeCoroutine == null)
-        {
-            freezeCoroutine = StartCoroutine(FreezeAfterDelay());
-        }
-    }
-
-    private void OnSnapshotApplied(float snapshotTime)
-    {
-        // 单元出生时间晚于快照时间 → 该单元不应存在，隐藏
-        for (int i = 0; i < units.Count; i++)
-        {
-            var u = units[i];
-            if (u == null) continue;
-            if (u.BirthTime > snapshotTime) u.gameObject.SetActive(false);
-        }
-    }
-
-    /// <summary>
-    /// 回溯结束后移除已被隐藏的未来单元。
-    /// 若只隐藏不移除，续流会在相同格子追加新单元，下一次回溯又会激活旧单元并造成重叠。
-    /// </summary>
-    private void RemoveDiscardedUnits()
-    {
-        for (int i = units.Count - 1; i >= 0; i--)
-        {
-            WaterFlowUnit unit = units[i];
-            if (unit == null)
-            {
-                units.RemoveAt(i);
-                continue;
-            }
-
-            if (unit.gameObject.activeSelf) continue;
-
-            units.RemoveAt(i);
-            if (Application.isPlaying)
-            {
-                Destroy(unit.gameObject);
-            }
-            else
-            {
-                DestroyImmediate(unit.gameObject);
-            }
-        }
-    }
-
-    // ===== RewindableBase 实现 =====
-    public override int SnapshotCount => snapshots.Count;
-
-    public override void RecordSnapshot()
-    {
-        if (IsRewindOperationLocked || !isSnapshotRecording) return;
-
-        EnqueueSnapshot(Time.time);
-    }
-
-    private void EnqueueSnapshot(float snapshotTime)
-    {
-        var snap = new WaterSourceSnapshot
-        {
-            time = snapshotTime,
-            unitStates = CaptureAllUnits(),
-            hasFlowedOnce = hasFlowedOnce,
-            isFlowing = isFlowing,
-            stepCount = stepCount,
-            freezeState = freezeState,
-            isSnapshotRecording = isSnapshotRecording
-        };
-        EnqueueAndTrim(snapshots, snap, GetRewindableSeconds());
-    }
-
-    private UnitSnapshot[] CaptureAllUnits()
-    {
-        var arr = new UnitSnapshot[units.Count];
-        for (int i = 0; i < units.Count; i++)
-        {
-            var u = units[i];
-            arr[i] = new UnitSnapshot
-            {
-                time = Time.time,
-                position = u != null ? u.transform.position : Vector3.zero,
-                phaseIndex = u != null ? (int)u.Phase : (int)WaterFlowUnit.WaterPhase.Broken,
-                unitBirthTime = u != null ? u.BirthTime : 0f
-            };
-        }
-        return arr;
-    }
-
-    public override void StartRewind()
-    {
-        if (IsRewindOperationLocked) return;
-        if (snapshots.Count == 0) return;
-        // 倒放数组从池借出，CopyTo 填入；协程内部用 count 而非 Length（池借出的 Length 可能更大）
-        int count = snapshots.Count;
-        borrowedPlaybackArray = snapshotArrayPool.Get(count);
-        snapshots.CopyTo(borrowedPlaybackArray, 0);
-        StartCoroutine(RewindBackwards(borrowedPlaybackArray, count, ApplySnapshot, rewindSpeed,
-            GetRewindableSeconds, rewindCooldownSeconds));
-    }
-
-    private void ApplySnapshot(WaterSourceSnapshot snap)
-    {
-        // 还原策略：以快照中存在的单元为基准，对齐每个单元的相位；
-        // 不在快照中的多余单元（出生晚于快照时间）隐藏。
-        var states = snap.unitStates;
-        int minLen = Mathf.Min(states.Length, units.Count);
-        for (int i = 0; i < minLen; i++)
-        {
-            var u = units[i];
-            if (u == null) continue;
-            var st = states[i];
-            u.gameObject.SetActive(true);
-            u.ForcePhase((WaterFlowUnit.WaterPhase)st.phaseIndex);
-            u.transform.position = st.position;
-        }
-        // 隐藏快照之外的多余单元
-        for (int i = minLen; i < units.Count; i++)
-        {
-            if (units[i] != null) units[i].gameObject.SetActive(false);
-        }
-
-        // 还原水源级状态：回溯到的那个时刻的 hasFlowedOnce/isFlowing/stepCount/freezeState/
-        // isSnapshotRecording。
-        // 这里只更新数据，不重启协程（回溯期间协程保持停止，回溯结束后由 OnReincarnationEnd 按
-        // 还原后的 isFlowing 决定是否重启 FlowLoop，从当前 stepCount 继续向下生成；
-        // 按 freezeState == Requested 决定是否自动重新结冰）。
-        hasFlowedOnce = snap.hasFlowedOnce;
-        isFlowing = snap.isFlowing;     // 仅记录状态，真正是否继续流由 OnReincarnationEnd 判定
-        stepCount = snap.stepCount;
-        freezeState = snap.freezeState;
-        isSnapshotRecording = snap.isSnapshotRecording;
-    }
-
-    private float GetRewindableSeconds()
-    {
-        float baseSeconds = ReincarnationManager.Instance != null
-            ? ReincarnationManager.Instance.CurrentRewindableSeconds
-            : 8f;
-        return baseSeconds * Mathf.Max(0f, rewindWindowMultiplier);
-    }
-
-    protected override bool ShouldContinueRewind() => Input.GetKey(KeyCode.R);
-
-    protected override void OnFreeze()
-    {
-        // 回溯期间暂停所有调度协程（RewindBackwards 在协程外执行，不会自动暂停我们的协程）。
-        // isFlowing 等水源级状态会在 ApplySnapshot 逐帧还原为快照值，这里无需手动改。
-        if (flowCoroutine != null) { StopCoroutine(flowCoroutine); flowCoroutine = null; }
-        if (advanceCoroutine != null) { StopCoroutine(advanceCoroutine); advanceCoroutine = null; }
-        if (freezeCoroutine != null) { StopCoroutine(freezeCoroutine); freezeCoroutine = null; }
-    }
-
-    protected override void OnUnfreeze()
-    {
-        // 回溯结束（倒放完成）。水源级状态已由 ApplySnapshot 还原到目标快照。
-        // 是否重启 FlowLoop 由 OnReincarnationEnd 根据还原后的 isFlowing 判定，这里不做处理。
-    }
-
-    protected override void ClearSnapshots()
-    {
-        snapshots.Clear();
-        // 归还倒放数组到池（与 StartRewind 的借出配对）
-        if (borrowedPlaybackArray != null)
-        {
-            snapshotArrayPool.Return(borrowedPlaybackArray);
-            borrowedPlaybackArray = null;
-        }
-    }
-
     // ===== 清理：销毁时连带单元一起销毁 =====
     private void OnDestroy()
     {
         StopAllCoroutines();
-        // 协程被中断时补归还借出的倒放数组，避免泄漏
+
+        // 协程被中断时补归还借出的倒放数组，避免泄漏。
         if (borrowedPlaybackArray != null)
         {
             snapshotArrayPool.Return(borrowedPlaybackArray);
             borrowedPlaybackArray = null;
         }
+
         for (int i = 0; i < units.Count; i++)
         {
             if (units[i] != null) Destroy(units[i].gameObject);
         }
+
         units.Clear();
     }
 }
