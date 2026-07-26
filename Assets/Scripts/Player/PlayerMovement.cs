@@ -35,6 +35,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField, Min(0f)] private float speedUpFadeInDuration = 0.2f;
     [SerializeField, Min(0f)] private float speedUpFadeOutDuration = 0.4f;
 
+    [Header("Sprite")]
+    [SerializeField] private SpriteRenderer spriteRenderer;
+
     [Header("Animation")]
     [Tooltip("Animator player component. Must be on the same GameObject with an Animator.")]
     [SerializeField] private UnityAnimatorPlayer animatorPlayer;
@@ -184,7 +187,11 @@ public class PlayerMovement : MonoBehaviour
         agingRate = 1f - AgeManager.instance.AgeNormalized;
         agingRate = Mathf.Max(0.3f, agingRate);
         
-        if(isGrounded &&  Input.GetAxisRaw("Horizontal") != 0)
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        if (spriteRenderer != null && horizontal != 0f)
+            spriteRenderer.flipX = horizontal < 0f;
+
+        if(isGrounded && horizontal != 0)
         {
             if(!runParticleSystem.isPlaying)
                 runParticleSystem.Play();
