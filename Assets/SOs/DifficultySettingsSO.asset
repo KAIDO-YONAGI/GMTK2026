@@ -16,4 +16,4 @@ MonoBehaviour:
   - scene: {fileID: 11400000, guid: d6eafce2dd8442143ba3574863cd51d9, type: 2}
     agePerSecond: 0.5
   - scene: {fileID: 11400000, guid: 10fd3d9f63b336742a59724491f0d794, type: 2}
-    agePerSecond: 1
+    agePerSecond: 0.5
