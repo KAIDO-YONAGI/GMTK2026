@@ -25,5 +25,6 @@ public class PickupSpike : MonoBehaviour
         Transform headSlot = WearableManager.Instance != null ? WearableManager.Instance.SelfTransform : null;
         transform.SetParent(headSlot != null ? headSlot : player);
         transform.localPosition = Vector3.zero;
+        AudioManager.Instance?.PlaySFX(MyEnums.SFXType.PickUp);
     }
 }

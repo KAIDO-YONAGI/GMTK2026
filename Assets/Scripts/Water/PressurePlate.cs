@@ -24,6 +24,7 @@ public class PressurePlate : MonoBehaviour
     [SerializeField] private UnityEvent onDeactivate;
 
     private Collider2D triggerArea;
+    private bool isActivated;
 
     private void Awake()
     {
@@ -46,14 +47,19 @@ public class PressurePlate : MonoBehaviour
     /// <summary>激活压力板（水流命中时由 WaterSource 调用，或玩家进入 trigger 时自动调用）。</summary>
     public void Activate()
     {
+        bool wasActivated = isActivated;
+        isActivated = true;
         if (animator != null) animator.Play(activateClipName);
         onActivate?.Invoke();
+        if (!wasActivated)
+            AudioManager.Instance?.PlaySFX(MyEnums.SFXType.PressurePlate);
         if (destroyOnActivate) Destroy(gameObject);
     }
 
     /// <summary>解除激活（玩家离开 trigger 时自动调用，或外部手动调用）。</summary>
     public void Deactivate()
     {
+        isActivated = false;
         if (animator != null) animator.Play(deactivateClipName);
         onDeactivate?.Invoke();
     }

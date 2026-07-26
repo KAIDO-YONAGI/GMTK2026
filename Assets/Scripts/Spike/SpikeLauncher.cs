@@ -101,6 +101,7 @@ public class SpikeLauncher : MonoBehaviour
         spike.SetLifetime(spikeLifetime);
 
         spike.Launch(transform.up);
+        AudioManager.Instance?.PlaySFX(MyEnums.SFXType.SpikeLaunch);
     }
 
     public void FireAnim()

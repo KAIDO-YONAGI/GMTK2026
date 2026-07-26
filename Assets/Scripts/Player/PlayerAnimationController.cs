@@ -6,6 +6,13 @@ public class PlayerAnimationController : MonoBehaviour
     [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private UnityAnimatorPlayer animatorPlayer;
     [SerializeField] private PlayerAnimationConfigSO animationConfig;
+    [SerializeField] private float jumpDelay = 0.18f;
+
+    [Header("Footsteps")]
+    [Tooltip("Seconds between walk footstep SFX.")]
+    [SerializeField, Min(0.05f)] private float walkStepInterval = 0.52f;
+    [Tooltip("Seconds between run footstep SFX.")]
+    [SerializeField, Min(0.05f)] private float runStepInterval = 0.4f;
 
     private enum PlayerAgeStage { Youth, Adult, Elder, Frail }
     private enum PlayerAnimState { Idle, Walk, WalkHunched, WalkFrail, Run, Hurt, Dead, Jump, Land }
@@ -13,6 +20,9 @@ public class PlayerAnimationController : MonoBehaviour
     private PlayerAnimState currentAnimState;
     private bool wasGrounded = true;
     private JumpPhase jumpPhase;
+    private bool hasActiveFootstepState;
+    private PlayerAnimState activeFootstepState;
+    private float nextFootstepTime;
 
     private PlayerAgeStage CurrentAgeStage
     {
@@ -47,9 +57,10 @@ public class PlayerAnimationController : MonoBehaviour
         // 跳跃输入 → 先播 Jump 动画，在 50% 位置执行起跳
         if (playerMovement.TryConsumeJump())
         {
+            ResetFootstepAudio();
             PlayClipOrStay(PlayerAnimState.Jump);
             jumpPhase = JumpPhase.WaitingForTakeoff;
-            animatorPlayer.AddNormalizedTimeCallback(0.5f, ExecuteJump);
+            animatorPlayer.AddNormalizedTimeCallback(jumpDelay, ExecuteJump);
             wasGrounded = true;
             return;
         }
@@ -58,16 +69,19 @@ public class PlayerAnimationController : MonoBehaviour
 
         if (jumpPhase != JumpPhase.None)
         {
+            ResetFootstepAudio();
             UpdateJumpPhase(isGrounded);
             return;
         }
 
         if (wasGrounded && !isGrounded)
         {
+            ResetFootstepAudio();
             PlayClipOrStay(PlayerAnimState.Jump);
         }
         else if (!wasGrounded && isGrounded)
         {
+            ResetFootstepAudio();
             PlayClipOrStay(PlayerAnimState.Land);
         }
         else if (isGrounded)
@@ -75,17 +89,33 @@ public class PlayerAnimationController : MonoBehaviour
             // 跳跃/落地的单次动画播放期间不切换
             if (currentAnimState == PlayerAnimState.Jump && animatorPlayer.IsPlaying)
             {
+                ResetFootstepAudio();
                 wasGrounded = true;
                 return;
             }
             if (currentAnimState == PlayerAnimState.Land && animatorPlayer.IsPlaying)
             {
+                ResetFootstepAudio();
                 wasGrounded = true;
                 return;
             }
 
             bool isMoving = Mathf.Abs(playerMovement.HorizontalInput) > 0.01f;
-            PlayClipOrStay(isMoving ? GetMoveStateByAge() : PlayerAnimState.Idle);
+            if (isMoving)
+            {
+                PlayerAnimState moveState = GetMoveStateByAge();
+                PlayClipOrStay(moveState);
+                UpdateFootstepAudio(moveState);
+            }
+            else
+            {
+                ResetFootstepAudio();
+                PlayClipOrStay(PlayerAnimState.Idle);
+            }
+        }
+        else
+        {
+            ResetFootstepAudio();
         }
 
         wasGrounded = isGrounded;
@@ -97,6 +127,7 @@ public class PlayerAnimationController : MonoBehaviour
             return;
 
         playerMovement.ExecuteJump();
+        AudioManager.Instance?.PlaySFX(MyEnums.SFXType.Jump);
         jumpPhase = JumpPhase.WaitingForAirborne;
     }
 
@@ -128,6 +159,37 @@ public class PlayerAnimationController : MonoBehaviour
         PlayClipOrStay(PlayerAnimState.Land);
     }
 
+    private void UpdateFootstepAudio(PlayerAnimState state)
+    {
+        if (state != PlayerAnimState.Run &&
+            state != PlayerAnimState.Walk &&
+            state != PlayerAnimState.WalkHunched &&
+            state != PlayerAnimState.WalkFrail)
+        {
+            ResetFootstepAudio();
+            return;
+        }
+
+        if (!hasActiveFootstepState || activeFootstepState != state)
+        {
+            hasActiveFootstepState = true;
+            activeFootstepState = state;
+            nextFootstepTime = Time.time;
+        }
+
+        if (Time.time < nextFootstepTime)
+            return;
+
+        bool isRunning = state == PlayerAnimState.Run;
+        AudioManager.Instance?.PlaySFX(isRunning ? MyEnums.SFXType.Run : MyEnums.SFXType.Walk);
+        nextFootstepTime = Time.time + (isRunning ? runStepInterval : walkStepInterval);
+    }
+
+    private void ResetFootstepAudio()
+    {
+        hasActiveFootstepState = false;
+    }
+
     void PlayClipOrStay(PlayerAnimState state)
     {
         if (state == currentAnimState)
@@ -138,6 +200,8 @@ public class PlayerAnimationController : MonoBehaviour
         if (clip != null)
         {
             animatorPlayer.Play(clip, GetParamsForState(state));
+            if (state == PlayerAnimState.Land)
+                AudioManager.Instance?.PlaySFX(MyEnums.SFXType.Land);
         }
     }
 

@@ -92,7 +92,8 @@ namespace MyEnums
         Land,
         Jump,
         PickUp,
-        PressurePlate
+        PressurePlate,
+        Run
     }
     public enum BGMType
     {

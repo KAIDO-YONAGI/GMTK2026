@@ -139,6 +139,7 @@ public class HealthManager : MonoBehaviour
         if (amount < 0)
         {
             PlayHurtParticle();
+            AudioManager.Instance?.PlaySFX(MyEnums.SFXType.Hurt);
 
             if (shakeEvent != null)
                 shakeEvent.RaiseShakeEvent(hitShakeParams);

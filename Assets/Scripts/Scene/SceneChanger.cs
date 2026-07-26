@@ -154,6 +154,7 @@ public class SceneChanger : MonoBehaviour
         if (scenes == null || scenes.Count == 0)
             return;
 
+        AudioManager.Instance?.PlaySFX(MyEnums.SFXType.LoadScene);
         ForbidInput();
         if (TimeManager.instance != null)
             TimeManager.instance.PauseGame();
