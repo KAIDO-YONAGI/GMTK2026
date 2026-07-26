@@ -185,7 +185,7 @@ public class PlayerMovement : MonoBehaviour
             ? Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer)
             : true;
         agingRate = 1f - AgeManager.instance.AgeNormalized;
-        agingRate = Mathf.Max(0.3f, agingRate);
+        agingRate = Mathf.Max(0.4f, Mathf.Sqrt(agingRate));
         
         float horizontal = Input.GetAxisRaw("Horizontal");
         if (spriteRenderer != null && horizontal != 0f)
