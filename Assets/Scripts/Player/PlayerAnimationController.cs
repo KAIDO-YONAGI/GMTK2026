@@ -6,6 +6,7 @@ public class PlayerAnimationController : MonoBehaviour
     [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private UnityAnimatorPlayer animatorPlayer;
     [SerializeField] private PlayerAnimationConfigSO animationConfig;
+    [SerializeField] private float jumpDelay = 0.18f;
 
     private enum PlayerAgeStage { Youth, Adult, Elder, Frail }
     private enum PlayerAnimState { Idle, Walk, WalkHunched, WalkFrail, Run, Hurt, Dead, Jump, Land }
@@ -49,7 +50,7 @@ public class PlayerAnimationController : MonoBehaviour
         {
             PlayClipOrStay(PlayerAnimState.Jump);
             jumpPhase = JumpPhase.WaitingForTakeoff;
-            animatorPlayer.AddNormalizedTimeCallback(0.5f, ExecuteJump);
+            animatorPlayer.AddNormalizedTimeCallback(jumpDelay, ExecuteJump);
             wasGrounded = true;
             return;
         }
