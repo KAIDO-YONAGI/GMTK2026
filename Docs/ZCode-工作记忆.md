@@ -176,22 +176,22 @@ Global Volume Manager [Volume + VolumeManager] ← URP 全局后处理
 
 ### 回溯系统与冰块内容
 
-- **公共回溯基类**：`Assets/Scripts/Rewind/RewindableBase.cs` 提供时间窗口裁剪、倒放协程、冷却和冻结/解冻钩子。
-- **玩家轮回**：`Assets/Scripts/Player/ReincarnationManager.cs:181-231` 在按住 `R` 时记录玩家位置与血量快照；当前可回溯窗口按衰老状态在 1 至 8 秒之间插值。
-- **玩家输入**：`Assets/Scripts/Player/PlayerMovement.cs:14-87` 已增加 `startInputEvent` / `stopInputEvent`，通过事件开关输入并在停止时清除水平速度；`ReincarnationManager` 不再直接禁用 `PlayerMovement` 组件。
+- **公共回溯基类**：`Assets/Scripts/Systems/Rewind/RewindableBase.cs` 提供时间窗口裁剪、倒放协程、冷却和冻结/解冻钩子。
+- **玩家轮回**：`Assets/Scripts/Characters/Player/ReincarnationManager.cs:181-231` 在按住 `R` 时记录玩家位置与血量快照；当前可回溯窗口按衰老状态在 1 至 8 秒之间插值。
+- **玩家输入**：`Assets/Scripts/Characters/Player/PlayerMovement.cs:14-87` 已增加 `startInputEvent` / `stopInputEvent`，通过事件开关输入并在停止时清除水平速度；`ReincarnationManager` 不再直接禁用 `PlayerMovement` 组件。
 - **独立冰块机关**：
-  - `Assets/Scripts/RewindableThings/IceBlock.cs:5-209` 继承 `RewindableBase`，在完整/碎裂之间切换视觉和碰撞，并仅记录状态变化快照。
+  - `Assets/Scripts/Gameplay/Ice/IceBlock.cs:5-209` 继承 `RewindableBase`，在完整/碎裂之间切换视觉和碰撞，并仅记录状态变化快照。
   - `Assets/Prefabs/Ice/IceBlock.prefab` 已被 Unity 识别；当前 `PersistentScene` 中已有 `IceBlock` 实例，带 `Ice`、`IceBlock`、`BoxCollider2D` 和 `IntactVisual`。
 - **本次核实的工作区状态（2026-07-24）**：除本工作记忆文件外，`git status` 未显示其他未提交变更；`IceBlock.cs` 与 `IceBlock.prefab` 已被 Git 跟踪。
 
 ### 音效系统（2026-07-26 新增记录）
 
 - **核心三件套**（脚本在 `2aa1e85` 提交引入，2026-07-25；音效 mp3 与配置在 `d10f4c6`、调用点在 `d1e3860`，2026-07-26）：
-  - `Assets/Scripts/Audio/AudioConfigSO.cs:25` —— `public class AudioConfigSO : ScriptableObject`，菜单 `Audio/AudioConfig`，含 `SFXEntry[] sfxEntries` 和 `BGMEntry[] bgmEntries`，按权重随机 (`PickWeighted`)。
-  - `Assets/Scripts/Audio/AudioManager.cs:7` —— 单例 `public static AudioManager Instance`，`Awake` 里 `DontDestroyOnLoad`，挂在 **`PersistentScene` 根对象 `AudioManager`** 上（已核实）。
-  - `Assets/Scripts/Audio/AudioPlayer.cs:3-46` —— 带 `AudioSource` 的池元素，播完自动 `ReturnPlayer`。
+  - `Assets/Scripts/Systems/Audio/AudioConfigSO.cs:25` —— `public class AudioConfigSO : ScriptableObject`，菜单 `Audio/AudioConfig`，含 `SFXEntry[] sfxEntries` 和 `BGMEntry[] bgmEntries`，按权重随机 (`PickWeighted`)。
+  - `Assets/Scripts/Systems/Audio/AudioManager.cs:7` —— 单例 `public static AudioManager Instance`，`Awake` 里 `DontDestroyOnLoad`，挂在 **`PersistentScene` 根对象 `AudioManager`** 上（已核实）。
+  - `Assets/Scripts/Systems/Audio/AudioPlayer.cs:3-46` —— 带 `AudioSource` 的池元素，播完自动 `ReturnPlayer`。
 - **播放机制**：`Queue<AudioPlayer> _pool`，预热 `warmupCount=4`、上限 `maxPoolSize=16`。入口 `AudioManager.PlaySFX(MyEnums.SFXType)` / `PlayBGM(MyEnums.BGMType)`，启动时自动播 `startupBGM=Gaming`。
-- **SFX 类型枚举**（`Assets/Scripts/MyEnums.cs:80-97`，共 16 项）：`Walk / Run / Jump / Land / Hurt / IceBroken / IceFreeze / SpikeLaunch / PickUp / LoadScene / PressurePlate / Dead / SpringBounce / SpeedUp / ...`。当前 `AudioConfig.asset` 已配置实际 mp3 clip 的是前 11 类（Walk/Run/Jump/Land/Hurt/IceBroken/IceFreeze/SpikeLaunch/PickUp/LoadScene/PressurePlate）；`Dead/SpringBounce/SpeedUp` 枚举存在但 asset 中暂未配 clip。
+- **SFX 类型枚举**（`Assets/Scripts/Core/Definitions/MyEnums.cs:80-97`，共 16 项）：`Walk / Run / Jump / Land / Hurt / IceBroken / IceFreeze / SpikeLaunch / PickUp / LoadScene / PressurePlate / Dead / SpringBounce / SpeedUp / ...`。当前 `AudioConfig.asset` 已配置实际 mp3 clip 的是前 11 类（Walk/Run/Jump/Land/Hurt/IceBroken/IceFreeze/SpikeLaunch/PickUp/LoadScene/PressurePlate）；`Dead/SpringBounce/SpeedUp` 枚举存在但 asset 中暂未配 clip。
 - **音效 mp3 资源**：`Assets/AudioRes/SFX/`（走路 01-04 / 跑步 01-04 / 跳跃 / 落地 / 受击 01-02 / 冰冻结 / 冰碎裂 / 弓发射 / 捡起物品 / 加载音效）。
 - **主要调用点**：脚步声在 `PlayerAnimationController.cs:237-261`（按 walk/run 间隔），跳跃起跳在 `:205`，落地在 `:279`，受击在 `HealthManager.cs:142`，冰块在 `IceBlock.cs:106/237`，发射器在 `SpikeLauncher.cs:111`，捡起在 `PickupSpike.cs:28`，加载场景在 `SceneChanger.cs:157`，压力板在 `PressurePlate.cs:55`。
 
@@ -216,7 +216,7 @@ Global Volume Manager [Volume + VolumeManager] ← URP 全局后处理
 
 ### 玩家动画与"loaded 状态"修复（2026-07-26 新增记录）
 
-- **PlayerAnimationController**（`Assets/Scripts/Player/PlayerAnimationController.cs`）：**不使用 Animator 参数**，而是通过 `UnityAnimatorPlayer` 直接播放 `AnimationClip`。
+- **PlayerAnimationController**（`Assets/Scripts/Characters/Player/PlayerAnimationController.cs`）：**不使用 Animator 参数**，而是通过 `UnityAnimatorPlayer` 直接播放 `AnimationClip`。
   - `PlayClipOrStay(state)` (`:268-281`) 查表拿 clip + `AnimationPlayParameters` 后 `animatorPlayer.Play(...)`；clip/params 来自 `Assets/SOs/PlayerAnimationConfig.asset`（`PlayerAnimationConfigSO`）。
   - 状态枚举含 `Idle/Walk/Run/Jump/Fall/Land/None`，本次 `ca879f8` 新增 `None` 状态 (`:28`)。
   - 落地检测：`!wasGrounded && isGrounded` → `PlayClipOrStay(PlayerAnimState.Land)` `:157-161`。
@@ -238,10 +238,34 @@ Global Volume Manager [Volume + VolumeManager] ← URP 全局后处理
   - `UnnormalDead`（被打死/暴毙）→ `brutalDeathMessage` = `"Slaughtered without mercy!"`（你暴毙而亡！）。
   - 字段 `deathText` / `peacefulDeathMessage` / `brutalDeathMessage` 均在 Inspector 可配；原 `peacefulDeathText`(GameObject) 字段已废弃，改为始终显示 DeathText、仅切换文本。
 - **GameOverCanvas RetryButton 样式**（2026-07-25）：已向 ESC 面板靠拢——`Image.sprite = null`、`sizeDelta = (300, 60)`、Label `fontSize = 36`，与 ESCCanvas 的三个按钮视觉一致。
-- **`CanvasToToggle` 枚举**：`ESC / GameOver / Dialog / Default`，定义于 `Assets/Scripts/MyEnums.cs:56-66`；`Default` 仍表示无面板打开，不作为真实面板目标。
-- **场景加载代码**：`InitialLoad` 以 Additive 方式加载配置的持久场景，`SceneChanger` 以 Additive 方式加载目标场景并在完成后触发 `sceneLoadedEvent`；依据 `Assets/Scripts/InitialLoad.cs:8-43`、`Assets/Scripts/Scene/SceneChanger.cs:197-252`。
+- **`CanvasToToggle` 枚举**：`ESC / GameOver / Dialog / Default`，定义于 `Assets/Scripts/Core/Definitions/MyEnums.cs:56-66`；`Default` 仍表示无面板打开，不作为真实面板目标。
+- **场景加载代码**：`InitialLoad` 以 Additive 方式加载配置的持久场景，`SceneChanger` 以 Additive 方式加载目标场景并在完成后触发 `sceneLoadedEvent`；依据 `Assets/Scripts/Systems/Scene/InitialLoad.cs:8-43`、`Assets/Scripts/Systems/Scene/SceneChanger.cs:197-252`。
 - **验证时状态**：编辑器未编译、未运行 Play Mode；控制台未发现 C# error，仅有 Unity MCP WebSocket/批处理提示。`IceBlock.cs` 的脚本诊断为 0 errors、2 warnings，属于工具启发式提示，后续测试时仍需关注。
 - **相关说明**：`Docs/场景加载与面板系统使用说明.md`。本附录的场景清单以本次 Unity MCP 实测为准。
+
+---
+
+## GJ 复盘归因（2026-07-27，供后续项目复用）
+
+> 本节由项目负责人在 GJ 结束后复盘归纳，作为后续项目的教训记录。详细分析见 `C:\Users\12248\Desktop\GameJam2607-评估报告.md` 第九章。
+
+### 归因一：单点过载 + 沟通乏力（流程层）
+
+- **现象**：本次 GJ 负责人同时承担**核心概念构思、需求分发与跟进、关卡设计、主程之一**四重角色；git 数据佐证——GJ 期负责人产出 3928 行代码 + 99 次提交（另一位程序 smdj 2573 行），同时承担全局职责。
+- **根因**：全局上下文只存在于一个人脑中 → 无人能对等质疑 → 需求跟进深度不足 → **集成验证环节缺位**。曾提出的"环形讨论"机制试图解决（把全局理解扩散到至少第二个人，使需求能被质疑、集成能被交叉验证），但本次未落地。
+- **后果**：3 号玩家反馈 "pressing down the button did nothing"——`PressurePlate.cs:21` 的 `onActivate` 是 `UnityEvent`，触发目标在场景 Inspector 绑定。这类"场景接线"最依赖"亲自跑一遍验证"，恰是单点过载最易挤掉的环节。**这不是个人能力问题，是流程/产能结构问题**——换成任何人在此角色配置下都会漏。
+- **后续对策**：落地"环形讨论"机制；集成验证环节从主程身上剥离（见评估报告 9.3.5）。
+
+### 归因二：解谜引导盲区（设计层）
+
+- **现象**：4 条玩家评价中 3 条反映"难理解"（mindbending / hard to wrap head around / took awhile to get the gist）。
+- **根因（自述）**：解谜游戏玩得少，不知道解谜该有什么样的引导，默认了"解谜就是赤石的"。
+- **外部资料查证结论**（详见评估报告 9.4，来源：GameDesignSkills / Machinations / Rachel Moeller / Level Design Book）：
+  1. 解谜应"让玩家始终看见终点"（想"怎么解"而非"解什么"）。
+  2. 早期关卡保证"唯一解"做隐形教学。
+  3. 机关需"视觉示能"——外观/idle 动画让玩家一眼看出可交互（本项目压力板缺"踩我"的视觉信号，玩家③才误当成按钮）。
+  4. 示能只解决"能不能动"，**不要把"解法"也指示出来**，否则变成按键流程而非解谜。
+- **后续对策**：补机关可交互示能；首关做唯一解教学；设定视觉层（衰败程度/齿轮状态）承担引导职能。
 
 ---
 
@@ -257,3 +281,4 @@ Global Volume Manager [Volume + VolumeManager] ← URP 全局后处理
 | 2026-07-26 | 附录核实更新：**渲染管线已迁移到 URP**（`Assets/URPAssets/New Universal Render Pipeline Asset.asset` 已分配给 GraphicsSettings）；Build Settings 从 7 场景扩到 10 场景，新增 `TeachingLevel01` / `NormalLevel01` / `NormalLevel02`，`Level02Test 1` 已禁用且文件已删（Build Settings 残留待清理）；`PersistentScene` 新增 `AudioManager`（根对象）和 `Global Volume Manager`（URP 全局后处理），`Player` 改用 `CapsuleCollider2D + Animator + UnityAnimatorPlayer`，`VirtualCamera` 新增 `CameraShake` |
 | 2026-07-26 | 新增"音效系统"小节：`AudioConfigSO` / `AudioManager`（单例+池）/ `AudioPlayer` 三件套，16 个 SFXType 枚举与 mp3 资源；新增"粒子预制件"小节：`LuoDi`/`IceParticle`/`ShootingParticle`/`HurtParticle`/`RunParticle` 五个 prefab 及触发脚本；新增"濒死提示面板"小节：`DyingHintManager`（血量归零自救面板 + Give Up 按钮） |
 | 2026-07-26 | 新增"玩家动画与 loaded 状态修复"小节：`PlayerAnimationController` 改用 `UnityAnimatorPlayer` 直播 AnimationClip（非 Animator 参数）；`OnSceneLoaded` 回调修复弹簧死亡 retry 后状态残留（`PlayerMovement.cs:192-228`）；死亡禁止移动在 `PlayerMovement` 三处入口加闸（`:249-255/315-321/340-346`）；标注死后 AD 反转 bug 未解决（`a44ffb3` 失败） |
+| 2026-07-27 | 新增"GJ 复盘归因"小节：归因一（单点过载+沟通乏力，流程层，附 git 数据佐证与"环形讨论"对策）；归因二（解谜引导盲区，设计层，附 4 份外部资料查证结论与对策）。详见桌面评估报告第九章 |
