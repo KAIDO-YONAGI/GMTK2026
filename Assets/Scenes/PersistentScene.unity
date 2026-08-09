@@ -233,7 +233,7 @@ Transform:
   m_GameObject: {fileID: 35010386}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.34, y: -2.02, z: -10}
+  m_LocalPosition: {x: 1.33, y: -0.08, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1883,7 +1883,6 @@ MonoBehaviour:
   toggleCanvasEvents:
   - {fileID: 11400000, guid: 393e55d993dbbd54daf4a2f101ec8ae4, type: 2}
   - {fileID: 11400000, guid: 421b13ff016780149b1e6e053f295712, type: 2}
-  - {fileID: 11400000, guid: 4a6d24d066b126244b96d603ed82009e, type: 2}
   inputBindings:
   - canvas: 0
     buttonName: Cancel
@@ -2998,7 +2997,6 @@ MonoBehaviour:
   - {fileID: 784798640}
   - {fileID: 798281343}
   - {fileID: 616515181}
-  - {fileID: 1942504034}
   - {fileID: 551455894}
 --- !u!1 &1611935818
 GameObject:
@@ -3741,11 +3739,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1938931050}
   m_CullTransparentMesh: 1
---- !u!1 &1942504034 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3516731398032200250, guid: 92c72b51ec1cf5f48adcf1c2695b18d6, type: 3}
-  m_PrefabInstance: {fileID: 1258117131961250442}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1946034691
 GameObject:
   m_ObjectHideFlags: 0
@@ -3816,11 +3809,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2939508182233482846, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.34
+      value: 1.33
       objectReference: {fileID: 0}
     - target: {fileID: 2939508182233482846, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -2.02
+      value: -0.08
       objectReference: {fileID: 0}
     - target: {fileID: 2939508182233482846, guid: 2dce6db3f92e42549b929946a1fa73e9, type: 3}
       propertyPath: m_LocalPosition.z
