@@ -1,24 +1,14 @@
-using System.Collections.Generic;
 using UnityEngine;
-using WaterMechanism;
 
 /// <summary>
-/// 水源管理器：水流机关的核心，继承 RewindableBase 实现回溯。
+/// 水源机关的外观入口和回溯协调器。
 ///
-/// 本组件按职责拆分为多个 partial 文件：
-/// 1. WaterSource.Flow.cs：流水生成、碰撞检测、单元成熟与拖尾。
-/// 2. WaterSource.Freezing.cs：结冰请求、冻结推进、碎冰与粒子/音效。
-/// 3. WaterSource.Rewind.cs：快照记录、倒放还原与轮回事件联动。
-///
-/// 回溯策略：
-/// WaterFlowTrigger 触发时先记录一帧“未开启记录”的边界快照，再开始逐物理帧记录。
-/// 记录开关本身也包含在快照中，因此回溯越过触发边界后会恢复为停止记录状态。
-/// 订阅 ReincarnationBegEvent/EndEvent/RewindSnapshotAppliedEvent 与玩家回溯联动。
+/// Inspector 配置与对外 API 保留在此组件上，确保已有 Prefab 和触发器引用不变。
+/// 具体的流水、冻结和回溯逻辑由组合对象负责。
 /// </summary>
 [RequireComponent(typeof(Transform))]
-public partial class WaterSource : RewindableBase
+public class WaterSource : RewindableBase
 {
-    // ===== 流水参数 =====
     [Header("Flow Spawn")]
     [Tooltip("水流单元预制件（生成模板）。")]
     [SerializeField] private WaterFlowUnit unitTemplate;
@@ -64,53 +54,198 @@ public partial class WaterSource : RewindableBase
     [Tooltip("玩家回溯 apply 快照后广播的时间戳事件。用于判断单元是否早于出生时间。")]
     [SerializeField] private FloatEventSO snapshotAppliedEvent;
 
-    // ===== 运行时状态 =====
-    // 所有已生成的单元（按生成顺序，垂直从上到下）。索引 0 是最靠近水源的一格。
-    private readonly List<WaterFlowUnit> units = new List<WaterFlowUnit>();
+    private WaterSourceRuntimeState runtimeState;
+    private WaterFlowController flowController;
+    private WaterFreezeController freezeController;
+    private WaterSourceRewindController rewindController;
 
-    // 复用命中列表，允许同一格水流同时激活路径上的多个压力板。
-    private readonly List<PressurePlate> hitPressurePlates = new List<PressurePlate>();
+    public override int SnapshotCount =>
+        rewindController != null ? rewindController.SnapshotCount : 0;
 
-    // 当前向下生成计数（下一个单元应位于 sourcePosition - stepCount * cellSize）
-    private int stepCount;
+    private void Awake()
+    {
+        InitializeControllers();
+    }
 
-    private bool isFlowing; // 是否在向下扩散
+    private void InitializeControllers()
+    {
+        if (runtimeState != null)
+            return;
 
-    // 是否已经完成过一次流水（流到底/被阻挡停过）。流过一次后忽略所有 StartFlowing 调用，
-    // 直到回溯（OnReincarnationEnd）重置才能被 trigger 再次触发。
-    private bool hasFlowedOnce;
+        runtimeState = new WaterSourceRuntimeState();
+        rewindController = new WaterSourceRewindController(
+            this,
+            runtimeState,
+            GetRewindableSeconds);
+        freezeController = new WaterFreezeController(
+            this,
+            runtimeState,
+            () => IsRewindOperationLocked,
+            RecordSnapshot,
+            freezeDelay,
+            iceParticlePrefab);
+        flowController = new WaterFlowController(
+            this,
+            runtimeState,
+            () => IsRewindOperationLocked,
+            BeginSnapshotRecording,
+            RecordSnapshot,
+            freezeController.IsFrozen,
+            freezeController.PlayIceParticle,
+            unitTemplate,
+            spawnRoot,
+            cellSize,
+            flowInterval,
+            stage1ToStage2Seconds,
+            groundMask);
+    }
 
-    // 冻结状态机（替代原 isFrozen + freezeRequested 两个 bool）。
-    // 三态：Idle（未请求）/ Requested（已踩 trigger 倒计时中）/ Frozen（已结冰）。
-    // 状态转换走 FreezeStateMachine，避免 bool 组合产生不合法中间态。
-    // 踩 trigger → Requested；倒计时到点 → Frozen；冰被击碎 → Idle（需重新踩 trigger）。
-    // 回溯时随快照还原：回溯到 Requested 态会自动重新结冰。
-    private FreezeState freezeState = FreezeState.Idle;
+    private void OnEnable()
+    {
+        InitializeControllers();
 
-    private Coroutine flowCoroutine;
-    private Coroutine advanceCoroutine;
-    private Coroutine freezeCoroutine;
+        if (reincarnationBegEvent != null)
+            reincarnationBegEvent.VoidEvent += OnReincarnationBeg;
+        if (reincarnationEndEvent != null)
+            reincarnationEndEvent.VoidEvent += OnReincarnationEnd;
+        if (snapshotAppliedEvent != null)
+            snapshotAppliedEvent.FloatEvent += OnSnapshotApplied;
+    }
 
-    // Trigger 触发前不记录；该开关随快照回溯。
-    private bool isSnapshotRecording;
+    private void OnDisable()
+    {
+        if (reincarnationBegEvent != null)
+            reincarnationBegEvent.VoidEvent -= OnReincarnationBeg;
+        if (reincarnationEndEvent != null)
+            reincarnationEndEvent.VoidEvent -= OnReincarnationEnd;
+        if (snapshotAppliedEvent != null)
+            snapshotAppliedEvent.FloatEvent -= OnSnapshotApplied;
+    }
 
-    // ===== 清理：销毁时连带单元一起销毁 =====
+    private void FixedUpdate()
+    {
+        rewindController?.RecordSnapshot(IsRewindOperationLocked);
+    }
+
+    /// <summary>启动流水。流过一次后被锁死，回溯后才允许再次触发。</summary>
+    public void StartFlowing()
+    {
+        flowController?.StartFlowing();
+    }
+
+    /// <summary>启动结冰倒计时。</summary>
+    public void StartFreezing()
+    {
+        freezeController?.StartFreezing();
+    }
+
+    /// <summary>由水流单元的 Ice 回调调用，通知水源该单元已碎冰。</summary>
+    public void NotifyUnitBroken(WaterFlowUnit unit)
+    {
+        freezeController?.NotifyUnitBroken(unit);
+    }
+
+    public override void RecordSnapshot()
+    {
+        rewindController?.RecordSnapshot(IsRewindOperationLocked);
+    }
+
+    public override void StartRewind()
+    {
+        if (IsRewindOperationLocked || rewindController == null)
+            return;
+
+        WaterSourceSnapshot[] playbackSnapshots =
+            rewindController.BorrowPlayback(out int count);
+        if (playbackSnapshots == null || count == 0)
+            return;
+
+        StartCoroutine(RewindBackwards(
+            playbackSnapshots,
+            count,
+            rewindController.ApplySnapshot,
+            rewindSpeed,
+            GetRewindableSeconds,
+            rewindCooldownSeconds));
+    }
+
+    private void OnReincarnationBeg()
+    {
+        StartRewind();
+    }
+
+    private void OnReincarnationEnd()
+    {
+        StopAllCoroutines();
+        OnUnfreeze();
+        if (this == null)
+            return;
+
+        rewindController.RemoveDiscardedUnits();
+        rewindController.ClearSnapshots();
+        isRewinding = false;
+        isRewindCoolingDown = false;
+
+        runtimeState.ClearCoroutineReferences();
+        flowController.ResumeAfterRewind();
+        freezeController.ResumeAfterRewind();
+    }
+
+    private void OnSnapshotApplied(float snapshotTime)
+    {
+        rewindController?.HideUnitsBornAfter(snapshotTime);
+    }
+
+    private void BeginSnapshotRecording()
+    {
+        rewindController?.BeginSnapshotRecording();
+    }
+
+    private float GetRewindableSeconds()
+    {
+        float baseSeconds = ReincarnationManager.Instance != null
+            ? ReincarnationManager.Instance.CurrentRewindableSeconds
+            : 8f;
+        return baseSeconds * Mathf.Max(0f, rewindWindowMultiplier);
+    }
+
+    protected override bool ShouldContinueRewind()
+    {
+        return Input.GetKey(KeyCode.R);
+    }
+
+    protected override void OnFreeze()
+    {
+        flowController?.StopForRewind();
+        freezeController?.StopForRewind();
+    }
+
+    protected override void OnUnfreeze()
+    {
+        // 回溯结束后的协程恢复由 OnReincarnationEnd 统一协调。
+    }
+
+    protected override void ClearSnapshots()
+    {
+        rewindController?.ClearSnapshots();
+    }
+
     private void OnDestroy()
     {
         StopAllCoroutines();
+        flowController?.Dispose();
+        freezeController?.Dispose();
+        rewindController?.Dispose();
 
-        // 协程被中断时补归还借出的倒放数组，避免泄漏。
-        if (borrowedPlaybackArray != null)
+        if (runtimeState == null)
+            return;
+
+        for (int i = 0; i < runtimeState.Units.Count; i++)
         {
-            snapshotArrayPool.Return(borrowedPlaybackArray);
-            borrowedPlaybackArray = null;
+            if (runtimeState.Units[i] != null)
+                Destroy(runtimeState.Units[i].gameObject);
         }
 
-        for (int i = 0; i < units.Count; i++)
-        {
-            if (units[i] != null) Destroy(units[i].gameObject);
-        }
-
-        units.Clear();
+        runtimeState.Units.Clear();
     }
 }
