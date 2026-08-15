@@ -7,7 +7,7 @@ public class WearableManager : YSingleton<WearableManager>
     // 暴露自身 transform 引用，方便外部读取装备挂点位置等
     public Transform SelfTransform { get; private set; }
 
-    [Header("Scene Load")]
+    [Header("场景加载")]
     [Tooltip("场景加载完成事件。每次切场景后销毁玩家身上装备的可拾取尖刺，避免上一场景的装备带到新场景。")]
     [SerializeField] private VoidEventSO sceneLoadedEvent;
 
@@ -46,4 +46,3 @@ public class WearableManager : YSingleton<WearableManager>
         }
     }
 }
-

@@ -70,7 +70,7 @@ public class ObjectPool<T> where T : Component
         if (obj == null) return;
         (obj as IPoolable)?.OnPoolReturn();
         obj.gameObject.SetActive(false);
-        // 父级正在反激活时跳过 SetParent，避免 "Cannot set parent while activating/deactivating"
+        // 父级正在切换激活状态时跳过 SetParent，避免设置父级失败。
         if (_parent != null && _parent.gameObject.activeInHierarchy)
             obj.transform.SetParent(_parent);
         _pool.Enqueue(obj);
@@ -90,7 +90,7 @@ public class ObjectPool<T> where T : Component
         while (_pool.Count > 0)
         {
             var obj = _pool.Dequeue();
-            //场景卸载可能已把池内对象销毁，跳过已销毁的避免 MissingReferenceException
+            // 场景卸载可能已销毁池内对象，跳过已销毁对象以避免 MissingReferenceException。
             if (obj != null)
                 Object.Destroy(obj.gameObject);
         }

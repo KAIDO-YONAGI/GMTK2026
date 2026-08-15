@@ -6,14 +6,14 @@ namespace WaterMechanism
     /// 水源冻结状态机的转换逻辑封装（纯逻辑，不持有 Unity 对象）。
     ///
     /// 设计目的：把"状态如何流转"的规则集中在一处，WaterSource 只负责"何时调用"。
-    /// 当前状态以 ref 形式传入并被方法原地修改，使本类无需持有可变字段、
+    /// 当前状态以 ref 形式传入并由方法原地修改，使本类无需持有可变字段、
     /// 既保持无状态易测试，又能让 WaterSource 把 freezeState 直接存进快照。
     ///
     /// 合法转换：
     /// <list type="bullet">
-    /// <item>Request：Idle/Requested → Requested（踩 trigger；幂等）</item>
+    /// <item>Request：Idle/Requested → Requested（进入触发器；幂等）</item>
     /// <item>ConfirmFrozen：Requested → Frozen（结冰倒计时到点）</item>
-    /// <item>Break：Frozen → Idle（冰被击碎，撤回结冰意图，需重新踩 trigger）</item>
+    /// <item>Break：Frozen → Idle（冰被击碎，撤回结冰意图，需重新进入触发器）</item>
     /// </list>
     /// 其它转换（如 Idle → Frozen）视为非法，记录警告但不改变状态。
     /// </summary>
@@ -33,12 +33,12 @@ namespace WaterMechanism
             => state == FreezeState.Requested;
 
         /// <summary>
-        /// 踩 trigger：记录结冰意图。Idle→Requested；已是 Requested/Frozen 则幂等忽略。
+        /// 进入触发器：记录结冰意图。Idle→Requested；已是 Requested/Frozen 则幂等忽略。
         /// </summary>
         public static void Request(ref FreezeState state)
         {
             if (state == FreezeState.Idle) state = FreezeState.Requested;
-            // Requested/Frozen 保持不变（幂等）
+            // Requested 和 Frozen 保持不变（幂等）。
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace WaterMechanism
         }
 
         /// <summary>
-        /// 冰被击碎：Frozen→Idle。撤回结冰意图，要求重新踩 trigger 才能再次结冰。
+        /// 冰被击碎：Frozen→Idle。撤回结冰意图，要求重新进入触发器才能再次结冰。
         /// 非 Frozen 态调用视为非法，记警告不改状态（防止 NotifyUnitBroken 在异常态被触发）。
         /// </summary>
         public static void Break(ref FreezeState state)

@@ -1,14 +1,14 @@
 using UnityEngine;
 
 /// <summary>
-/// 回溯导引触发器：玩家进入区域显示导引 Canvas，离开区域隐藏。
-/// 需要把两个 VoidEventSO 拖入 Inspector。挂在带 Collider2D(isTrigger=true) 的 GameObject 上。
+/// 回溯导引触发器：玩家进入区域显示导引画布，离开区域隐藏。
+/// 需要将两个 VoidEventSO 拖入检查器。挂在带 Collider2D（isTrigger=true）的 GameObject 上。
 /// 参照项目 Elevation_Entry 的 OnTriggerEnter2D + tag=="Player" 模式。
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 public class RewindGuideTrigger : MonoBehaviour
 {
-    [Header("Events")]
+    [Header("事件")]
     [Tooltip("玩家进入区域时触发（显示导引）。")]
     [SerializeField] private VoidEventSO showEvent;
 
@@ -19,7 +19,7 @@ public class RewindGuideTrigger : MonoBehaviour
 
     private void Awake()
     {
-        // 确保 Collider2D 是 trigger 模式
+        // 确保 Collider2D 处于触发器模式。
         triggerArea = GetComponent<Collider2D>();
         triggerArea.isTrigger = true;
     }

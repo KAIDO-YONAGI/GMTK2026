@@ -2,9 +2,9 @@ using UnityEngine;
 
 /// <summary>
 /// 水流单元状态机：管理单个格子的水流表现。
-/// 三个子节点分别对应四相：
+/// 三个子节点组合对应四个相位：
 ///   Stage1（少量水动画） → Stage2（满水动画） → Frozen（冰，带 Ice 标记 + 碰撞） → Broken（碎冰后一滩水，无碰撞）。
-/// 单元本身不自驱相位推进（由 WaterSource 统一计时），只暴露 SetPhase / ForcePhase 供水源调用。
+/// 单元本身不自行推进相位（由 WaterSource 统一计时），只暴露 SetPhase 和 ForcePhase 供水源调用。
 /// 水流阶段（Stage1/Stage2）始终无碰撞，仅 Frozen 阶段启用 BoxCollider2D。
 /// </summary>
 public class WaterFlowUnit : MonoBehaviour
@@ -17,12 +17,12 @@ public class WaterFlowUnit : MonoBehaviour
         Broken  // 碎冰后（一滩水、可通行）
     }
 
-    [Header("Child References")]
-    [Tooltip("少量水阶段动画子节点（含 SpriteRenderer + Animator）。")]
+    [Header("子物体引用")]
+    [Tooltip("少量水阶段的动画子节点，需包含精灵渲染器和动画控制器。")]
     [SerializeField] private GameObject stage1Object;
-    [Tooltip("满水阶段动画子节点（含 SpriteRenderer + Animator）。")]
+    [Tooltip("满水阶段的动画子节点，需包含精灵渲染器和动画控制器。")]
     [SerializeField] private GameObject stage2Object;
-    [Tooltip("冰贴图子节点（含 SpriteRenderer + Ice + BoxCollider2D）。")]
+    [Tooltip("冰贴图子节点，需包含精灵渲染器、冰块标记组件和二维盒碰撞体。")]
     [SerializeField] private GameObject iceObject;
 
     /// <summary>当前相位（只读）。</summary>
@@ -32,7 +32,7 @@ public class WaterFlowUnit : MonoBehaviour
     public float BirthTime { get; private set; }
 
     /// <summary>
-    /// 是否锁定在 Stage1 不自动推进到 Stage2。
+    /// 是否锁定在 Stage1，不自动推进到 Stage2。
     /// 用于拖尾单元：贴地的视觉装饰，始终保持少量水动画，不演变成满水。
     /// </summary>
     public bool LockAtStage1 { get; set; }
@@ -51,16 +51,16 @@ public class WaterFlowUnit : MonoBehaviour
     }
 
     /// <summary>初始化：记录出生时间、注册碎冰回调。</summary>
-    /// <param name="owner">所属水源点，用于碎冰后通知（可为 null 表示不需要通知）。</param>
+    /// <param name="owner">所属水源点，用于碎冰后通知；为 null 表示不需要通知。</param>
     public void Init(WaterSource owner)
     {
         BirthTime = Time.time;
         if (iceComponent != null && owner != null)
         {
-            // 捕获 owner 到局部变量，避免闭包持有 owner 句柄在销毁后还在调用
+            // 捕获 owner 到局部变量，避免闭包持有 owner 句柄并在销毁后继续调用。
             var ownerRef = owner;
             // 冰被击碎（Ice.Break()）时通知水源点。IceImg 子物体不被销毁，
-            // NotifyUnitBroken 把单元切回 Stage2（水），后续可再次结冰（水↔冰循环）。
+            // NotifyUnitBroken 将单元切回 Stage2（水），后续可再次结冰，形成水冰循环。
             iceComponent.OnBroken += _ => ownerRef.NotifyUnitBroken(this);
         }
     }
@@ -79,7 +79,7 @@ public class WaterFlowUnit : MonoBehaviour
         ApplyPhaseVisual(phase);
     }
 
-    /// <summary>按相位统一切换三个子节点激活与冰碰撞。对已销毁的子物体跳过（防 OnDestroy 回调链报错）。</summary>
+    /// <summary>按相位统一切换三个子节点的激活状态和冰碰撞。已销毁的子物体会跳过，避免 OnDestroy 回调链报错。</summary>
     private void ApplyPhaseVisual(WaterPhase phase)
     {
         bool s1 = phase == WaterPhase.Stage1;
@@ -89,14 +89,14 @@ public class WaterFlowUnit : MonoBehaviour
         // 每次同步相位都恢复 Ice 标记，确保碎冰后再次结冰时仍可被击碎。
         if (iceComponent != null) iceComponent.Restore();
 
-        // 子物体可能正被外部销毁（如 FlyingSpike 击碎 IceImg），操作前判 null 且仅在状态不同时 SetActive。
+        // 子物体可能正被外部销毁（如 FlyingSpike 击碎 IceImg），操作前判空，且仅在状态不同时调用 SetActive。
         SafeSetActive(stage1Object, s1);
         SafeSetActive(stage2Object, s2);
         SafeSetActive(iceObject, ice);
         if (iceCollider != null) iceCollider.enabled = ice; // 仅冰阶段启用碰撞
     }
 
-    /// <summary>安全 SetActive：物体为 null 或正在销毁时跳过，避免 "being destroyed" 报错。</summary>
+    /// <summary>安全调用 SetActive：物体为空或正在销毁时跳过，避免“正在销毁”错误。</summary>
     private static void SafeSetActive(GameObject obj, bool value)
     {
         if (obj == null) return;

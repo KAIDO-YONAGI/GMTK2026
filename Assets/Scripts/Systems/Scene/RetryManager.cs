@@ -17,17 +17,17 @@ public class RetryConfig
 }
 
 /// <summary>
-/// Central retry coordinator. The persistent scene owns one instance and maps the
-/// current content scene to the complete additive scene group that must be reloaded.
+/// 集中式重试协调器。常驻场景只保留一个实例，按当前内容场景匹配
+/// 需要完整重载的叠加场景组。
 /// </summary>
 public class RetryManager : YSingleton<RetryManager>
 {
     [SerializeField] private SceneLoadEventSO loadEventSO;
 
-    [Header("Retry Event")]
+    [Header("重试事件")]
     [SerializeField] private VoidEventSO retryEventSO;
 
-    [Header("Retry Config")]
+    [Header("重试配置")]
     [SerializeField] private RetryConfig[] retryConfigs; // 按场景配置，由 PersistentScene 统一维护
 
     private void OnEnable()

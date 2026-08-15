@@ -2,26 +2,26 @@ using UnityEngine;
 
 public class PlayerAnimationController : MonoBehaviour
 {
-    [Header("References")]
+    [Header("组件引用")]
     [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private UnityAnimatorPlayer animatorPlayer;
     [SerializeField] private PlayerAnimationConfigSO animationConfig;
     [SerializeField] private float jumpDelay = 0.18f;
 
-    [Header("Scene Load")]
-    [Tooltip("Scene loaded event used to reset animation and jump state.")]
+    [Header("场景加载")]
+    [Tooltip("场景加载完成后用于重置动画和跳跃状态的事件。")]
     [SerializeField] private VoidEventSO sceneLoadedEvent;
 
-    [Header("Rewind")]
-    [Tooltip("Rewind started event used to clear pending jump animation state.")]
+    [Header("回溯")]
+    [Tooltip("回溯开始时用于清除待处理跳跃动画状态的事件。")]
     [SerializeField] private VoidEventSO reincarnationBegEvent;
-    [Tooltip("Rewind ended event used to resync movement animation state.")]
+    [Tooltip("回溯结束时用于重新同步移动动画状态的事件。")]
     [SerializeField] private VoidEventSO reincarnationEndEvent;
 
-    [Header("Footsteps")]
-    [Tooltip("Seconds between walk footstep SFX.")]
+    [Header("脚步声")]
+    [Tooltip("行走脚步声音效的间隔时间（秒）。")]
     [SerializeField, Min(0.05f)] private float walkStepInterval = 0.52f;
-    [Tooltip("Seconds between run footstep SFX.")]
+    [Tooltip("奔跑脚步声音效的间隔时间（秒）。")]
     [SerializeField, Min(0.05f)] private float runStepInterval = 0.4f;
 
     private enum PlayerAgeStage { Youth, Adult, Elder, Frail }

@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class InitialLoad : MonoBehaviour
 {
-    [Tooltip("Scenes loaded additively during startup and kept loaded.")]
+    [Tooltip("启动时以叠加模式加载并持续保留的场景。")]
     public List<GameSceneSO> persistentScenes = new List<GameSceneSO>();
 
     private void Awake()

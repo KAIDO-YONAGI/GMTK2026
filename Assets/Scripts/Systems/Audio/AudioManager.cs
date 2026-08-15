@@ -4,18 +4,18 @@ using System.Collections.Generic;
 
 public class AudioManager : YSingleton<AudioManager>
 {
-    [Header("Config")]
+    [Header("配置")]
     [SerializeField] private AudioConfigSO config;
     [SerializeField] private int maxPoolSize = 16;
     [SerializeField] private int warmupCount = 4;
 
-    [Header("BGM")]
+    [Header("背景音乐")]
     [SerializeField] private float crossfadeDuration = 1f;
 
-    [Header("Scene Events")]
+    [Header("场景事件")]
     [SerializeField] private VoidEventSO sceneLoadedEvent;
 
-    [Header("Volume")]
+    [Header("音量")]
     [Range(0f, 1f)] public float sfxVolume = 0.5f;
     [Range(0f, 1f)] public float bgmVolume = 0.5f;
 
@@ -34,8 +34,8 @@ public class AudioManager : YSingleton<AudioManager>
         _bgmSource.loop = true;
     }
 
-    [Header("Startup")]
-    [Tooltip("启动时自动播放的 BGM 类型。设为 Default 则不自动播放。")]
+    [Header("启动")]
+    [Tooltip("启动时自动播放的背景音乐类型。设为默认类型时不自动播放。")]
     [SerializeField] private MyEnums.BGMType startupBGM = MyEnums.BGMType.Gaming;
 
     private void Start()

@@ -10,22 +10,22 @@ public class UIManager : YSingleton<UIManager>
     public const int FocusOrder = CanvasFocusStack.FocusOrder;
     public const int DefaultOrder = CanvasFocusStack.DefaultOrder;
 
-    [Header("Events")]
-    [Tooltip("场景加载请求事件：收到换场景请求时把所有面板复位关闭（ResetCanvas）")]
+    [Header("事件")]
+    [Tooltip("场景加载请求事件：收到换场景请求时复位并关闭所有面板。")]
     [SerializeField] private SceneLoadEventSO loadEventSO;
 
-    [Tooltip("UIManager 可驱动的面板开关事件列表：按键唤起、ESC 关闭、切场景复位都从这里发信号。面板的 ToggleCanvasEventSO 资产必须列在此处，否则 UIManager 唤不起它")]
+    [Tooltip("界面管理器可驱动的面板开关事件列表。按键唤起、ESC 关闭和切场景复位都从这里发信号；面板的开关事件资源必须列在此处，否则无法由界面管理器唤起。")]
     [SerializeField] private List<ToggleCanvasEventSO> toggleCanvasEvents;
 
-    [Header("Input Bindings")]
-    [Tooltip("按键绑定（旧输入系统 KeyCode）：每条 = 画布 + 按键。ESC 走特殊通道——无面板打开时唤起 ESC 面板，有面板时关闭最上层")]
+    [Header("输入绑定")]
+    [Tooltip("按键绑定（旧输入系统）。每项对应一个面板和按键；ESC 走特殊通道：无面板打开时唤起 ESC 菜单，有面板时关闭最上层。")]
     [SerializeField] private List<CanvasInputBinding> inputBindings;
 
-    [Header("互斥面板 开启时自动关闭列表中其它已打开的面板")]
+    [Header("互斥面板（开启时自动关闭列表中其它已打开的面板）")]
     [Tooltip("互斥面板列表：列在此处的面板互相互斥——任一打开时自动关闭其它已打开的互斥面板；未列出的可与任意面板共存")]
     [SerializeField] private List<CanvasToToggle> mutexCanvases = new List<CanvasToToggle>();
 
-    // 画布焦点栈：纯 C# 逻辑（open-order 链表、focus、sortingOrder 计算）。
+    // 画布焦点栈：纯 C# 逻辑（打开顺序链表、焦点和排序优先级计算）。
     private readonly CanvasFocusStack focusStack = new();
 
     // 各画布上报的阻塞声明（ReportCanvasState 时登记）
@@ -59,10 +59,10 @@ public class UIManager : YSingleton<UIManager>
     }
 
     private void OnLoadScene(List<GameSceneSO> arg0, Vector3 arg1, bool arg2)
-    //UIManager作为跨场景持久单例，不会随场景卸载而disable，因此需要订阅场景加载事件来主动重置画布状态。
-    //LoadRequestEvent是同步委托，UIManager的ExecutionOrder(-100)早于SceneChanger，所以OnLoadScene
-    //会在SceneChanger开始异步卸载/加载流程之前同步执行，确保所有UI面板在场景过渡动画和旧场景卸载前被关闭。
-    //另外也有异步等待操作能为这里争取时间，但是还是要注意可能会导致冲突的时序问题
+    // UIManager 作为跨场景持久单例，不会随场景卸载而失活，因此需要订阅场景加载事件以主动重置画布状态。
+    // LoadRequestEvent 是同步委托，UIManager 的执行顺序 (-100) 早于 SceneChanger，因此 OnLoadScene
+    // 会在 SceneChanger 开始异步卸载和加载流程前同步执行，确保所有 UI 面板在过渡动画和旧场景卸载前关闭。
+    // 虽然异步等待也能为这里争取时间，但仍需注意潜在的时序冲突。
     {
         ResetCanvas();
     }
@@ -72,7 +72,7 @@ public class UIManager : YSingleton<UIManager>
         ToggleCanvas();
     }
 
-    public void HandleFocus(CanvasToToggle canvas) //拖拽脚本的输入，用于完成focus调整
+    public void HandleFocus(CanvasToToggle canvas) // 拖拽脚本的输入，用于调整焦点
     {
         focusStack.HandleFocus(canvas);
     }
@@ -93,7 +93,7 @@ public class UIManager : YSingleton<UIManager>
         focusStack.RequestClose(canvas);
     }
 
-    // 状态回调，画布报告的真实开启/关闭状态（互斥由本组件的 mutexCanvases 列表解析，阻塞声明由面板传入）。
+    // 状态回调：画布报告真实的开启或关闭状态；互斥由本组件的 mutexCanvases 列表解析，阻塞声明由面板传入。
     public void ReportCanvasState(
         CanvasToToggle canvas,
         bool state,
@@ -108,7 +108,7 @@ public class UIManager : YSingleton<UIManager>
         canvasCloseOnEscape[canvas] = closeOnEscape;
         canvasBlocksInput[canvas] = blocksGlobalInput;
 
-        //互斥：开启时自动关闭其它已打开的互斥面板
+        // 互斥：开启时自动关闭其它已打开的互斥面板。
         if (state && IsMutexCanvas(canvas))
         {
             CloseOtherMutexCanvases(canvas);
@@ -122,7 +122,7 @@ public class UIManager : YSingleton<UIManager>
         return focusStack.IsFocused(canvas);
     }
 
-    // 根据 open-order 链表计算排序优先级（转发给焦点栈）。被 ICanvasManager.RefreshCanvaOrder 调用。
+    // 根据打开顺序链表计算排序优先级（转发给焦点栈），由 ICanvasManager.RefreshCanvaOrder 调用。
     public int GetCanvasOrder(CanvasToToggle canvas, bool state)
     {
         return focusStack.GetCanvasOrder(canvas, state);
@@ -130,10 +130,10 @@ public class UIManager : YSingleton<UIManager>
 
     private void CloseOtherMutexCanvases(CanvasToToggle opening)
     {
-        //遍历副本：RequestClose 会经由面板回调修改焦点栈
+        // 遍历副本：RequestClose 会经由面板回调修改焦点栈。
         foreach (CanvasToToggle openCanvas in focusStack.GetOpenCanvases())
         {
-            //只关闭可关闭面板：对"仅上报面板"发无效关闭会导致焦点栈与其真实显隐状态错位
+            // 仅关闭可关闭面板：对“仅上报面板”发出无效关闭会导致焦点栈与真实显隐状态错位。
             if (openCanvas != opening && IsMutexCanvas(openCanvas) && IsClosableCanvas(openCanvas))
             {
                 focusStack.RequestClose(openCanvas);
@@ -141,14 +141,14 @@ public class UIManager : YSingleton<UIManager>
         }
     }
 
-    //是否为互斥面板（列在 mutexCanvases 里即参与互斥，未列出则与任意面板共存）
+    // 是否为互斥面板：列在 mutexCanvases 里即参与互斥，未列出则可与任意面板共存。
     private bool IsMutexCanvas(CanvasToToggle canvas)
     {
         return mutexCanvases != null && mutexCanvases.Contains(canvas);
     }
 
-    //是否为可关闭面板：开关事件在 toggleCanvasEvents 列表中（可被按键唤起、ESC 关闭、切场景复位、互斥关闭）。
-    //不在列表中的面板即使上报状态（仅上报层级），UIManager 也不主动关它——显隐由其自身逻辑决定。
+    // 是否为可关闭面板：开关事件在 toggleCanvasEvents 列表中，可被按键唤起、ESC 关闭、切场景复位和互斥关闭。
+    // 不在列表中的面板即使上报状态（仅上报层级），UIManager 也不主动关闭它，显隐由其自身逻辑决定。
     private bool IsClosableCanvas(CanvasToToggle canvas)
     {
         foreach (var eventSO in toggleCanvasEvents)
@@ -176,7 +176,7 @@ public class UIManager : YSingleton<UIManager>
 
     private void ToggleCanvas()
     {
-        // 读取已注册的输入绑定；未注册的画布仍可使用RequestCanvasToggle。
+        // 读取已注册的输入绑定；未注册的画布仍可使用 RequestCanvasToggle。
         foreach (var binding in inputBindings)
         {
             bool pressed = binding.key != KeyCode.None && Input.GetKeyDown(binding.key);
@@ -184,8 +184,8 @@ public class UIManager : YSingleton<UIManager>
             // 外部请求和按键按下都可以触发切换。
         }
 
-        //阻塞面板（如 GameOver/Ending）打开时，吞掉所有面板切换输入（含 ESC 与外部切换请求）。
-        //注意：RequestCanvasClose 不受影响，阻塞面板自身的关闭按钮仍可直接关掉它。
+        // 阻塞面板（如 GameOver 和 Ending）打开时，吞掉所有面板切换输入（含 ESC 与外部切换请求）。
+        // 注意：RequestCanvasClose 不受影响，阻塞面板自身的关闭按钮仍可直接关闭它。
         if (IsGlobalInputBlocked())
         {
             ResetInputState();

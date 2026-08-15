@@ -4,18 +4,18 @@ using UnityEngine;
 /// <summary>
 /// 水流启动触发器：玩家进入区域时调用引用挂载的水源点 StartFlowing()。
 /// 参照 RewindGuideTrigger 模式：RequireComponent Collider2D + OnTriggerEnter2D + CompareTag("Player") + Gizmos 可视化。
-/// 把对应 WaterSource 实例拖入 Inspector 的 target 字段即可。
-/// trigger 支持重复触发（玩家反复进出），是否真正启动流水由 WaterSource 决定
+/// 将对应 WaterSource 实例拖入 Inspector 的 target 字段即可。
+/// 触发器支持重复触发（玩家反复进出），是否真正启动流水由 WaterSource 决定
 /// （流过一次后锁死，回溯后才解锁）。
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 public class WaterFlowTrigger : MonoBehaviour
 {
-    [Header("Target")]
-    [Tooltip("被触发的水源点。玩家进入此 trigger 区域时调用其 StartFlowing()。")]
+    [Header("目标水源")]
+    [Tooltip("被触发的水源点。玩家进入此触发区域时启动水流。")]
     [SerializeField] private WaterSource target;
 
-    [Header("Delay")]
+    [Header("延迟")]
     [Tooltip("玩家进入区域后，等待多少秒才真正触发。0 = 立即触发。")]
     [SerializeField] private float delaySeconds = 0f;
 
@@ -65,7 +65,7 @@ public class WaterFlowTrigger : MonoBehaviour
     // 编辑器可视化触发区域（蓝色框，方便摆放）
     private void OnDrawGizmos()
     {
-        // 脚本被禁用时不画 Gizmos，Scene 视图里只显示当前生效的 trigger 类型
+        // 脚本被禁用时不绘制 Gizmos，场景视图中只显示当前生效的触发器类型。
         if (!enabled) return;
         var col = GetComponent<Collider2D>();
         if (col == null) return;

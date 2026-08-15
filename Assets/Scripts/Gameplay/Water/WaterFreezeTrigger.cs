@@ -5,16 +5,16 @@ using UnityEngine;
 /// 水流结冰触发器：玩家进入区域时调用引用挂载的水源点 StartFreezing()。
 /// 与 WaterFlowTrigger 结构一致，仅触发的方法不同（结冰倒计时）。
 /// 结冰由水源点统一管理：到点把所有 Stage2 单元切到 Frozen。
-/// trigger 支持重复触发，是否真正结冰由 WaterSource 决定（已结冰则忽略，回溯后才解锁）。
+/// 触发器支持重复触发，是否真正结冰由 WaterSource 决定（已结冰则忽略，回溯后才解锁）。
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 public class WaterFreezeTrigger : MonoBehaviour
 {
-    [Header("Target")]
-    [Tooltip("被触发的水源点。玩家进入此 trigger 区域时调用其 StartFreezing()。")]
+    [Header("目标水源")]
+    [Tooltip("被触发的水源点。玩家进入此触发区域时启动冻结。")]
     [SerializeField] private WaterSource target;
 
-    [Header("Delay")]
+    [Header("延迟")]
     [Tooltip("玩家进入区域后，等待多少秒才真正触发。0 = 立即触发。")]
     [SerializeField] private float delaySeconds = 0f;
 
@@ -64,7 +64,7 @@ public class WaterFreezeTrigger : MonoBehaviour
     // 编辑器可视化触发区域（青色框，与 WaterFlowTrigger 区分）
     private void OnDrawGizmos()
     {
-        // 脚本被禁用时不画 Gizmos，Scene 视图里只显示当前生效的 trigger 类型
+        // 脚本被禁用时不绘制 Gizmos，场景视图中只显示当前生效的触发器类型。
         if (!enabled) return;
         var col = GetComponent<Collider2D>();
         if (col == null) return;

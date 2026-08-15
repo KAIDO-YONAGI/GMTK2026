@@ -143,7 +143,7 @@ public class FlyingSpike : RewindableBase
         if (IsRewindOperationLocked) return;
         if (snapshots.Count == 0) return;
 
-        // 倒放数组从池借出，CopyTo 填入；协程内部用 count 而非 Length（池借出的 Length 可能更大）
+        // 倒放数组从池中借出，CopyTo 填入；协程内部使用 count 而非数组长度（池借出的数组长度可能更大）。
         int count = snapshots.Count;
         borrowedPlaybackArray = snapshotArrayPool.Get(count);
         snapshots.CopyTo(borrowedPlaybackArray, 0);

@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class DialogManager : YSingleton<DialogManager>
 {
-    [Header("Dialog UI")]
+    [Header("对话界面")]
     public CanvasGroup dialogCanvasGroup;
     public Image speakerPortrait;
     public TMP_Text dialogText;
@@ -166,7 +166,7 @@ public class DialogManager : YSingleton<DialogManager>
                 }
             }
         }
-        //TODO 添加检测位置有没有去过的逻辑
+        // 待办：添加检测位置是否已到访的逻辑。
 
         return true;
     }

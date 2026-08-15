@@ -3,8 +3,8 @@
 [ExecuteAlways]
 public class ParallaxLayer : MonoBehaviour
 {
-    [Header("Parallax Settings")]
-    [Tooltip("(0,0)=static far bg, (0.5,0.5)=midground half speed, (1,1)=normal scene, (2,1)=fast foreground")]
+    [Header("视差设置")]
+    [Tooltip("(0,0) 为静态远景背景；(0.5,0.5) 为半速中景；(1,1) 为正常场景；(2,1) 为快速前景。")]
     [SerializeField] private Vector2 parallaxFactor = Vector2.one;
 
     private Vector3 originalPosition;

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 可回溯对象的通用实现基类（非泛型，Inspector 友好）。
+/// 可回溯对象的通用实现基类（非泛型，检查器友好）。
 /// 只负责回溯算法本身（倒放循环、裁剪、冷却框架），不持有任何时间窗口/倍速/衰老字段——
 /// 这些是子类专属的（玩家用 agingRate 算窗口，机关可能用固定常量），由子类计算后作为参数传入。
 /// 提供两个可复用的泛型算法零件：
@@ -80,7 +80,7 @@ public abstract class RewindableBase : MonoBehaviour, IRewindable
     /// 子类在 StartRewind 里调 StartCoroutine(RewindBackwards(...))。
     /// </summary>
     /// <param name="snapshots">已转为数组的快照（通常 snapshots.ToArray() 或从池借的数组），按时间升序。</param>
-    /// <param name="count">数组中有效快照数量（数组 Length 可能更大，只有前 count 个有效）。</param>
+    /// <param name="count">数组中有效快照数量（数组长度可能更大，只有前 count 个有效）。</param>
     /// <param name="apply">把单个快照应用回对象的方法（通常是 ApplySnapshot）。</param>
     /// <param name="rewindSpeed">回溯播放倍速。1 = 1:1 实时倒放。</param>
     /// <param name="getMaxRewindSeconds">倒放期间实时获取当前可回溯上限的函数。</param>

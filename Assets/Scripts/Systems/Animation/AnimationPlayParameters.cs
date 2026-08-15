@@ -16,12 +16,12 @@ public struct AnimationPlayParameters
     /// <summary>是否循环播放。循环播放不会触发完成回调。</summary>
     public bool loop;
 
-    /// <summary>Animator Layer 索引，默认使用第 0 层。</summary>
+    /// <summary>Animator 层索引，默认使用第 0 层。</summary>
     public int layer;
 
     /// <summary>
     /// 非循环动画完成后是否调 StopClip()（设 animator.speed = 0）。
-    /// true = 冻结在最后一帧；false = 让 Animator 自然保持最后一帧（用于跳跃/落地等预览动画）。
+    /// true 表示冻结在最后一帧；false 表示让 Animator 自然保持最后一帧（用于跳跃、落地等预览动画）。
     /// </summary>
     public bool freezeOnComplete;
 

@@ -30,7 +30,7 @@ public interface IAnimationPlayer
 
     /// <summary>
     /// 在动画跨过指定归一化时间时触发回调。
-    /// once 为 true 时只触发一次，为 false 时循环动画每轮都可触发。
+    /// once 为 true 时只触发一次；为 false 时循环动画每轮都可触发。
     /// </summary>
     void AddNormalizedTimeCallback(float normalizedTime, Action callback, bool once = true);
 

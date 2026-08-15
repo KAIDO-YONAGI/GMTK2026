@@ -5,7 +5,7 @@ public interface ICanvasManager
     /// <summary>本面板订阅的开关事件资产（需同时挂到 UIManager 的 toggleCanvasEvents 列表）。</summary>
     ToggleCanvasEventSO ToggleCanvasEvent { get; }
 
-    /// <summary>Whether pressing Escape may close this panel while it is focused.</summary>
+    /// <summary>当前面板获得焦点时，是否允许通过 ESC 键关闭。</summary>
     bool CloseOnEscape => true;
 
     /// <summary>打开时是否阻塞全局面板输入（UIManager 吞掉所有面板切换按键，含 ESC）。
@@ -45,7 +45,7 @@ public interface ICanvasManager
        bool state)
     {
         int order = UIManager.Instance != null
-            //按 open-order 链表顺序分配降序排序优先级，顶层（链表末尾）最高
+            // 按打开顺序链表分配降序排序优先级，顶层（链表末尾）最高。
             ? UIManager.Instance.GetCanvasOrder(canvasToToggle, state)
             : UIManager.DefaultOrder;
         if (canvas == null)

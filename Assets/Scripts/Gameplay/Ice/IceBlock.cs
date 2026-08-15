@@ -14,29 +14,29 @@ using UnityEngine;
 [RequireComponent(typeof(Ice))]
 public class IceBlock : RewindableBase
 {
-    [Header("Visuals")]
-    [Tooltip("完整冰块的 SpriteRenderer（碎裂时隐藏）。")]
+    [Header("视觉效果")]
+    [Tooltip("完整冰块的精灵渲染器，碎裂时隐藏。")]
     [SerializeField] private SpriteRenderer intactRenderer;
 
-    [Tooltip("碎裂冰块的 SpriteRenderer（完整时隐藏）。可不配，碎裂时仅隐藏完整贴图。")]
+    [Tooltip("碎裂冰块的精灵渲染器，完整时隐藏。可不配置；未配置时碎裂只隐藏完整贴图。")]
     [SerializeField] private SpriteRenderer brokenRenderer;
 
-    [Header("Particles")]
-    [Tooltip("Particle effect played when the ice block freezes or breaks.")]
+    [Header("粒子效果")]
+    [Tooltip("冰块冻结或破碎时播放的粒子特效。")]
     [SerializeField] private ParticleSystem iceParticlePrefab;
 
-    [Header("Rewind")]
+    [Header("回溯")]
     [Tooltip("回溯播放倍速。1 = 1:1 实时倒放。")]
     [SerializeField] private float rewindSpeed = 1f;
 
     [Tooltip("回溯结束后恢复记录前的冷却秒数。")]
     [SerializeField] private float rewindCooldownSeconds = 1f;
 
-    [Header("Reincarnation Events")]
+    [Header("回溯事件")]
     [SerializeField] private VoidEventSO reincarnationBegEvent;
     [SerializeField] private VoidEventSO reincarnationEndEvent;
     
-    [Header("Shake Event")]
+    [Header("震动事件")]
     [SerializeField] private ShakeEventSO shakeEvent;
     [SerializeField] private CameraShake.ShakeParameters hitShakeParams = new CameraShake.ShakeParameters
     {
@@ -179,7 +179,7 @@ public class IceBlock : RewindableBase
         float now = Time.time;
         TrimExpiredSnapshots(now, GetRewindableSeconds());
 
-        // 倒放数组从池借出（Length 可能 ≥ 实际数），CopyTo 填入；协程内部用 count 而非 Length
+        // 倒放数组从池中借出（数组长度可能大于实际数），CopyTo 填入；协程内部使用 count 而非数组长度。
         int count = snapshots.Count;
         borrowedPlaybackArray = snapshotArrayPool.Get(count);
         snapshots.CopyTo(borrowedPlaybackArray, 0);

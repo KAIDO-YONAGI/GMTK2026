@@ -9,11 +9,11 @@ public class DialogSO : ScriptableObject
     public DialogLine[] dialogLines;
     public DialogOption[] nextDialogOptions;
 
-    [Header("Refuse Requirements For Main")]
+    [Header("主对话的拒绝条件")]
 
     public List<RefuseDialogSO> refuseDialogs;
 
-    [Header("Conditional Requirements For Sub")]
+    [Header("子对话的条件设置")]
     public bool onlyTriggeredOnce;//用于在子对话设置该分支只能进入一次
     public DialogSO parentDialog;//在子对话（option）设置，用于标记已完成的对话，会阻止进入主分支
 
@@ -65,14 +65,14 @@ public class Item
  *       ├ optionText    : 选项按钮上显示的文字。
  *       └ nextDialogNode: 选中该项后跳转到的下一个 DialogSO（叶子节点留空）。
  *
- * 【Refuse Requirements For Main —— 主线进入/拒绝条件】
+ * 【主对话的拒绝条件】
  *   - refuseDialogs       : 拒绝策略列表。
  *       └ RefuseDialogSO（见 RefuseDialogSO.cs）：
  *         · isDefaultChat    : 是否默认对话（所有拒绝策略执行后仍拒绝→主线单次）。
  *         · requireCharacters: 需要队伍/场景中存在这些角色，否则拒绝。
  *         · requireItems     : 需要背包中有这些物品（结构体 Item：itemSO + quantity），否则拒绝。
  *
- * 【Conditional Requirements For Sub —— 子对话（option 目标）专用】
+ * 【子对话的条件设置】
  *   - onlyTriggeredOnce   : 勾选后，该分支只能进入一次（再次选择会被拦截）。
  *   - parentDialog        : 在【作为子对话】的节点上配置，
  *                          指回它的父 DialogSO；用于标记“此分支已完成”，

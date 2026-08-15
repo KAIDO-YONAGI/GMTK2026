@@ -12,35 +12,35 @@ public class SceneChanger : YSingleton<SceneChanger>
 {
     /// <summary>玩家初始位置</summary>
     ///
-    [Header("Init Config")]
-    [Tooltip("启动时玩家的初始位置：游戏一开始把 player 传送到这里（之后换场景按请求位置/场景 SO 出生点传送）")]
+    [Header("初始配置")]
+    [Tooltip("启动时玩家的初始位置。游戏开始时传送到这里；后续换场景则使用请求位置或场景 SO 的出生点。")]
     public Vector3 initialPosition = Vector3.zero;
 
-    [Tooltip("玩家对象：每次场景加载完成后传送到目标出生点（请求传入的位置，零向量则用场景 SO 的 initialPosition）")]
-    public GameObject player;//用于设置每次加载的玩家位置，主要在sceneSO里配置
+    [Tooltip("玩家对象。每次场景加载完成后传送到目标出生点；请求位置为零向量时使用场景 SO 的初始位置。")]
+    public GameObject player;// 用于设置每次加载后的玩家位置，主要在场景 SO 中配置。
 
-    [Tooltip("启动时自动加载的初始场景组：Start 时通过 loadEventSO 按列表顺序 Additive 装入（通常填菜单场景）")]
+    [Tooltip("启动时自动加载的初始场景组。通过场景加载事件按列表顺序以叠加模式加载，通常配置为菜单场景。")]
     public List<GameSceneSO> initScene = new List<GameSceneSO>();
 
-    [Tooltip("随场景类型开关的对象：目标场景为 Menu 时全部禁用、Location 时全部启用（例如玩家本体）")]
+    [Tooltip("随场景类型开关的对象。目标场景类型为 Menu 时全部禁用，为 Location 时全部启用，例如玩家本体。")]
     public Object[] objectsToUnableWhileGameReset;
 
-    [Header("Fade Config")]
-    [Tooltip("场景过渡的淡入淡出时长（秒，用真实时间计算，不受 timeScale 暂停影响）")]
+    [Header("淡入淡出配置")]
+    [Tooltip("场景过渡的淡入淡出时长（秒），以真实时间计算，不受暂停影响。")]
     public float fadeDuration = 1f;
 
-    [Tooltip("过渡遮罩的 CanvasGroup：transitionImagesDuringFade 为空时用它做代码 alpha 渐变黑屏（淡入时挡输入）")]
+    [Tooltip("过渡遮罩的画布组。未配置过渡动画控制器时，用它以代码改变透明度形成黑屏；淡入时会阻挡输入。")]
     public CanvasGroup fadeCanva;
 
-    [Tooltip("过渡动画 Animator 数组（旧方案）：非空时播放 FadeIn/FadeOut 动画；为空则用 fadeCanva 代码渐变。二选一")]
+    [Tooltip("过渡动画控制器数组（旧方案）。已配置时播放 FadeIn/FadeOut 动画；未配置时改用过渡遮罩的代码渐变，两者二选一。")]
     public Animator[] transitionImagesDuringFade;
     /// <summary>过渡动画播放器数组</summary>
     ///
-    [Header("Events")]
-    [Tooltip("场景加载请求事件：Trigger / 按钮 / RetryManager 都通过它请求换场景，本组件订阅并执行卸载+加载流程")]
+    [Header("事件")]
+    [Tooltip("场景加载请求事件。关卡触发器、按钮和重试管理器都通过它请求换场景，本组件订阅后执行卸载与加载流程。")]
     public SceneLoadEventSO loadEventSO;
 
-    [Tooltip("场景组全部加载完成后广播的完成事件：订阅方做各自复位（回血、动画复位、Ending 双判等）")]
+    [Tooltip("场景组全部加载完成后广播的完成事件。订阅方据此执行各自复位，例如回满生命值、重置动画和检查结局显示条件。")]
     public VoidEventSO sceneLoadedEvent;
 
     private readonly List<GameSceneSO> currentScenes = new List<GameSceneSO>();
@@ -104,14 +104,14 @@ public class SceneChanger : YSingleton<SceneChanger>
     }
 
     /// <summary>
-    /// 播放过渡动画（协程驱动 alpha 渐变）
-    /// 兼容旧的 Animator 方案：若 transitionImagesDuringFade 非空，仍走 Animator；
-    /// 否则用代码对 fadeCanva.alpha 做线性渐变。
+    /// 播放过渡动画（协程驱动透明度渐变）。
+    /// 兼容旧的 Animator 方案：若 transitionImagesDuringFade 非空，仍使用 Animator；
+    /// 否则通过代码线性渐变 fadeCanva 的透明度。
     /// </summary>
-    /// <param name="name">动画状态名称（FadeIn: alpha 0→1; FadeOut: alpha 1→0）</param>
+    /// <param name="name">动画状态名称（FadeIn：透明度 0→1；FadeOut：透明度 1→0）。</param>
     private void PlayLoadingAnimation(string name)
     {
-        // 旧 Animator 方案
+        // 旧 Animator 方案。
         if (transitionImagesDuringFade != null && transitionImagesDuringFade.Length > 0)
         {
             if (fadeCanva != null) fadeCanva.alpha = 1;
@@ -122,21 +122,21 @@ public class SceneChanger : YSingleton<SceneChanger>
             return;
         }
 
-        // 代码方案：协程驱动 alpha
+        // 代码方案：协程驱动透明度。
         if (fadeCanva == null) return;
         float target = (name == "FadeIn") ? 1f : 0f;
         StartCoroutine(FadeRoutine(target));
     }
 
     /// <summary>
-    /// alpha 渐变协程，持续 fadeDuration 秒（用真实时间，不受 timeScale 影响）
+    /// 透明度渐变协程，持续 fadeDuration 秒（使用真实时间，不受 timeScale 影响）。
     /// </summary>
     private IEnumerator FadeRoutine(float targetAlpha)
     {
         if (fadeCanva == null) yield break;
 
         float startAlpha = fadeCanva.alpha;
-        // 淡入开始时启用 blocksRaycasts 挡住输入；淡出结束时关闭
+        // 淡入开始时启用射线阻挡以拦截输入；淡出结束时关闭。
         fadeCanva.blocksRaycasts = true;
 
         float elapsed = 0f;
@@ -177,17 +177,17 @@ public class SceneChanger : YSingleton<SceneChanger>
         ForbidInput();
         if (TimeManager.Instance != null)
             TimeManager.Instance.PauseGame();
-        // 注：原 ARPG 的 StatsManager.Instance.Respawn() 回血逻辑已移除，
-        // 切场景时的回血/重置应由具体玩法在 sceneLoadedEvent 订阅方里处理。
+        // 注：原 ARPG 的 StatsManager.Instance.Respawn() 回血逻辑已移除。
+        // 切场景时的回血和重置应由具体玩法在 sceneLoadedEvent 的订阅方中处理。
 
         this.newPosition = newPosition == Vector3.zero ? scenes[0].initialPosition : newPosition;
-        //如果传入位置为零向量，则使用场景预设的初始位置
+        // 如果传入位置为零向量，则使用场景预设的初始位置。
         this.isToFade = isToFade;
         if (isToFade && !isInitialScene)
         {
             PlayLoadingAnimation("FadeIn");
         }
-        StartCoroutine(UnloadCurrentScenes(scenes));//卸载当前场景列表
+        StartCoroutine(UnloadCurrentScenes(scenes));// 卸载当前场景列表。
     }
 
     /// <summary>

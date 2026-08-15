@@ -15,11 +15,11 @@ public class ItemSO : ScriptableObject
 
     public int stackableSize;
 
-    [Header("Stats")]
+    [Header("属性")]
     public int currentHealth;
     public int maxHealth;
     public int speed;
     public int damage;
-    [Header("Temporary Items")]
+    [Header("临时物品")]
     public float duration; 
 }

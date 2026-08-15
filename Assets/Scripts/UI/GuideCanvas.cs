@@ -2,40 +2,40 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// 回溯导引 Canvas：监听两个 VoidEventSO（show/exit）控制显隐。
-/// 用 CanvasGroup 的 alpha 做淡入淡出，R 键按下动画由 Animator（R_KeyAnimator）驱动。
-/// 注意：用 alpha+blocksRaycasts 控制可见，不SetActive，否则会停掉 Animator。
-/// gameplay 事件负责业务侧显隐，ToggleCanvasEventSO 负责 UIManager 的互斥关闭与焦点刷新。
+/// 回溯导引画布：监听两个 VoidEventSO（显示与退出）控制显隐。
+/// 使用 CanvasGroup 的透明度执行淡入淡出，R 键动画由 Animator（R_KeyAnimator）驱动。
+/// 注意：通过透明度和射线阻挡控制可见性，不调用 SetActive，以免停掉 Animator。
+/// 玩法事件负责业务侧显隐，ToggleCanvasEventSO 负责 UIManager 的互斥关闭与焦点刷新。
 /// </summary>
 public class GuideCanvas : MonoBehaviour, ICanvasManager
 {
-    [Header("Events")]
+    [Header("事件")]
     [Tooltip("触发后淡入显示导引。")]
     [SerializeField] private VoidEventSO showEvent;
 
     [Tooltip("触发后淡出隐藏导引。")]
     [SerializeField] private VoidEventSO exitEvent;
 
-    [Tooltip("UIManager 用于互斥关闭和焦点刷新的 Guide 面板事件。")]
+    [Tooltip("供界面管理器执行互斥关闭和焦点刷新的导引面板事件。")]
     [SerializeField] private ToggleCanvasEventSO guideToggleEvent;
 
-    [Header("Canvas Group")]
-    [Tooltip("导引的 CanvasGroup，控制 alpha 淡入淡出。")]
+    [Header("画布组")]
+    [Tooltip("导引的画布组，控制透明度淡入淡出。")]
     [SerializeField] private CanvasGroup guideCanvasGroup;
 
-    [Header("Fade")]
+    [Header("淡入淡出")]
     [Tooltip("淡入淡出时长（秒）。0 = 瞬间切换。")]
     [SerializeField] private float fadeDuration = 0.3f;
 
-    [Header("Animation")]
-    [Tooltip("R 键动画的 Animator（播放 R_KeyAnimator）。")]
+    [Header("动画")]
+    [Tooltip("按下 R 键时使用的动画控制器（播放 R_KeyAnimator）。")]
     [SerializeField] private Animator keyAnimator;
 
-    [Header("UIManager Integration")]
-    [Tooltip("Whether Escape may close this panel while it is focused.")]
+    [Header("界面管理器集成")]
+    [Tooltip("当前面板获得焦点时，是否允许通过 ESC 键关闭。")]
     [SerializeField] private bool closeOnEscape = false;
 
-    [Tooltip("Whether this panel blocks Escape and other global panel input while open.")]
+    [Tooltip("面板打开时，是否阻塞 ESC 键及其他全局面板输入。")]
     [SerializeField] private bool blocksGlobalInput = false;
 
     // 淡入淡出协程句柄
@@ -102,15 +102,15 @@ public class GuideCanvas : MonoBehaviour, ICanvasManager
 
     private void OnHide()
     {
-        // 淡出到 alpha=0，结束后禁用交互/射线
+        // 淡出到完全透明，结束后禁用交互和射线阻挡。
         if (fadeRoutine != null) StopCoroutine(fadeRoutine);
         fadeRoutine = StartCoroutine(FadeRoutine(0f));
     }
 
     /// <summary>
-    /// 把 CanvasGroup 的 alpha 渐变到目标值。
-    /// targetAlpha=1 时启用 blocksRaycasts/interactable；=0 时禁用。
-    /// Animator 不受影响，GameObject 始终激活。
+    /// 将 CanvasGroup 的透明度渐变到目标值。
+    /// 目标透明度为 1 时启用射线阻挡和交互；为 0 时禁用。
+    /// Animator 不受影响，GameObject 始终保持激活。
     /// </summary>
     private IEnumerator FadeRoutine(float targetAlpha)
     {
@@ -123,7 +123,7 @@ public class GuideCanvas : MonoBehaviour, ICanvasManager
         float startAlpha = guideCanvasGroup.alpha;
         float elapsed = 0f;
 
-        // duration=0 时瞬间切换
+        // 时长为 0 时立即切换。
         while (elapsed < fadeDuration)
         {
             elapsed += Time.unscaledDeltaTime;
@@ -133,7 +133,7 @@ public class GuideCanvas : MonoBehaviour, ICanvasManager
 
         guideCanvasGroup.alpha = targetAlpha;
 
-        // alpha=1 时可见可交互；alpha=0 时不可见不可交互
+        // 完全不透明时可见且可交互；完全透明时不可见且不可交互。
         guideCanvasGroup.blocksRaycasts = targetAlpha > 0f;
         guideCanvasGroup.interactable = targetAlpha > 0f;
 

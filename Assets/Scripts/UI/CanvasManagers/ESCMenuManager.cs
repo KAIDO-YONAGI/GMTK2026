@@ -5,8 +5,8 @@ public class ESCMenuManager : MonoBehaviour, ICanvasManager
     public CanvasGroup ESCGroup;
     public ToggleCanvasEventSO toggleESCEvent;
 
-    [Header("UIManager 集成")]
-    [Tooltip("Whether Escape may close this panel while it is focused.")]
+    [Header("界面管理器集成")]
+    [Tooltip("当前面板获得焦点时，是否允许通过 ESC 键关闭。")]
     [SerializeField] private bool closeOnEscape = true;
 
     [Tooltip("打开时阻塞全局面板输入：ESC 无法关闭本面板、也无法唤起/关闭其它面板。面板自身按钮不受影响。")]
@@ -51,19 +51,19 @@ public class ESCMenuManager : MonoBehaviour, ICanvasManager
             escCanvas, MyEnums.CanvasToToggle.ESC, true);
     }
 
-    /// <summary>Resume 按钮的回调：请求 UIManager 关闭 ESC 面板</summary>
+    /// <summary>继续按钮的回调：请求 UIManager 关闭 ESC 面板。</summary>
     public void OnResumeButton()
     {
         if (UIManager.Instance != null)
             UIManager.Instance.RequestCanvasClose(MyEnums.CanvasToToggle.ESC);
     }
 
-    /// <summary>Menu 按钮的回调：返回主菜单（通过 SceneChanger 触发）</summary>
+    /// <summary>菜单按钮的回调：通过 SceneChanger 返回主菜单。</summary>
     public void OnReturnToMenuButton()
     {
         if (UIManager.Instance != null)
             UIManager.Instance.RequestCanvasClose(MyEnums.CanvasToToggle.ESC);
-        // 触发场景切换到 StartingMenu（通过 SceneLoadEventSO）
+        // 通过 SceneLoadEventSO 触发切换到 StartingMenu。
         var sc = SceneChanger.Instance;
         if (sc != null && sc.loadEventSO != null && sc.initScene != null && sc.initScene.Count > 0)
             sc.loadEventSO.RaiseLoadRequestEvent(sc.initScene, Vector3.zero, true);

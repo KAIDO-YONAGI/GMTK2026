@@ -3,17 +3,17 @@ using System.Collections.Generic;
 
 /// <summary>
 /// 场景美术资产触发器。放在每个内容场景里，订阅 SceneLoadEventSO。
-/// 当收到事件且 scene == artAssets.ownerScene 时，本场景即将激活 → 播放音频；
+/// 当收到事件且目标场景与 artAssets.ownerScene 一致时，本场景即将激活并播放音频；
 /// 否则本场景即将被卸载 → 停止音频。
 /// 同时通过 OnEnable/OnDisable 兜底（场景首次加载/卸载时事件可能尚未触发）。
 /// </summary>
 public class SceneArtAssetsTrigger : MonoBehaviour
 {
-    [Header("Config")]
+    [Header("配置")]
     public SceneArtAssetsSO artAssets;
     public SceneLoadEventSO loadEventSO;
 
-    [Header("Audio Sources")]
+    [Header("音频源")]
     public AudioSource bgmSource;
     public AudioSource ambientSource;
 

@@ -2,11 +2,11 @@ using UnityEngine;
 
 /// <summary>
 /// 使用 Unity 原生 Animator 播放动画的实现。
-/// 该组件只需要和 Animator 挂在同一个 GameObject 上，不需要额外 Inspector 配置。
+/// 该组件只需要与 Animator 挂在同一个 GameObject 上，不需要额外检查器配置。
 /// </summary>
 /// <remarks>
 /// 重要约定：传入的 AnimationClip.name 必须与 Animator Controller 中对应的 State.name 一致。
-/// 例如 Attack.anim 对应的 Clip 名称为 Attack，Animator State 也必须命名为 Attack。
+/// 例如 Attack.anim 对应的动画片段名称为 Attack，Animator State 也必须命名为 Attack。
 /// </remarks>
 public class UnityAnimatorPlayer : AnimationPlayerBase
 {
@@ -22,7 +22,7 @@ public class UnityAnimatorPlayer : AnimationPlayerBase
 
     protected override bool PlayClip(AnimationClip clip, AnimationPlayParameters parameters)
     {
-        // Animator.Play 接收的是 State，而不是 AnimationClip，因此使用 Clip 名称查找 State。
+        // Animator.Play 接收的是 State 而不是 AnimationClip，因此使用动画片段名称查找 State。
         if (!TryGetAnimator(parameters.layer, out int layer))
             return false;
 
@@ -31,7 +31,7 @@ public class UnityAnimatorPlayer : AnimationPlayerBase
 
         if (!animator.HasState(layer, stateHash))
         {
-            // 播放失败通常表示 Animator State 没有按 Clip 名称命名，或 State 不在指定 Layer。
+            // 播放失败通常表示 Animator State 没有按动画片段名称命名，或 State 不在指定层。
             Debug.LogError(
                 $"Animation State '{stateName}' was not found on Animator layer {layer}. " +
                 "The Animator State name must match the AnimationClip name.",

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using MyEnums;
 
 /// <summary>
-/// 画布焦点栈：纯 C# 逻辑，负责维护已打开画布的顺序、当前焦点、sortingOrder 计算。
+/// 画布焦点栈：纯 C# 逻辑，负责维护已打开画布的顺序、当前焦点和排序优先级计算。
 /// 从 UIManager 拆出，不依赖 MonoBehaviour / ToggleCanvasEventSO，
 /// 对外通过回调（OnCanvasToggleRequested / OnFocusRefreshRequested）驱动事件，
 /// 便于脱离 Unity 生命周期做单元测试。
@@ -12,7 +12,7 @@ public class CanvasFocusStack
 {
     public const int FocusOrder = 100;
     public const int DefaultOrder = 5;
-    private const int OrderStep = 10; // 相邻打开画布之间的 order 差值
+    private const int OrderStep = 10; // 相邻打开画布之间的排序优先级差值
 
     //用来合并外部（代码调用）输入
     private readonly LinkedList<CanvasToToggle> canvasOpenOrder = new();
@@ -25,7 +25,7 @@ public class CanvasFocusStack
     /// <summary>请求真正开/关某画布（对应 UIManager.RaiseCanvasEvent）。</summary>
     public Action<CanvasToToggle, bool> OnCanvasToggleRequested;
 
-    /// <summary>请求刷新某画布的 sortingOrder（对应 UIManager.RaiseFocusEvent）。</summary>
+    /// <summary>请求刷新某画布的排序优先级（对应 UIManager.RaiseFocusEvent）。</summary>
     public Action<CanvasToToggle> OnFocusRefreshRequested;
 
     public bool IsAnyCanvasOpen => isAnyCanvasOpen;
@@ -37,7 +37,7 @@ public class CanvasFocusStack
             ? canvasOpenOrder.Last.Value
             : CanvasToToggle.Default;
 
-    /// <summary>拖拽/外部 focus 调整入口（对应原 UIManager.HandleFocus）。</summary>
+    /// <summary>拖拽或外部焦点调整入口（对应原 UIManager.HandleFocus）。</summary>
     public void HandleFocus(CanvasToToggle canvas)
     {
         if (canvas == CanvasToToggle.Default ||
@@ -108,17 +108,17 @@ public class CanvasFocusStack
     {
         bool wasTargetOpen = IsCanvasOpen(target);
         CanvasToToggle previousFocus = currentFocusCanvas;
-        currentFocusCanvas = target; //标记当前focus，作为画布组设置优先、默认order的依据
+        currentFocusCanvas = target; // 标记当前焦点，作为画布组设置优先级和默认优先级的依据。
 
         if (!wasTargetOpen)
         {
-            // 没打开的画布：用 open 事件真正打开
-            //（宿主侧 SetCanvaState → ReportState 会更新 open-order 链表并全量刷新 order）
+            // 未打开的画布：通过打开事件实际显示。
+            //（宿主侧 SetCanvaState → ReportState 会更新打开顺序链表并全量刷新排序优先级。）
             RaiseCanvasEvent(target, true);
         }
         else if (previousFocus != target)
         {
-            // 已打开但不在顶层：移到链表末尾后全量刷新 order
+            // 已打开但不在顶层：移到链表末尾后全量刷新排序优先级。
             UpdateCanvasOpenOrder(target, true);
             RefreshAllCanvasOrders();
         }
@@ -131,7 +131,7 @@ public class CanvasFocusStack
             return;
         }
 
-        // 关闭时 ReportState 已触发 RefreshAllCanvasOrders，其余打开画布的 order 已按新链表刷新
+        // 关闭时 ReportState 已触发 RefreshAllCanvasOrders，其余打开画布已按新链表刷新排序优先级。
         currentFocusCanvas = LastOpenCanvas;
     }
 
@@ -145,7 +145,7 @@ public class CanvasFocusStack
         }
     }
 
-    // 根据 open-order 链表计算排序优先级：顶层（链表末尾）最高，向下按链表顺序递减
+    // 根据打开顺序链表计算排序优先级：顶层（链表末尾）最高，向下按链表顺序递减。
     public int GetCanvasOrder(CanvasToToggle canvas, bool state)
     {
         if (!state) return DefaultOrder;
@@ -170,7 +170,7 @@ public class CanvasFocusStack
         return -1;
     }
 
-    // 链表顺序变化（打开/关闭/提升）后，通知所有已打开画布按新顺序刷新 order
+    // 链表顺序变化（打开、关闭或提升）后，通知所有已打开画布按新顺序刷新排序优先级。
     private void RefreshAllCanvasOrders()
     {
         foreach (var canvas in canvasOpenOrder)

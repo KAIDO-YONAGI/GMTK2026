@@ -8,20 +8,20 @@ using UnityEngine;
 [RequireComponent(typeof(ReincarnationManager))]
 public sealed class PlayerRewindGhostTrail : MonoBehaviour
 {
-    [Header("Ghost Trail")]
-    [Tooltip("Sampling rate relative to changed rewind snapshots. 1 records every change; 0 disables ghosts.")]
+    [Header("回溯残影")]
+    [Tooltip("相对于回溯快照变化的采样比例。1 表示每次变化都记录；0 表示不生成残影。")]
     [SerializeField, Range(0f, 1f)] private float samplingMultiplier = 1f;
 
-    [Tooltip("SpriteRenderer used as the visual source.")]
+    [Tooltip("用作残影视觉来源的 SpriteRenderer。")]
     [SerializeField] private SpriteRenderer sourceRenderer;
 
-    [Tooltip("Sorting order offset relative to the source renderer.")]
+    [Tooltip("相对于源 SpriteRenderer 的排序层级偏移。")]
     [SerializeField] private int sortingOrderOffset = -1;
 
-    [Tooltip("Prefab used by the ghost object pool. A runtime template is created when unassigned.")]
+    [Tooltip("残影对象池使用的预制件。未指定时会在运行时创建模板。")]
     [SerializeField] private PlayerGhost ghostPrefab;
 
-    [Tooltip("Number of ghost objects created when the pool initializes.")]
+    [Tooltip("对象池初始化时创建的残影对象数量。")]
     [SerializeField, Min(0)] private int prewarmCount = 20;
 
     private ReincarnationManager rewindSource;

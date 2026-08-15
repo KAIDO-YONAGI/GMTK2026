@@ -12,34 +12,34 @@ public class ReincarnationManager : RewindableBase
 {
     public static ReincarnationManager Instance { get; private set; }
 
-    [Header("Reincarnation Events")]
+    [Header("回溯事件")]
     [SerializeField] private VoidEventSO reincarnationEvent;
 
-    [Tooltip("Raised when rewind actually begins.")]
+    [Tooltip("实际开始回溯时发出。")]
     [SerializeField] private VoidEventSO reincarnationBegEvent;
 
-    [Tooltip("Raised when rewind actually ends, before cooldown starts.")]
+    [Tooltip("实际结束回溯且冷却开始前发出。")]
     [SerializeField] private VoidEventSO reincarnationEndEvent;
 
-    [Tooltip("Raised after each player snapshot is applied.")]
+    [Tooltip("每次应用玩家快照后发出。")]
     [SerializeField] private FloatEventSO snapshotAppliedEvent;
 
-    [Header("Rewind Time Window")]
-    [Tooltip("Maximum rewind seconds when the player is fully young.")]
+    [Header("回溯时间窗口")]
+    [Tooltip("玩家处于最年轻状态时的最大可回溯秒数。")]
     [SerializeField] private float maxRewindBaseSeconds = 8f;
 
-    [Tooltip("Minimum rewind seconds when the player is fully aged.")]
+    [Tooltip("玩家完全衰老时的最小可回溯秒数。")]
     [SerializeField] private float minRewindBaseSeconds = 1f;
 
-    [Tooltip("Multiplier shared by snapshot retention and rewind playback.")]
+    [Tooltip("快照保留与回溯播放共用的时间窗口倍率。")]
     [SerializeField] private float rewindWindowMultiplier = 1f;
 
-    [Header("Rewind Playback")]
+    [Header("回溯播放")]
     [FormerlySerializedAs("rewindSpeed")]
-    [Tooltip("Recorded snapshot seconds consumed per real second.")]
+    [Tooltip("每经过一秒真实时间消耗的已记录快照时间（秒）。")]
     [SerializeField, Min(0f)] private float rewindConsumptionPerSecond = 1f;
 
-    [Tooltip("Cooldown before new snapshots can be recorded after rewind.")]
+    [Tooltip("回溯结束后重新记录快照前的冷却时间（秒）。")]
     [SerializeField, Min(0f)] private float rewindCooldownSeconds = 1f;
 
     private readonly PlayerRewindHistory history = new PlayerRewindHistory();

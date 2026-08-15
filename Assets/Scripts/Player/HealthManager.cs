@@ -5,17 +5,17 @@ using UnityEngine;
 
 public class HealthManager : YSingleton<HealthManager>
 {
-    [Header("Health")]
+    [Header("生命值")]
     [SerializeField] private int maxHealth = 3;
 
     [SerializeField] private int currentHealth;
 
-    [Header("Death Event")]
+    [Header("死亡事件")]
     [SerializeField] private DeathEventSO_ deathEvent;
 
     [SerializeField] private VoidEventSO SceneLoadedEvent;
 
-    [Header("Health Changed Event")]
+    [Header("生命值变更事件")]
     [Tooltip("血量变化时广播当前血量值（IntEventSO）。血量 HUD 订阅它来更新显示。")]
     [SerializeField] private IntEventSO healthChangedEvent;
     
@@ -23,7 +23,7 @@ public class HealthManager : YSingleton<HealthManager>
     [SerializeField] private ParticleSystem hurtParticlePrefab;
     [SerializeField] private int hurtParticlePrewarmCount = 3;
 
-    [Header("Shake Event")]
+    [Header("震动事件")]
     [SerializeField] private ShakeEventSO shakeEvent;
     [SerializeField] private CameraShake.ShakeParameters hitShakeParams = new CameraShake.ShakeParameters
     {
@@ -42,7 +42,7 @@ public class HealthManager : YSingleton<HealthManager>
     public int MaxHealth => maxHealth;
 
     // 濒死状态：机关扣血到 0 后进入。玩家以极低移速行动，可回溯回血自救。
-    // 不同于 isDead（真正死亡），濒死时游戏继续运行、不弹 GameOver 面板。
+    // 不同于 isDead（真正死亡），濒死时游戏继续运行，不弹出 GameOver 面板。
     private bool isDying = false;
     public bool IsDying => isDying;
     public bool IsDead => isDead;
@@ -57,7 +57,7 @@ public class HealthManager : YSingleton<HealthManager>
     {
         if (hurtParticlePrefab == null) return;
 
-        // 令预制体各实例使用 unscaled time，保证暂停时仍能正常播放
+        // 令预制体各实例使用不受缩放影响的时间，保证暂停时仍能正常播放。
         var main = hurtParticlePrefab.main;
         main.useUnscaledTime = true;
 
@@ -135,7 +135,7 @@ public class HealthManager : YSingleton<HealthManager>
         }
 
         // 下界保护：机关扣血到 0 进入濒死（而非直接死亡）。
-        // 玩家以极低移速行动，可回溯回血自救；放弃自救时由濒死提示的 Give Up 按钮触发 OnDie。
+        // 玩家以极低移速行动，可回溯回血自救；放弃自救时由濒死提示的放弃按钮触发 OnDie。
         // 幂等：濒死期间继续受伤不会重复触发。
         if (currentHealth <= 0)
         {
@@ -191,7 +191,7 @@ public class HealthManager : YSingleton<HealthManager>
         RaiseHealthChanged(); // 回溯还原血量：广播更新 UI
     }
 
-    /// <summary>广播当前血量值给订阅者（血量 HUD 等）。事件未配置时安全跳过。</summary>
+    /// <summary>向订阅者广播当前血量值（如生命值界面）。事件未配置时安全跳过。</summary>
     private void RaiseHealthChanged()
     {
         if (healthChangedEvent != null)
@@ -201,7 +201,7 @@ public class HealthManager : YSingleton<HealthManager>
 
     private void OnSceneLoaded()
     {
-        //每次换场景回满血（订阅 sceneLoadedEvent；retry 重载场景时同样生效），并清除死亡/濒死状态
+        // 每次换场景回满血（订阅 sceneLoadedEvent；重试重载场景时同样生效），并清除死亡和濒死状态。
         ResetHealth();
 
         StopAllCoroutines();

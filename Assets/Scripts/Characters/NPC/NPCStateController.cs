@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class NPCStateController : MonoBehaviour
 {
-    [Header("Component References")]
+    [Header("组件引用")]
     public NPCChat chatScript;
     [SerializeField]
     public MyEnums.NPCState DefaultState = MyEnums.NPCState.Patrol;

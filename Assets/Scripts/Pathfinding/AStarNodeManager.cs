@@ -12,9 +12,9 @@ public class AStarNodeManager : YSingleton<AStarNodeManager>
         InitiateNodes();
     }
 
-    [Header("Tilemaps")]
+    [Header("瓦片地图")]
     public Tilemap[] tilemaps;
-    [Header("Grid Settings")]
+    [Header("网格设置")]
     public LayerMask obstacleLayers;
 
     private float cellSize = 1f;

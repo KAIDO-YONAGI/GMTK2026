@@ -7,17 +7,17 @@ public class GameOverManager : MonoBehaviour, ICanvasManager
     [SerializeField] private CanvasGroup gameOverGroup;
     [SerializeField] private TMP_Text deathText;
 
-    [Header("Death Messages")]
-    [Tooltip("老死提示词（DeathType.OldDead）")]
+    [Header("死亡提示文本")]
+    [Tooltip("老死时显示的提示文本。")]
     [TextArea] [SerializeField] private string peacefulDeathMessage = "Rest in peace...";
-    [Tooltip("非正常死亡提示词（被打死/坠落等，DeathType.UnnormalDead）")]
+    [Tooltip("非正常死亡时显示的提示文本，例如被击杀或坠落。")]
     [TextArea] [SerializeField] private string brutalDeathMessage = "Slaughtered without mercy!";
 
     private Canvas gameOverCanvas;
 
     public ToggleCanvasEventSO ToggleCanvasEvent => gameOverToggleEventSO;
 
-    [Tooltip("Whether Escape may close this panel while it is focused.")]
+    [Tooltip("当前面板获得焦点时，是否允许通过 ESC 键关闭。")]
     [SerializeField] private bool closeOnEscape = false;
 
     [Tooltip("打开时阻塞全局面板输入：ESC 无法关闭本面板、也无法唤起/关闭其它面板。面板自身按钮不受影响。")]

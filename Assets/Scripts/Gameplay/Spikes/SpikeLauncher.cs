@@ -2,8 +2,8 @@ using UnityEngine;
 
 /// <summary>
 /// 尖刺发射器。外部调用 Activate()/Deactivate() 开启/关闭自动发射（间隔由 launchInterval 控制）。
-/// Fire() 可外部直接触发一次单发。
-/// 三个方法都加了 ContextMenu，可在 Editor 右键调用。
+/// Fire() 可供外部直接触发一次单发。
+/// 三个方法都加了 ContextMenu，可在编辑器中通过右键调用。
 /// </summary>
 public class SpikeLauncher : MonoBehaviour
 {
@@ -12,18 +12,18 @@ public class SpikeLauncher : MonoBehaviour
     [SerializeField] private VoidEventSO reincarnationBegEvent;
     [SerializeField] private VoidEventSO reincarnationEndEvent;
 
-    [Header("Particles")]
-    [Tooltip("Particle effect played when a spike is launched.")]
+    [Header("粒子效果")]
+    [Tooltip("发射尖刺时播放的粒子特效。")]
     [SerializeField] private ParticleSystem shootingParticlePrefab;
-    [Tooltip("Transform that holds the shooting particle near the launcher head.")]
+    [Tooltip("固定发射粒子位置的变换节点，通常位于发射器头部附近。")]
     [SerializeField] private Transform particlePoint;
     
-    [Header("Spike 参数")]
+    [Header("尖刺参数")]
     [SerializeField] private float spikeSpeed = 5f;
     [SerializeField] private float spikeLifetime = 5f;
     [SerializeField] private int spikeDamage = 1;
 
-    [Header("Animation")]
+    [Header("动画")]
     [SerializeField] private AnimationClip fireClip;
     [SerializeField] private Animator animator;
 

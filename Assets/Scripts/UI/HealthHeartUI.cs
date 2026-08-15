@@ -3,31 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 血量心 HUD：根据血量显示一排心，一滴血一颗心。
+/// 生命心界面：根据血量显示一排心，一滴血对应一颗心。
 /// 订阅 HealthChangedEvent（IntEventSO，广播当前血量）：
-///   - 满血时所有心可见（alpha=1）
+///   - 满血时所有心可见（透明度为 1）
 ///   - 扣血时对应位置的心淡出消失（留空位）
 ///   - 回血时新心淡入出现
-/// 淡入淡出用 CanvasGroup.alpha + 协程（参照 GuideCanvas.FadeRoutine 模式）。
+/// 淡入淡出通过 CanvasGroup 的透明度和协程实现（参照 GuideCanvas.FadeRoutine 模式）。
 /// </summary>
 public class HealthHeartUI : MonoBehaviour
 {
-    [Header("Events")]
-    [Tooltip("血量变化事件（HealthManager 广播当前血量）。")]
+    [Header("事件")]
+    [Tooltip("生命值变更事件，由生命值管理器广播当前生命值。")]
     [SerializeField] private IntEventSO healthChangedEvent;
 
-    [Header("Heart Setup")]
-    [Tooltip("单颗心预制件（需含 Image + CanvasGroup）。")]
+    [Header("生命心配置")]
+    [Tooltip("单颗生命心预制件，需包含图像组件和画布组。")]
     [SerializeField] private GameObject heartPrefab;
 
-    [Tooltip("心组的父节点（一般挂 HorizontalLayoutGroup 自动横向排列）。")]
+    [Tooltip("生命心组的父节点，通常挂横向布局组件自动排列。")]
     [SerializeField] private Transform heartContainer;
 
-    [Header("Fade")]
+    [Header("淡入淡出")]
     [Tooltip("心淡入淡出时长（秒）。0 = 瞬间切换。")]
     [SerializeField] private float fadeDuration = 0.3f;
 
-    // 所有心的 CanvasGroup（索引 0 是第一滴血/最左边的心）
+    // 所有心的 CanvasGroup（索引 0 是第一点生命值，也是最左边的心）。
     private readonly List<CanvasGroup> hearts = new List<CanvasGroup>();
     // 每颗心各自的淡出协程句柄，便于重复触发时先停旧的
     private readonly List<Coroutine> heartCoroutines = new List<Coroutine>();
@@ -63,7 +63,7 @@ public class HealthHeartUI : MonoBehaviour
             GameObject heart = Instantiate(heartPrefab, heartContainer);
             var group = heart.GetComponent<CanvasGroup>();
             if (group == null) group = heart.AddComponent<CanvasGroup>();
-            group.alpha = 1f; // 默认满血可见
+            group.alpha = 1f; // 默认满血时可见。
             hearts.Add(group);
             heartCoroutines.Add(null);
         }
@@ -77,7 +77,7 @@ public class HealthHeartUI : MonoBehaviour
 
     /// <summary>
     /// 按当前血量刷新所有心：索引 &lt; currentHealth 的心可见，其余淡出。
-    /// instant=true 时瞬切（初始化用），否则走淡入淡出协程。
+    /// instant 参数为 true 时立即切换（初始化用），否则执行淡入淡出协程。
     /// </summary>
     private void RefreshHeartVisibility(int currentHealth, bool instant)
     {
@@ -99,7 +99,7 @@ public class HealthHeartUI : MonoBehaviour
         }
     }
 
-    /// <summary>单颗心的 alpha 渐变协程（参照 GuideCanvas.FadeRoutine）。</summary>
+    /// <summary>单颗心的透明度渐变协程（参照 GuideCanvas.FadeRoutine）。</summary>
     private IEnumerator FadeHeart(CanvasGroup group, float targetAlpha, int index)
     {
         float startAlpha = group.alpha;

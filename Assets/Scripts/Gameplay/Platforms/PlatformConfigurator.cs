@@ -1,17 +1,17 @@
 using UnityEngine;
 
 /// <summary>
-/// 平台 Prefab 的可配置脚本。
-/// 在 Inspector 拖入 Sprite 时同步到 SpriteRenderer；切换 Trigger 时同步到 Collider2D。
+/// 平台预制件的可配置脚本。
+/// 在检查器中拖入精灵图时同步到 SpriteRenderer；切换触发器时同步到 Collider2D。
 /// 仅用于预制件实例化后的快速配置，避免每次都要 GetComponents。
 /// </summary>
 [ExecuteAlways]
 public class PlatformConfigurator : MonoBehaviour
 {
-    [Header("Sprite")]
+    [Header("精灵图")]
     public Sprite sprite;
 
-    [Header("Collider")]
+    [Header("碰撞体")]
     public bool isTrigger = false;
 
     SpriteRenderer spriteRenderer;

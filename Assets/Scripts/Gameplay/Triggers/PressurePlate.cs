@@ -4,23 +4,23 @@ using UnityEngine.Events;
 [RequireComponent(typeof(Collider2D))]
 public class PressurePlate : MonoBehaviour
 {
-    [Header("Animation")]
-    [Tooltip("压力板 Animator（可选，配置后会在 Activate/Deactivate 时播放对应动画）。")]
+    [Header("动画")]
+    [Tooltip("压力板动画控制器。可选；配置后会在激活或解除时播放对应动画。")]
     [SerializeField] private Animator animator;
-    [Tooltip("激活时播放的动画 Clip 名称。")]
+    [Tooltip("激活时播放的动画片段名称。")]
     [SerializeField] private string activateClipName = "Activate";
-    [Tooltip("解除时播放的动画 Clip 名称。")]
+    [Tooltip("解除时播放的动画片段名称。")]
     [SerializeField] private string deactivateClipName = "Deactivate";
 
-    [Header("勾选后，第一次 Activate 后销毁自身")]
-    [Tooltip("勾选后，第一次 Activate 后销毁自身")]
+    [Header("首次激活时销毁自身")]
+    [Tooltip("勾选后，首次激活时销毁自身。")]
     [SerializeField] private bool destroyOnActivate;
 
-    [Header("Events")]
-    [Tooltip("被激活时触发。水流末端命中此压力板或玩家进入 trigger 区域时调用。")]
+    [Header("事件")]
+    [Tooltip("压力板被激活时触发。水流末端命中它或玩家进入触发区域时调用。")]
     [SerializeField] private UnityEvent onActivate;
 
-    [Tooltip("被解除时触发。玩家离开 trigger 区域时调用。")]
+    [Tooltip("压力板解除激活时触发。玩家离开触发区域时调用。")]
     [SerializeField] private UnityEvent onDeactivate;
 
     private Collider2D triggerArea;
@@ -44,7 +44,7 @@ public class PressurePlate : MonoBehaviour
         Deactivate();
     }
 
-    /// <summary>激活压力板（水流命中时由 WaterSource 调用，或玩家进入 trigger 时自动调用）。</summary>
+    /// <summary>激活压力板（水流命中时由 WaterSource 调用，或玩家进入触发器时自动调用）。</summary>
     public void Activate()
     {
         bool wasActivated = isActivated;
@@ -56,7 +56,7 @@ public class PressurePlate : MonoBehaviour
         if (destroyOnActivate) Destroy(gameObject);
     }
 
-    /// <summary>解除激活（玩家离开 trigger 时自动调用，或外部手动调用）。</summary>
+    /// <summary>解除激活（玩家离开触发器时自动调用，或由外部手动调用）。</summary>
     public void Deactivate()
     {
         isActivated = false;

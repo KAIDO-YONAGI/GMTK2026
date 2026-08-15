@@ -3,17 +3,17 @@ using UnityEngine;
 /// <summary>
 /// 水源机关的外观入口和回溯协调器。
 ///
-/// Inspector 配置与对外 API 保留在此组件上，确保已有 Prefab 和触发器引用不变。
+/// 检查器配置和对外接口保留在此组件上，确保已有预制件和触发器引用不变。
 /// 具体的流水、冻结和回溯逻辑由组合对象负责。
 /// </summary>
 [RequireComponent(typeof(Transform))]
 public class WaterSource : RewindableBase
 {
-    [Header("Flow Spawn")]
+    [Header("水流生成")]
     [Tooltip("水流单元预制件（生成模板）。")]
     [SerializeField] private WaterFlowUnit unitTemplate;
 
-    [Tooltip("生成水流单元的父节点（一般为 WaterGrid 子物体）。")]
+    [Tooltip("生成水流单元的父节点，通常是 WaterGrid 的子物体。")]
     [SerializeField] private Transform spawnRoot;
 
     [Tooltip("格子大小（向下生成单元的间距）。")]
@@ -22,21 +22,21 @@ public class WaterSource : RewindableBase
     [Tooltip("每次向下生成单元的时间间隔（秒）。")]
     [SerializeField] private float flowInterval = 0.3f;
 
-    [Tooltip("单元出生多少秒后从 Stage1 推进到 Stage2。")]
+    [Tooltip("水流单元出生后，从初始阶段推进到成熟阶段所需的秒数。")]
     [SerializeField] private float stage1ToStage2Seconds = 1f;
 
-    [Header("Freeze")]
-    [Tooltip("StartFreezing 触发后多少秒进入冻结状态。现有及后续成熟的水流单元都会结冰。")]
+    [Header("冻结")]
+    [Tooltip("触发冻结后，进入冻结状态前的延迟秒数。现有及后续成熟的水流单元都会结冰。")]
     [SerializeField] private float freezeDelay = 2f;
 
-    [Tooltip("Particle effect played when a water unit freezes or breaks.")]
+    [Tooltip("水流单元冻结或破碎时播放的粒子特效。")]
     [SerializeField] private ParticleSystem iceParticlePrefab;
 
-    [Header("Collision Detection")]
-    [Tooltip("地面检测层（命中即停止向下生成）。默认应含 Ground、Platform。")]
+    [Header("碰撞检测")]
+    [Tooltip("地面检测层，命中后停止向下生成。默认应包含地面和平台图层。")]
     [SerializeField] private LayerMask groundMask = 0;
 
-    [Header("Rewind")]
+    [Header("回溯")]
     [Tooltip("回溯播放倍速。1 = 1:1 实时倒放。")]
     [SerializeField] private float rewindSpeed = 1f;
 
@@ -47,11 +47,11 @@ public class WaterSource : RewindableBase
              "大于 1 时水源能回溯更久（保留更多历史快照，包括触发前的未开始状态）。")]
     [SerializeField] private float rewindWindowMultiplier = 1f;
 
-    [Header("Reincarnation Events")]
+    [Header("回溯事件")]
     [SerializeField] private VoidEventSO reincarnationBegEvent;
     [SerializeField] private VoidEventSO reincarnationEndEvent;
 
-    [Tooltip("玩家回溯 apply 快照后广播的时间戳事件。用于判断单元是否早于出生时间。")]
+    [Tooltip("玩家回溯应用快照后广播的时间戳事件，用于判断单元是否早于出生时间。")]
     [SerializeField] private FloatEventSO snapshotAppliedEvent;
 
     private WaterSourceRuntimeState runtimeState;
@@ -139,7 +139,7 @@ public class WaterSource : RewindableBase
         freezeController?.StartFreezing();
     }
 
-    /// <summary>由水流单元的 Ice 回调调用，通知水源该单元已碎冰。</summary>
+    /// <summary>由水流单元的 Ice 回调调用，通知水源该单元已被击碎。</summary>
     public void NotifyUnitBroken(WaterFlowUnit unit)
     {
         freezeController?.NotifyUnitBroken(unit);

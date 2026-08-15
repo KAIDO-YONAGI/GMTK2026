@@ -1538,7 +1538,7 @@ RectTransform:
   m_Children:
   - {fileID: 602491288}
   - {fileID: 1707447292}
-  m_Father: {fileID: 1795018739}
+  m_Father: {fileID: 710165771}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -2034,6 +2034,10 @@ Transform:
   m_Children:
   - {fileID: 784798646}
   - {fileID: 798281344}
+  - {fileID: 1137429068}
+  - {fileID: 845991360}
+  - {fileID: 728539833}
+  - {fileID: 551455895}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &728539833
@@ -2050,7 +2054,7 @@ RectTransform:
   m_Children:
   - {fileID: 146844072}
   - {fileID: 1039122908}
-  m_Father: {fileID: 1795018739}
+  m_Father: {fileID: 710165771}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -2071,7 +2075,7 @@ GameObject:
   - component: {fileID: 731256143}
   - component: {fileID: 731256142}
   m_Layer: 0
-  m_Name: HUDCanvas
+  m_Name: HUDCanvases
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2332,6 +2336,7 @@ MonoBehaviour:
   loadEventSO: {fileID: 11400000, guid: 820c6319319801a4987f94ab3d435c01, type: 2}
   toggleCanvasEvents:
   - {fileID: 11400000, guid: 393e55d993dbbd54daf4a2f101ec8ae4, type: 2}
+  - {fileID: 11400000, guid: d679645a7851465192fd6a084407c368, type: 2}
   inputBindings:
   - canvas: 0
     key: 27
@@ -2346,9 +2351,9 @@ GameObject:
   m_Component:
   - component: {fileID: 784798646}
   - component: {fileID: 784798645}
-  - component: {fileID: 784798644}
   - component: {fileID: 784798643}
   - component: {fileID: 784798642}
+  - component: {fileID: 784798644}
   - component: {fileID: 784798641}
   m_Layer: 0
   m_Name: ESCCanvas
@@ -2484,8 +2489,8 @@ GameObject:
   - component: {fileID: 798281350}
   - component: {fileID: 798281349}
   - component: {fileID: 798281348}
-  - component: {fileID: 798281347}
   - component: {fileID: 798281346}
+  - component: {fileID: 798281347}
   - component: {fileID: 798281345}
   m_Layer: 0
   m_Name: GuideCanvas
@@ -2644,7 +2649,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1278130951}
-  m_Father: {fileID: 1795018739}
+  m_Father: {fileID: 710165771}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -3172,7 +3177,7 @@ RectTransform:
   - {fileID: 319105568}
   - {fileID: 503724026}
   - {fileID: 545971764}
-  m_Father: {fileID: 1795018739}
+  m_Father: {fileID: 710165771}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -4644,41 +4649,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1769412704}
   m_CullTransparentMesh: 1
---- !u!1 &1795018738
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1795018739}
-  m_Layer: 0
-  m_Name: Canvases
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1795018739
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1795018738}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 960, y: 540, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1137429068}
-  - {fileID: 845991360}
-  - {fileID: 728539833}
-  - {fileID: 551455895}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1887781035
 GameObject:
   m_ObjectHideFlags: 0
@@ -10639,5 +10609,4 @@ SceneRoots:
   - {fileID: 2521088569748519973}
   - {fileID: 952237001}
   - {fileID: 710165771}
-  - {fileID: 1795018739}
   - {fileID: 93724157}

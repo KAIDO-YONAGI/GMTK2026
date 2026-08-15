@@ -59,7 +59,7 @@ public class AgeManager : YSingleton<AgeManager>
         if (IsDead) return;
         if (TimeManager.Instance != null && TimeManager.Instance.IsGamePaused()) return;
 
-        // TODO: 后期合并代码后，需判断玩家单例是否存在再计时
+        // 待办：后期合并代码后，需判断玩家单例是否存在再计时。
         // if (Player.Instance == null) return;
 
         currentAge += agePerSecond * Time.deltaTime;

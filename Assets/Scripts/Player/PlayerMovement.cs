@@ -4,48 +4,48 @@ using UnityEngine;
 
 /// <summary>
 /// 玩家平台跳跃移动脚本。
-/// 左右移动用 Input.GetAxisRaw("Horizontal")，跳跃用 Input.GetButtonDown("Jump")（Unity 默认轴，绑定 Space/W/上）。
-/// 物理：Rigidbody2D Dynamic，通过 velocity 控制水平移动，保留 y 速度避免覆盖跳跃。
+/// 左右移动使用 Input.GetAxisRaw("Horizontal")，跳跃使用 Input.GetButtonDown("Jump")（Unity 默认输入轴，绑定空格、W 和上方向键）。
+/// 物理使用动态 Rigidbody2D，通过速度控制水平移动，同时保留 y 轴速度以免覆盖跳跃。
 /// </summary>
 public class PlayerMovement : MonoBehaviour
 {
-    [Header("Movement")]
+    [Header("移动")]
     public float moveSpeed = 5f;
     public float jumpForce = 12f;
     // 刚体通过 Inspector 拖拽引用，允许移动脚本挂在 Player 的子物体上。
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private ParticleSystem runParticleSystem;
 
-    [Header("Landing Particle")]
+    [Header("落地粒子效果")]
     [SerializeField] private ParticleSystem landParticlePrefab;
     [SerializeField] private int landParticlePrewarmCount = 3;
     private ObjectPool<ParticleSystem> landParticlePool;
     private readonly List<ParticleSystem> activeLandParticles = new();
 
-    [Header("Input Events")]
+    [Header("输入事件")]
     [SerializeField] private VoidEventSO startInputEvent;
     [SerializeField] private VoidEventSO stopInputEvent;
 
-    [Header("Scene Load")]
+    [Header("场景加载")]
     [Tooltip("场景加载完成事件。每次切场景后清空刚体速度，避免上一场景的残留速度带到新场景。")]
     [SerializeField] private VoidEventSO sceneLoadedEvent;
 
-    [Header("Rewind Speed Boost")]
+    [Header("回溯加速")]
     [SerializeField] private VoidEventSO reincarnationEndEvent;
-    [Tooltip("Speed multiplier after rewind. 1.5 means 150% of the normal speed.")]
+    [Tooltip("回溯后的速度倍率。1.5 表示正常速度的 150%。")]
     [SerializeField, Min(1f)] private float rewindSpeedMultiplier = 1.5f;
-    [Tooltip("Speed boost duration after rewind, in seconds.")]
+    [Tooltip("回溯后速度提升持续时间（秒）。")]
     [SerializeField, Min(0f)] private float rewindSpeedBoostDuration = 2f;
 
-    [Header("Speed Up Feedback")]
+    [Header("加速反馈")]
     [SerializeField] private CanvasGroup speedUpFeedbackGroup;
     [SerializeField, Min(0f)] private float speedUpFadeInDuration = 0.2f;
     [SerializeField, Min(0f)] private float speedUpFadeOutDuration = 0.4f;
 
-    [Header("Sprite")]
+    [Header("精灵图")]
     [SerializeField] private SpriteRenderer spriteRenderer;
 
-    [Header("Ground Check")]
+    [Header("地面检测")]
     public LayerMask groundLayer;            // 地面 Layer（Ground/Platform 等）
     public Transform groundCheck;            // 脚下检测点（Player 底部）
     public float groundCheckRadius = 0.1f;   // 检测圆半径
@@ -67,8 +67,8 @@ public class PlayerMovement : MonoBehaviour
     Coroutine speedUpFeedbackRoutine;
 
     /// <summary>
-    /// 回溯加速 buff 当前是否生效。
-    /// 这是 buff 状态的单一判断入口：所有读取 buff 是否激活的地方都走这里，
+    /// 回溯加速增益当前是否生效。
+    /// 这是增益状态的单一判断入口：所有读取增益是否激活的地方都走这里，
     /// 不要再用「倍率 &gt; 1」之类的反推条件，避免判定标准分裂。
     /// </summary>
     public bool IsSpeedBoostActive => Time.time < speedBoostEndTime;
@@ -83,7 +83,7 @@ public class PlayerMovement : MonoBehaviour
 
     /// <summary>
     /// 濒死状态下的移动/跳跃倍率。读 HealthManager.IsDying，
-    /// 作为衰老减速和加速 buff 之外的独立倍率，在 agingRate 的 0.3 下限钳制之后生效。
+    /// 作为衰老减速和加速增益之外的独立倍率，在 agingRate 的 0.3 下限钳制之后生效。
     /// </summary>
     float GetDyingMultiplier()
     {
@@ -172,7 +172,7 @@ public class PlayerMovement : MonoBehaviour
 
     void OnReincarnationEnd()
     {
-        // 加速 buff 生效期间不重复触发：避免多次回溯结束导致 buff 时间不断被刷新/延长。
+        // 加速增益生效期间不重复触发，避免多次回溯结束导致增益时间不断被刷新或延长。
         if (IsSpeedBoostActive)
             return;
 

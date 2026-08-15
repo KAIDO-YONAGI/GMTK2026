@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Runtime registry for scenes that must never be unloaded by SceneChanger.
-/// InitialLoad owns registration so business code does not duplicate this configuration.
+/// 保存绝不能由 SceneChanger 卸载的常驻场景运行时注册表。
+/// 由 InitialLoad 统一注册，业务代码无需重复配置。
 /// </summary>
 public static class PersistentSceneRegistry
 {

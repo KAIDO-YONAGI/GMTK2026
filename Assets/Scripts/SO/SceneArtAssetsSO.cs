@@ -8,17 +8,17 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "SceneArtAssetsSO", menuName = "ArtAssets/SceneArtAssetsSO", order = 0)]
 public class SceneArtAssetsSO : ScriptableObject
 {
-    [Header("Scene Identity")]
-    [Tooltip("The scene this SO belongs to, used for event matching")]
+    [Header("场景标识")]
+    [Tooltip("本 SO 所属的场景，用于匹配场景事件。")]
     public GameSceneSO ownerScene;
 
-    [Header("Background Music")]
-    [Tooltip("Looped BGM for this scene")]
+    [Header("背景音乐")]
+    [Tooltip("本场景循环播放的背景音乐。")]
     public AudioClip bgm;
     [Range(0f, 1f)] public float bgmVolume = 0.5f;
 
-    [Header("Ambient (Loop)")]
-    [Tooltip("Looped ambient sound (rain/wind/noise etc.)")]
+    [Header("环境音（循环）")]
+    [Tooltip("循环播放的环境声音效，例如雨声、风声或环境噪声。")]
     public AudioClip ambient;
     [Range(0f, 1f)] public float ambientVolume = 0.3f;
 }

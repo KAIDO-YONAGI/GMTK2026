@@ -7,7 +7,7 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class PlayerRewindTarget : MonoBehaviour
 {
-    [Header("Movement Events")]
+    [Header("移动事件")]
     [SerializeField] private VoidEventSO movementBegEvent;
     [SerializeField] private VoidEventSO movementEndEvent;
 

@@ -33,7 +33,7 @@ public abstract class AnimationPlayerBase : MonoBehaviour, IAnimationPlayer
     /// <summary>当前是否正在播放动画。</summary>
     public bool IsPlaying => isPlaying;
 
-    /// <summary>当前播放或最近一次播放的 Clip。</summary>
+    /// <summary>当前播放或最近一次播放的动画片段。</summary>
     public AnimationClip CurrentClip => currentClip;
 
     /// <summary>
@@ -190,8 +190,8 @@ public abstract class AnimationPlayerBase : MonoBehaviour, IAnimationPlayer
         if (normalizedTime >= 1f)
         {
             // 非循环动画结束后停在最后一帧。
-            // freezeOnComplete=true 时调 StopClip()（设 speed=0，冻结渲染）；
-            // false 时让 Animator 自然保持最后一帧（用于跳跃/落地等预览动画）。
+            // freezeOnComplete 为 true 时调 StopClip()（设 speed=0，冻结渲染）；
+            // 为 false 时让 Animator 自然保持最后一帧（用于跳跃、落地等预览动画）。
             if (currentParameters.freezeOnComplete)
                 StopClip();
             isPlaying = false;
