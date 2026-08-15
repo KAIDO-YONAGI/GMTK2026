@@ -885,7 +885,6 @@ Transform:
   m_Children:
   - {fileID: 784798646}
   - {fileID: 798281344}
-  - {fileID: 5765105557023698653}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &760399640
@@ -1717,7 +1716,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Return to Menu
+  m_text: Menu
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2059,7 +2058,7 @@ GameObject:
   - component: {fileID: 1709013566}
   - component: {fileID: 1709013565}
   m_Layer: 0
-  m_Name: ResumeButton
+  m_Name: ContinueButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2131,11 +2130,11 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 784798641}
         m_TargetAssemblyTypeName: ESCMenuManager, Assembly-CSharp
-        m_MethodName: OnResumeButton
-        m_Mode: 0
+        m_MethodName: OnContinueButton
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -2518,7 +2517,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Resume
+  m_text: Continue
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2894,6 +2893,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 5765105557023698653}
   - {fileID: 8190085970140939342}
   - {fileID: 4323487750804556136}
   - {fileID: 4325582214496667455}
@@ -7812,7 +7812,7 @@ Transform:
   m_GameObject: {fileID: 6484566297386923093}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.3, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7961,11 +7961,11 @@ RectTransform:
   m_Children:
   - {fileID: 327138000334735762}
   - {fileID: 5605887224953823903}
-  m_Father: {fileID: 710165771}
+  m_Father: {fileID: 2521088569748519973}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1.33, y: 1.02}
+  m_AnchoredPosition: {x: 0, y: 1.0999999}
   m_SizeDelta: {x: 240, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &6157641843612195112

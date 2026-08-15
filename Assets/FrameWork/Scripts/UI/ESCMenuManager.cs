@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ESCMenuManager : MonoBehaviour, ICanvasManager
 {
@@ -36,6 +37,12 @@ public class ESCMenuManager : MonoBehaviour, ICanvasManager
 
     private void OnESC(bool state)
     {
+        SceneChanger sceneChanger = SceneChanger.Instance;
+        GameSceneSO currentScene = sceneChanger != null
+            ? sceneChanger.GetCurrentGameScene()
+            : null;
+        if (currentScene != null && currentScene.sceneType == MyEnums.SceneType.Menu)
+            return;
         if (state)
             TimeManager.Instance.PauseGame();
         else
@@ -52,7 +59,7 @@ public class ESCMenuManager : MonoBehaviour, ICanvasManager
     }
 
     /// <summary>继续按钮的回调：请求 UIManager 关闭 ESC 面板。</summary>
-    public void OnResumeButton()
+    public void OnContinueButton()
     {
         if (UIManager.Instance != null)
             UIManager.Instance.RequestCanvasClose(MyEnums.CanvasToToggle.ESC);
