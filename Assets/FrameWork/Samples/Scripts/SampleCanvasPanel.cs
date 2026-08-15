@@ -16,6 +16,9 @@ public class SampleCanvasPanel : MonoBehaviour, ICanvasManager
     [Tooltip("控制当前面板显隐和交互的画布组。")]
     [SerializeField] private CanvasGroup canvasGroup;
 
+    [Tooltip("场景加载完成事件，加载完成后将示例面板设为 inactive。")]
+    [SerializeField] private VoidEventSO sceneLoadedEvent;
+
     [Header("界面管理器集成")]
     [Tooltip("当前面板获得焦点时，是否允许通过 ESC 键关闭。")]
     [SerializeField] private bool closeOnEscape = true;
@@ -26,6 +29,7 @@ public class SampleCanvasPanel : MonoBehaviour, ICanvasManager
     private Canvas targetCanvas;
 
     public ToggleCanvasEventSO ToggleCanvasEvent => toggleCanvasEvent;
+    public VoidEventSO SceneLoadedEvent => sceneLoadedEvent;
     public bool CloseOnEscape => closeOnEscape;
     public bool BlocksGlobalInput => blocksGlobalInput;
 
@@ -37,20 +41,40 @@ public class SampleCanvasPanel : MonoBehaviour, ICanvasManager
 
     private void OnEnable()
     {
-        if (toggleCanvasEvent == null)
-            return;
+        if (toggleCanvasEvent != null)
+        {
+            toggleCanvasEvent.toggleCanvasEvent += OnToggleRequested;
+            toggleCanvasEvent.focusEvent += OnFocusRequested;
+        }
 
-        toggleCanvasEvent.toggleCanvasEvent += OnToggleRequested;
-        toggleCanvasEvent.focusEvent += OnFocusRequested;
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent += OnSceneLoaded;
     }
 
     private void OnDisable()
     {
-        if (toggleCanvasEvent == null)
+        if (toggleCanvasEvent != null)
+        {
+            toggleCanvasEvent.toggleCanvasEvent -= OnToggleRequested;
+            toggleCanvasEvent.focusEvent -= OnFocusRequested;
+        }
+
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded()
+    {
+        if (canvasGroup == null)
             return;
 
-        toggleCanvasEvent.toggleCanvasEvent -= OnToggleRequested;
-        toggleCanvasEvent.focusEvent -= OnFocusRequested;
+        if (canvasType == MyEnums.CanvasToToggle.Default)
+        {
+            SetVisualState(false);
+            return;
+        }
+
+        ((ICanvasManager)this).SetCanvaInactive(canvasGroup, canvasType);
     }
 
     private void OnToggleRequested(bool state)

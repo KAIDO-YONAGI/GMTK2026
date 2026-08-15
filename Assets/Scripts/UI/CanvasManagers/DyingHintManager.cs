@@ -14,6 +14,7 @@ using UnityEngine.UI;
 /// </summary>
 public class DyingHintManager : MonoBehaviour, ICanvasManager
 {
+    [Header("事件")]
     [Tooltip("濒死提示的画布组，控制可见性。")]
     [SerializeField] private CanvasGroup dyingHintGroup;
 
@@ -26,6 +27,9 @@ public class DyingHintManager : MonoBehaviour, ICanvasManager
     [Tooltip("濒死提示开关事件，用于订阅焦点刷新；不加入界面管理器的可驱动开关事件列表。")]
     [SerializeField] private ToggleCanvasEventSO dyingToggleEvent;
 
+    [Tooltip("场景加载完成事件，加载完成后将濒死提示设为 inactive。")]
+    [SerializeField] private VoidEventSO sceneLoadedEvent;
+
     [Tooltip("当前面板获得焦点时，是否允许通过 ESC 键关闭。")]
     [SerializeField] private bool closeOnEscape = false;
 
@@ -35,6 +39,7 @@ public class DyingHintManager : MonoBehaviour, ICanvasManager
     private Canvas dyingHintCanvas;
 
     public ToggleCanvasEventSO ToggleCanvasEvent => dyingToggleEvent;
+    public VoidEventSO SceneLoadedEvent => sceneLoadedEvent;
     public bool CloseOnEscape => closeOnEscape;
     public bool BlocksGlobalInput => blocksGlobalInput;
 
@@ -65,6 +70,9 @@ public class DyingHintManager : MonoBehaviour, ICanvasManager
 
         if (dyingToggleEvent != null)
             dyingToggleEvent.focusEvent += OnFocus;
+
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent += OnSceneLoaded;
     }
 
     private void OnDisable()
@@ -77,8 +85,15 @@ public class DyingHintManager : MonoBehaviour, ICanvasManager
 
         if (dyingToggleEvent != null)
             dyingToggleEvent.focusEvent -= OnFocus;
+
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent -= OnSceneLoaded;
     }
 
+    private void OnSceneLoaded()
+    {
+        SetVisible(false);
+    }
     private void OnFocus()
     {
         ((ICanvasManager)this).RefreshCanvaOrder(

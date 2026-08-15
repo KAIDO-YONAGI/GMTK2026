@@ -6,6 +6,10 @@ public class ESCMenuManager : MonoBehaviour, ICanvasManager
     public CanvasGroup ESCGroup;
     public ToggleCanvasEventSO toggleESCEvent;
 
+    [Header("场景加载完成事件")]
+    [Tooltip("场景加载完成事件，加载完成后将 ESC 面板设为 inactive。")]
+    [SerializeField] private VoidEventSO sceneLoadedEvent;
+
     [Header("界面管理器集成")]
     [Tooltip("当前面板获得焦点时，是否允许通过 ESC 键关闭。")]
     [SerializeField] private bool closeOnEscape = true;
@@ -16,6 +20,7 @@ public class ESCMenuManager : MonoBehaviour, ICanvasManager
     private Canvas escCanvas;
 
     public ToggleCanvasEventSO ToggleCanvasEvent => toggleESCEvent;
+    public VoidEventSO SceneLoadedEvent => sceneLoadedEvent;
     public bool CloseOnEscape => closeOnEscape;
     public bool BlocksGlobalInput => blocksGlobalInput;
 
@@ -26,13 +31,29 @@ public class ESCMenuManager : MonoBehaviour, ICanvasManager
 
     private void OnEnable()
     {
-        toggleESCEvent.toggleCanvasEvent += OnESC;
-        toggleESCEvent.focusEvent += OnFocus;
+        if (toggleESCEvent != null)
+        {
+            toggleESCEvent.toggleCanvasEvent += OnESC;
+            toggleESCEvent.focusEvent += OnFocus;
+        }
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent += OnSceneLoaded;
     }
     private void OnDisable()
     {
-        toggleESCEvent.toggleCanvasEvent -= OnESC;
-        toggleESCEvent.focusEvent -= OnFocus;
+        if (toggleESCEvent != null)
+        {
+            toggleESCEvent.toggleCanvasEvent -= OnESC;
+            toggleESCEvent.focusEvent -= OnFocus;
+        }
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded()
+    {
+        ((ICanvasManager)this).SetCanvaInactive(
+            ESCGroup, MyEnums.CanvasToToggle.ESC);
     }
 
     private void OnESC(bool state)

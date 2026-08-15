@@ -485,6 +485,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ESCGroup: {fileID: 183349248}
   toggleESCEvent: {fileID: 11400000, guid: 393e55d993dbbd54daf4a2f101ec8ae4, type: 2}
+  sceneLoadedEvent: {fileID: 11400000, guid: 44104d3b605d4a2418feb647f89e7afb, type: 2}
   closeOnEscape: 1
   blocksGlobalInput: 0
 --- !u!225 &183349248
@@ -618,6 +619,7 @@ MonoBehaviour:
   showEvent: {fileID: 11400000, guid: 01ee5b1e282363b44bc61bbf36bb6fbb, type: 2}
   exitEvent: {fileID: 11400000, guid: 0d6cbc5c6de896d4d843028cb30103e0, type: 2}
   guideToggleEvent: {fileID: 11400000, guid: 3f07df6bd3153884c985a823f3e40304, type: 2}
+  sceneLoadedEvent: {fileID: 11400000, guid: 44104d3b605d4a2418feb647f89e7afb, type: 2}
   guideCanvasGroup: {fileID: 381526169}
   fadeDuration: 0
   keyAnimator: {fileID: 0}
@@ -2665,6 +2667,7 @@ MonoBehaviour:
   canvasType: 1
   toggleCanvasEvent: {fileID: 11400000, guid: bef3ad121f31294469aa639225cfe8a4, type: 2}
   canvasGroup: {fileID: 2021457969}
+  sceneLoadedEvent: {fileID: 11400000, guid: 44104d3b605d4a2418feb647f89e7afb, type: 2}
   closeOnEscape: 0
   blocksGlobalInput: 1
 --- !u!225 &2021457969

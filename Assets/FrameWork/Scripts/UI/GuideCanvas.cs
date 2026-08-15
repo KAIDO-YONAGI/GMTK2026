@@ -19,6 +19,9 @@ public class GuideCanvas : MonoBehaviour, ICanvasManager
     [Tooltip("供界面管理器执行互斥关闭和焦点刷新的导引面板事件。")]
     [SerializeField] private ToggleCanvasEventSO guideToggleEvent;
 
+    [Tooltip("场景加载完成事件，加载完成后将导引面板设为 inactive。")]
+    [SerializeField] private VoidEventSO sceneLoadedEvent;
+
     [Header("画布组")]
     [Tooltip("导引的画布组，控制透明度淡入淡出。")]
     [SerializeField] private CanvasGroup guideCanvasGroup;
@@ -43,6 +46,7 @@ public class GuideCanvas : MonoBehaviour, ICanvasManager
     private Canvas guideCanvas;
 
     public ToggleCanvasEventSO ToggleCanvasEvent => guideToggleEvent;
+    public VoidEventSO SceneLoadedEvent => sceneLoadedEvent;
     public bool CloseOnEscape => closeOnEscape;
     public bool BlocksGlobalInput => blocksGlobalInput;
 
@@ -60,6 +64,8 @@ public class GuideCanvas : MonoBehaviour, ICanvasManager
             guideToggleEvent.toggleCanvasEvent += OnToggleRequested;
             guideToggleEvent.focusEvent += OnFocus;
         }
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent += OnSceneLoaded;
     }
 
     private void OnDisable()
@@ -70,6 +76,23 @@ public class GuideCanvas : MonoBehaviour, ICanvasManager
         {
             guideToggleEvent.toggleCanvasEvent -= OnToggleRequested;
             guideToggleEvent.focusEvent -= OnFocus;
+        }
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded()
+    {
+        if (fadeRoutine != null)
+        {
+            StopCoroutine(fadeRoutine);
+            fadeRoutine = null;
+        }
+
+        if (guideCanvasGroup != null)
+        {
+            ((ICanvasManager)this).SetCanvaInactive(
+                guideCanvasGroup, MyEnums.CanvasToToggle.Guide);
         }
     }
 

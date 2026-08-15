@@ -7,6 +7,10 @@ public class GameOverManager : MonoBehaviour, ICanvasManager
     [SerializeField] private CanvasGroup gameOverGroup;
     [SerializeField] private TMP_Text deathText;
 
+    [Header("场景加载完成事件")]
+    [Tooltip("场景加载完成事件，加载完成后将游戏结束面板设为 inactive。")]
+    [SerializeField] private VoidEventSO sceneLoadedEvent;
+
     [Header("死亡提示文本")]
     [Tooltip("老死时显示的提示文本。")]
     [TextArea] [SerializeField] private string peacefulDeathMessage = "Rest in peace...";
@@ -16,6 +20,7 @@ public class GameOverManager : MonoBehaviour, ICanvasManager
     private Canvas gameOverCanvas;
 
     public ToggleCanvasEventSO ToggleCanvasEvent => gameOverToggleEventSO;
+    public VoidEventSO SceneLoadedEvent => sceneLoadedEvent;
 
     [Tooltip("当前面板获得焦点时，是否允许通过 ESC 键关闭。")]
     [SerializeField] private bool closeOnEscape = false;
@@ -32,14 +37,30 @@ public class GameOverManager : MonoBehaviour, ICanvasManager
 
     private void OnEnable()
     {
-        gameOverToggleEventSO.toggleCanvasEvent += OnGameOver;
-        gameOverToggleEventSO.focusEvent += OnFocus;
+        if (gameOverToggleEventSO != null)
+        {
+            gameOverToggleEventSO.toggleCanvasEvent += OnGameOver;
+            gameOverToggleEventSO.focusEvent += OnFocus;
+        }
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent += OnSceneLoaded;
     }
 
     private void OnDisable()
     {
-        gameOverToggleEventSO.toggleCanvasEvent -= OnGameOver;
-        gameOverToggleEventSO.focusEvent -= OnFocus;
+        if (gameOverToggleEventSO != null)
+        {
+            gameOverToggleEventSO.toggleCanvasEvent -= OnGameOver;
+            gameOverToggleEventSO.focusEvent -= OnFocus;
+        }
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded()
+    {
+        ((ICanvasManager)this).SetCanvaInactive(
+            gameOverGroup, MyEnums.CanvasToToggle.GameOver);
     }
 
     private void OnGameOver(bool state)

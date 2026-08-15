@@ -44,6 +44,8 @@ public class EndingManager : MonoBehaviour, ICanvasManager
     public ToggleCanvasEventSO ToggleCanvasEvent => endingToggleEventSO;
     public bool CloseOnEscape => closeOnEscape;
     public bool BlocksGlobalInput => blocksGlobalInput;
+    
+    VoidEventSO ICanvasManager.SceneLoadedEvent { get; }//只是空实现 因为这个画布组必然会被点击关闭 不需要订阅 并且也不需要因为loaded关闭 这是无用的操作
 
     private void Awake()
     {

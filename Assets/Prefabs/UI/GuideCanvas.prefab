@@ -363,5 +363,6 @@ MonoBehaviour:
   showEvent: {fileID: 11400000, guid: bd80c5be0004495438ad5cb4eb13ccd9, type: 2}
   exitEvent: {fileID: 11400000, guid: 581392f389b6af044a7009d0dcee045e, type: 2}
   guideCanvasGroup: {fileID: 4161520195140565867}
+  sceneLoadedEvent: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
   fadeDuration: 0.3
   keyAnimator: {fileID: 6655844764683922864}

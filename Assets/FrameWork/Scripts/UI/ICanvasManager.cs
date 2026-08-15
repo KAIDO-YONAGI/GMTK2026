@@ -5,6 +5,9 @@ public interface ICanvasManager
     /// <summary>本面板订阅的开关事件资产（需同时挂到 UIManager 的 toggleCanvasEvents 列表）。</summary>
     ToggleCanvasEventSO ToggleCanvasEvent { get; }
 
+    /// <summary>场景加载完成事件，面板必须在加载完成后恢复为 inactive 状态。</summary>
+    VoidEventSO SceneLoadedEvent { get; }
+
     /// <summary>当前面板获得焦点时，是否允许通过 ESC 键关闭。</summary>
     bool CloseOnEscape => true;
 
@@ -21,6 +24,13 @@ public interface ICanvasManager
         SetCanvaState(canvasGroup, canvasToToggle, state);
         RefreshCanvaOrder(canvas, canvasToToggle, state);
         // Debug.Log("toggle&order");
+    }
+
+    void SetCanvaInactive(
+        CanvasGroup canva,
+        MyEnums.CanvasToToggle canvasToToggle)
+    {
+        SetCanvaState(canva, canvasToToggle, false);
     }
 
     void SetCanvaState(
