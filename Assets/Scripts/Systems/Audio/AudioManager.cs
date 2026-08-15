@@ -12,6 +12,9 @@ public class AudioManager : YSingleton<AudioManager>
     [Header("BGM")]
     [SerializeField] private float crossfadeDuration = 1f;
 
+    [Header("Scene Events")]
+    [SerializeField] private VoidEventSO sceneLoadedEvent;
+
     [Header("Volume")]
     [Range(0f, 1f)] public float sfxVolume = 0.5f;
     [Range(0f, 1f)] public float bgmVolume = 0.5f;
@@ -41,6 +44,23 @@ public class AudioManager : YSingleton<AudioManager>
         // 启动时自动播放全局 BGM（AudioConfig 未配置该类型时安全跳过）
         if (startupBGM != MyEnums.BGMType.Default)
             PlayBGM(startupBGM);
+    }
+
+    private void OnEnable()
+    {
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        if (sceneLoadedEvent != null)
+            sceneLoadedEvent.VoidEvent -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded()
+    {
+        PlaySFX(MyEnums.SFXType.LoadScene);
     }
 
     private void Prewarm()

@@ -18,8 +18,12 @@ public class StartingMenuController : MonoBehaviour, ICanvasManager
 
     public ToggleCanvasEventSO ToggleCanvasEvent => menuToggleEvent;
 
+    [Tooltip("Whether Escape may close this panel while it is focused.")]
+    [SerializeField] private bool closeOnEscape = false;
+
     [Tooltip("打开时阻塞全局面板输入：ESC 无法关闭本面板、也无法唤起/关闭其它面板。面板自身按钮不受影响。")]
     [SerializeField] private bool blocksGlobalInput = false;
+    public bool CloseOnEscape => closeOnEscape;
     public bool BlocksGlobalInput => blocksGlobalInput;
 
     private void OnEnable()

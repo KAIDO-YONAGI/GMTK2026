@@ -12,11 +12,19 @@ public class RetryButton : MonoBehaviour
 
     public void HandleRetry()//editor内由button组件绑定
     {
-        ButtonCanvas.alpha = 0;
-        ButtonCanvas.interactable = false;
-        ButtonCanvas.blocksRaycasts = false;
+        if (ButtonCanvas != null)
+        {
+            ButtonCanvas.alpha = 0;
+            ButtonCanvas.interactable = false;
+            ButtonCanvas.blocksRaycasts = false;
+        }
 
-        TimeManager.Instance.ForceResumeGame();
-        retryEventSO.OnEventRaised();
+        if (TimeManager.Instance != null)
+            TimeManager.Instance.ForceResumeGame();
+
+        if (retryEventSO != null)
+            retryEventSO.OnEventRaised();
+        else
+            Debug.LogError("[RetryButton] Retry Event SO is not assigned.", this);
     }
 }

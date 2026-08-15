@@ -1561,6 +1561,7 @@ MonoBehaviour:
   healthChangedEvent: {fileID: 11400000, guid: 9cefeb31f41307444b80469d48e17b9b, type: 2}
   deathEvent: {fileID: 11400000, guid: 8dca7fcc25850a547b132efa5717da16, type: 2}
   dyingToggleEvent: {fileID: 11400000, guid: 0d5c57efba9c4f83bc9bf4df6515ddcf, type: 2}
+  closeOnEscape: 0
   blocksGlobalInput: 0
 --- !u!225 &551455897
 CanvasGroup:
@@ -1975,13 +1976,16 @@ MonoBehaviour:
   loadEventSO: {fileID: 11400000, guid: 820c6319319801a4987f94ab3d435c01, type: 2}
   retryEventSO: {fileID: 11400000, guid: 4088e8149793bac45899281c41132346, type: 2}
   retryConfigs:
-  - scenes:
+  - matchScene: {fileID: 11400000, guid: d6eafce2dd8442143ba3574863cd51d9, type: 2}
+    scenesToReload:
     - {fileID: 11400000, guid: d6eafce2dd8442143ba3574863cd51d9, type: 2}
     spawnPosition: {x: 0, y: 0, z: 0}
-  - scenes:
+  - matchScene: {fileID: 11400000, guid: 10fd3d9f63b336742a59724491f0d794, type: 2}
+    scenesToReload:
     - {fileID: 11400000, guid: 10fd3d9f63b336742a59724491f0d794, type: 2}
     spawnPosition: {x: 0, y: 0, z: 0}
-  - scenes:
+  - matchScene: {fileID: 11400000, guid: 0a6106d7d22cc524196e4ac5a3f5923a, type: 2}
+    scenesToReload:
     - {fileID: 11400000, guid: 0a6106d7d22cc524196e4ac5a3f5923a, type: 2}
     spawnPosition: {x: 0, y: 0, z: 0}
 --- !u!4 &670484952
@@ -2367,7 +2371,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ESCGroup: {fileID: 784798644}
   toggleESCEvent: {fileID: 11400000, guid: 393e55d993dbbd54daf4a2f101ec8ae4, type: 2}
-  retryEventSO: {fileID: 11400000, guid: 4088e8149793bac45899281c41132346, type: 2}
+  closeOnEscape: 1
   blocksGlobalInput: 0
 --- !u!114 &784798642
 MonoBehaviour:
@@ -2525,9 +2529,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   showEvent: {fileID: 11400000, guid: bd80c5be0004495438ad5cb4eb13ccd9, type: 2}
   exitEvent: {fileID: 11400000, guid: 581392f389b6af044a7009d0dcee045e, type: 2}
+  guideToggleEvent: {fileID: 11400000, guid: d679645a7851465192fd6a084407c368, type: 2}
   guideCanvasGroup: {fileID: 798281347}
   fadeDuration: 0.3
   keyAnimator: {fileID: 798281346}
+  closeOnEscape: 0
+  blocksGlobalInput: 0
 --- !u!95 &798281346
 Animator:
   serializedVersion: 5
@@ -2675,6 +2682,7 @@ MonoBehaviour:
 
     A peaceful end'
   brutalDeathMessage: You Died Hard!
+  closeOnEscape: 0
   blocksGlobalInput: 1
 --- !u!114 &845991363
 MonoBehaviour:
@@ -3187,6 +3195,7 @@ MonoBehaviour:
   endingGroup: {fileID: 1137429070}
   sceneLoadedEvent: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
   fadeOutDuration: 1
+  closeOnEscape: 0
   blocksGlobalInput: 1
 --- !u!225 &1137429070
 CanvasGroup:
@@ -4243,6 +4252,7 @@ MonoBehaviour:
   maxPoolSize: 16
   warmupCount: 4
   crossfadeDuration: 1
+  sceneLoadedEvent: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
   sfxVolume: 0.5
   bgmVolume: 0.5
   startupBGM: 1
@@ -4681,6 +4691,7 @@ GameObject:
   - component: {fileID: 1887781039}
   - component: {fileID: 1887781038}
   - component: {fileID: 1887781037}
+  - component: {fileID: 1887781040}
   m_Layer: 0
   m_Name: RetryButton
   m_TagString: Untagged
@@ -4752,10 +4763,10 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 784798641}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: OnRetryButton
-        m_Mode: 1
+      - m_Target: {fileID: 1887781040}
+        m_TargetAssemblyTypeName: RetryButton, Assembly-CSharp
+        m_MethodName: HandleRetry
+        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: 
@@ -4802,6 +4813,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1887781035}
   m_CullTransparentMesh: 1
+--- !u!114 &1887781040
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1887781035}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d60381d756b0701418e8aa061920f14c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ButtonCanvas: {fileID: 784798644}
+  retryEventSO: {fileID: 11400000, guid: 4088e8149793bac45899281c41132346, type: 2}
 --- !u!1 &1938931050
 GameObject:
   m_ObjectHideFlags: 0
