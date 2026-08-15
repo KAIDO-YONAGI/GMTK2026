@@ -65,8 +65,8 @@ public class ESCMenuManager : MonoBehaviour, ICanvasManager
             UIManager.Instance.RequestCanvasClose(MyEnums.CanvasToToggle.ESC);
         // 通过 SceneLoadEventSO 触发切换到 StartingMenu。
         var sc = SceneChanger.Instance;
-        if (sc != null && sc.loadEventSO != null && sc.initScene != null && sc.initScene.Count > 0)
-            sc.loadEventSO.RaiseLoadRequestEvent(sc.initScene, Vector3.zero, true);
+        if (sc != null && sc.loadEventSO != null && sc.firstSceneToLoad != null && sc.firstSceneToLoad.Count > 0)
+            sc.loadEventSO.RaiseLoadRequestEvent(sc.firstSceneToLoad, Vector3.zero, true);
     }
 
 }

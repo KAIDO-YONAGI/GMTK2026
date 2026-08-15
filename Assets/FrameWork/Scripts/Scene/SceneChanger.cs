@@ -20,7 +20,7 @@ public class SceneChanger : YSingleton<SceneChanger>
     public GameObject player;// 用于设置每次加载后的玩家位置，主要在场景 SO 中配置。
 
     [Tooltip("启动时自动加载的初始场景组。通过场景加载事件按列表顺序以叠加模式加载，通常配置为菜单场景。")]
-    public List<GameSceneSO> initScene = new List<GameSceneSO>();
+    public List<GameSceneSO> firstSceneToLoad = new List<GameSceneSO>();
 
     [Tooltip("随场景类型开关的对象。目标场景类型为 Menu 时全部禁用，为 Location 时全部启用，例如玩家本体。")]
     public Object[] objectsToUnableWhileGameReset;
@@ -51,15 +51,7 @@ public class SceneChanger : YSingleton<SceneChanger>
     /// <summary>是否需要淡入淡出</summary>
     private bool isToFade;
     private bool isInitialScene = true;
-
-    /// <summary>
-    /// 获取当前活动场景
-    /// </summary>
-    /// <returns>当前场景对象</returns>
-    public Scene GetCurrentScene()
-    {
-        return loadedScene != null ? loadedScene : SceneManager.GetActiveScene();
-    }
+    
     // 供存档系统在切场前读取当前场景 SO。
     public GameSceneSO GetCurrentGameScene()
     {
@@ -81,8 +73,8 @@ public class SceneChanger : YSingleton<SceneChanger>
     private void Start()
     {
         SetPlayerPostion(initialPosition);
-        if (loadEventSO != null && initScene != null && initScene.Count > 0)
-            loadEventSO.RaiseLoadRequestEvent(initScene, initialPosition, false);
+        if (loadEventSO != null && firstSceneToLoad != null && firstSceneToLoad.Count > 0)
+            loadEventSO.RaiseLoadRequestEvent(firstSceneToLoad, initialPosition, false);
     }
 
     /// <summary>

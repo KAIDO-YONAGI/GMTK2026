@@ -138,9 +138,7 @@ GameJam.code-workspace
 [Pp]ackages/NB_FX/**/.idea/workspace.xml
 [Pp]ackages/NB_FX/**/.idea/shelf/
 # ==========================
-# My_SceneAndUIFrameWork 框架工作目录（本地暂存，验证后另行发布；nul 为 Windows 误产物）
+# 本地索引与 Windows 误产物
 # ==========================
-/Assets/FrameWork/
-/Assets/FrameWork.meta
 .codegraph/
 nul

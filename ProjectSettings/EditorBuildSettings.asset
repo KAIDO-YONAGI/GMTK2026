@@ -9,20 +9,11 @@ EditorBuildSettings:
     path: Assets/Scenes/InitialScene.unity
     guid: 368c3505c48991e4a977c4a144fd8293
   - enabled: 1
-    path: Assets/Scenes/PersistentScene.unity
-    guid: 4d80d8b1f5e0a9f41b1fd2667ef90435
-  - enabled: 1
     path: Assets/Scenes/StartingMenu.unity
     guid: a19bd32fc5d8e754da685a6a3e5b5a3b
   - enabled: 1
-    path: Assets/Scenes/LevelScenes/Level01Test.unity
-    guid: 6814e2e1be50b8f4e93093b9d3d19caf
-  - enabled: 1
-    path: Assets/Scenes/LevelScenes/Level02Test.unity
-    guid: 0664d369afd3a4f43a221073ca7ec2d4
-  - enabled: 0
-    path: Assets/Scenes/LevelScenes/Level02Test 1.unity
-    guid: 2c9c02fc2068d6a408bc10338a5d766f
+    path: Assets/Scenes/PersistentScene.unity
+    guid: 4d80d8b1f5e0a9f41b1fd2667ef90435
   - enabled: 1
     path: Assets/Scenes/PersistentScene_1.unity
     guid: e956b5f550b9ae042a2749df25e0e54c
@@ -35,10 +26,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/LevelScenes/NormalLevel02.unity
     guid: db7894e01689a5a4e92eaf28221ccdb4
-  - enabled: 1
-    path: Assets/FrameWork/Scenes/Bootstrap.unity
-    guid: 3d99ad078c9f2664fbf358743c952e87
-  - enabled: 1
-    path: Assets/FrameWork/Scenes/BootstrapTargetScene.unity
-    guid: 4be97192274344d488e73d997a608374
+  - enabled: 0
+    path: Assets/Scenes/LevelScenes/Level01Test.unity
+    guid: 6814e2e1be50b8f4e93093b9d3d19caf
+  - enabled: 0
+    path: Assets/Scenes/LevelScenes/Level02Test.unity
+    guid: 0664d369afd3a4f43a221073ca7ec2d4
   m_configObjects: {}

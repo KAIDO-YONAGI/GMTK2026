@@ -21,7 +21,7 @@ public class UIManager : YSingleton<UIManager>
     [Tooltip("按键绑定（旧输入系统）。每项对应一个面板和按键；ESC 走特殊通道：无面板打开时唤起 ESC 菜单，有面板时关闭最上层。")]
     [SerializeField] private List<CanvasInputBinding> inputBindings;
 
-    [Header("互斥面板（开启时自动关闭列表中其它已打开的面板）")]
+    [Header("互斥面板")]
     [Tooltip("互斥面板列表：列在此处的面板互相互斥——任一打开时自动关闭其它已打开的互斥面板；未列出的可与任意面板共存")]
     [SerializeField] private List<CanvasToToggle> mutexCanvases = new List<CanvasToToggle>();
 
