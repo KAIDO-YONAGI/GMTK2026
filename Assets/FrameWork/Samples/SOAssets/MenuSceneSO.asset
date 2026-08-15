@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09a4ebb01acc81c41889f97c05800566, type: 3}
+  m_Name: MenuSceneSO
+  m_EditorClassIdentifier: 
+  ID: 63d0125b-eb2c-46bc-bd50-ade4439a1ec0
+  sceneAsset: {fileID: 102900000, guid: bd368705fd10ca74aae6bd483ccb31ce, type: 3}
+  sceneName: MenuScene
+  sceneType: 1
+  initialPosition: {x: 0, y: 0, z: 0}

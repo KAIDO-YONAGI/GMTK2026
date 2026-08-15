@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 09a4ebb01acc81c41889f97c05800566, type: 3}
-  m_Name: GameSceneSOSample
+  m_Name: PersistentSceneSO
   m_EditorClassIdentifier: 
-  ID: 2a4869a9-c316-4f4b-acc2-c512ec827aa6
-  sceneAsset: {fileID: 102900000, guid: 4be97192274344d488e73d997a608374, type: 3}
-  sceneName: BootstrapTargetScene
+  ID: bee3d30e-bd4a-4b90-a509-98cfcc4e9761
+  sceneAsset: {fileID: 102900000, guid: 3d99ad078c9f2664fbf358743c952e87, type: 3}
+  sceneName: PersistentScene
   sceneType: 0
-  initialPosition: {x: -3, y: 0, z: 0}
+  initialPosition: {x: 0, y: 0, z: 0}

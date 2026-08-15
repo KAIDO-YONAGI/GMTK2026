@@ -10,8 +10,8 @@ FrameWork/
   Scripts/SO/         场景数据和事件通道
   Scripts/Scene/      初始加载、常驻保护、场景切换、Retry、Teleport、时间管理
   Scripts/UI/         UIManager、焦点栈、面板接口及通用按钮/面板控制器
-  Samples/Scenes/     已完成基本接线的 Bootstrap 与目标关卡场景
-  Samples/Prefabs/    可直接放进关卡的 TeleportTrigger
+  Samples/Scenes/     已完成基本接线的 InitialScene、PersistentScene、LevelScene，以及独立 MenuScene
+  Samples/Prefabs/    可直接放进关卡的 Teleport
   Samples/SOAssets/   Sample 使用的场景数据和事件资产
   Samples/Scripts/    不依赖玩法代码的 Sample 面板与玩家控制器
 ```
@@ -21,11 +21,14 @@ FrameWork/
 ## 运行 Sample
 
 1. 在 `File > Build Settings` 中手动加入：
-   - `Assets/FrameWork/Samples/Scenes/Bootstrap.unity`
-   - `Assets/FrameWork/Samples/Scenes/BootstrapTargetScene.unity`
-2. 将 `Bootstrap` 排在 `BootstrapTargetScene` 前面。
-3. 打开并运行 `Bootstrap`。它会通过 `SceneChanger` 以 Additive 模式加载目标关卡。
+   - `Assets/FrameWork/Samples/Scenes/InitialScene.unity`
+   - `Assets/FrameWork/Samples/Scenes/PersistentScene.unity`
+   - `Assets/FrameWork/Samples/Scenes/LevelScene.unity`
+   - 测试菜单示例时，再加入 `Assets/FrameWork/Samples/Scenes/MenuScene.unity`
+2. 主示例的场景顺序固定为 `InitialScene -> PersistentScene -> LevelScene`。`MenuScene` 是额外的 Additive 内容场景，不替换或改动这条默认启动链。
+3. 打开并运行 `InitialScene`。`InitialLoad` 会以 Additive 模式加载 `PersistentScene`，随后其中的 `SceneChanger` 加载 `LevelScene`。
 4. 使用方向键或 `A/D` 移动 Sample Player，进入右侧 Teleport 后会整组重载目标关卡，并回到 `(-3, 0, 0)`。
+5. 测试 `MenuScene` 时，应先保持 `PersistentScene` 已加载，再以 Additive 模式加载 `MenuScene`。其中的 `StartButton` 使用 `ButtonSceneToggler` 切换到 `LevelScene`。
 
 Sample 还展示了以下 UI 行为：
 
@@ -37,11 +40,11 @@ Sample 还展示了以下 UI 行为：
 | `Reload Level` | 使用 `ButtonSceneToggler` 执行普通场景组切换 |
 | `Retry` | 使用 `RetryButton` 广播重试事件，由中央 `RetryManager` 查表并重载 |
 
-目标关卡场景内只有 Teleport 关卡配置。禁用的 Camera 和 Light 仅用于单独打开场景时查看层级，不会在 Additive 运行时与 Bootstrap 的主 Camera 和 Light 冲突。
+`LevelScene` 内只有 Teleport 关卡配置；`MenuScene` 只展示菜单切场按钮，不持有常驻管理器。
 
 ## 关卡场景配置
 
-当前框架要求放进各关卡场景的配置只有 **Teleport**。玩家、Camera、Light、`SceneChanger`、`RetryManager` 和全局 UI 应由 Bootstrap/常驻场景统一持有，不要复制进关卡场景。
+当前框架要求放进各关卡场景的配置只有 **Teleport**。玩家、Camera、Light、`SceneChanger`、`RetryManager` 和全局 UI 应由 `PersistentScene` 统一持有，不要复制进关卡场景。
 
 ### 1. 创建场景数据
 
@@ -55,7 +58,7 @@ Sample 还展示了以下 UI 行为：
 
 ### 2. 配置 Teleport
 
-可以直接把 `Assets/FrameWork/Samples/Prefabs/TeleportTrigger.prefab` 放进关卡，也可以自行创建：
+可以直接把 `Assets/FrameWork/Samples/Prefabs/Teleport.prefab` 放进关卡，也可以自行创建：
 
 1. 创建带 `Collider2D` 的触发区域并勾选 `Is Trigger`。
 2. 添加 `SceneToggler` 组件。脚本文件名是 `Teleport.cs`，组件类名是 `SceneToggler`。
@@ -68,6 +71,8 @@ Sample 还展示了以下 UI 行为：
 
 ### 3. 配置中央场景链路
 
+- `InitialScene` 的 `Bootstrapper/InitialLoad.Persistent Scenes` 配置为 `PersistentSceneSO`。
+- `PersistentScene` 持有玩家、全局管理器和 UI；其中 `SceneChanger.First Scene To Load` 配置为初始关卡场景组，例如 `LevelSceneSO`。
 - 常驻 `SceneChanger` 的 `Load Event SO` 必须与 Teleport、普通切场按钮和 `RetryManager` 使用同一资产。
 - `First Scene To Load` 是启动时按顺序加载的初始内容场景组。
 - `Scene Loaded Event` 在整组加载完成后广播；玩法侧的回血、复位和声音等逻辑应订阅这个事件，各自处理业务状态。
@@ -89,7 +94,7 @@ Retry 按钮只挂 `RetryButton.HandleRetry`。普通切场按钮使用 `ButtonS
 
 建议按以下方式开发：
 
-1. Bootstrap/常驻场景由集成人员维护，集中放置玩家、全局管理器、Camera、Light 和跨关卡 UI。
+1. `InitialScene` 只负责加载常驻场景；`PersistentScene` 由集成人员维护，集中放置玩家、全局管理器、Camera、Light 和跨关卡 UI。
 2. 每个关卡使用独立 `.unity` 场景，并明确负责人。需要进一步拆分美术、玩法或灯光场景时，也必须先约定各自所有权。
 3. 不要让多人同时修改同一个 `.unity` 文件。Unity 场景 YAML 的合并结果很难可靠验证，远程修改或其他本地修改很容易在保存、拉取或冲突处理时失效。
 4. 开发者只保存自己负责的场景，避免习惯性使用 `Save All`。集成人员通过 `GameSceneSO` 的场景组把各场景组合起来。
