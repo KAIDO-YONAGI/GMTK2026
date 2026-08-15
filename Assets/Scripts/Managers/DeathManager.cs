@@ -1,19 +1,11 @@
 using UnityEngine;
 
-public class DeathManager : MonoBehaviour
+public class DeathManager : YSingleton<DeathManager>
 {
-    public static DeathManager instance;
-
     [SerializeField] private DeathEventSO_ deathEventSO;
     [SerializeField] private ToggleCanvasEventSO gameOverToggleEventSO;
 
     public MyEnums.DeathType LastDeathType { get; private set; }
-
-    private void Awake()
-    {
-        if (instance == null) instance = this;
-        else Destroy(gameObject);
-    }
 
     private void OnEnable()
     {
@@ -28,7 +20,7 @@ public class DeathManager : MonoBehaviour
     private void OnDeath(MyEnums.DeathType type)
     {
         LastDeathType = type;
-        TimeManager.instance.PauseGame();
+        TimeManager.Instance.PauseGame();
         gameOverToggleEventSO.RaiseToggleCanvasEvent(true);
     }
 }

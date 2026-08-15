@@ -64,14 +64,12 @@ public class SpikeLauncher : MonoBehaviour
     [ContextMenu("Activate")]
     public void Activate()
     {
-        Debug.Log("Activate");
         isActive = !isActive;
     }
 
     [ContextMenu("Deactivate")]
     public void Deactivate()
     {
-        Debug.Log("Deactivate");
         isActive = false;
     }
 
@@ -82,7 +80,6 @@ public class SpikeLauncher : MonoBehaviour
         timer += Time.deltaTime;
         if (timer >= launchInterval)
         {
-            Debug.Log("Launch");
             timer = 0f;
             FireAnim();
         }
@@ -129,7 +126,6 @@ public class SpikeLauncher : MonoBehaviour
     {
         if (animator != null)
         {
-            Debug.Log("Fire");
             animator.Play(fireClipHash, 0, 0f);
         }
     }

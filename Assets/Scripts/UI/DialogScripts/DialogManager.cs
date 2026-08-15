@@ -2,10 +2,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class DialogManager : MonoBehaviour
+public class DialogManager : YSingleton<DialogManager>
 {
-    public static DialogManager instance;
-
     [Header("Dialog UI")]
     public CanvasGroup dialogCanvasGroup;
     public Image speakerPortrait;
@@ -17,18 +15,8 @@ public class DialogManager : MonoBehaviour
     private int currentLineIndex = 0;
     private DialogSO currentDialog;
 
-    private void Awake()
+    protected override void OnSingletonInitialized()
     {
-        if (instance == null)
-        {
-            instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
-
         SetDialogCanvas(false);
         DisableButtons();
     }
@@ -48,7 +36,7 @@ public class DialogManager : MonoBehaviour
         dialogCanvasGroup.interactable = state;
         dialogCanvasGroup.blocksRaycasts = state;
         isDialogActive = state;
-        UIManager.instance.ReportCanvasState(MyEnums.CanvasToToggle.Dialog, state);
+        UIManager.Instance.ReportCanvasState(MyEnums.CanvasToToggle.Dialog, state);
     }
 
     public void StartDialog(DialogSO dialog)
@@ -103,15 +91,15 @@ public class DialogManager : MonoBehaviour
 
         if (currentDialog != null)
         {
-            if (ConversationHistoryManager.instance != null)
+            if (ConversationHistoryManager.Instance != null)
             {
-                ConversationHistoryManager.instance.RecordCharacter(currentDialog.mainCharacter);
+                ConversationHistoryManager.Instance.RecordCharacter(currentDialog.mainCharacter);
             }
 
             if (currentDialog.onlyTriggeredOnce &&
                 currentDialog.parentDialog != null)
             {
-                ConversationHistoryManager.instance.RecordDialogHasChated(currentDialog.parentDialog);
+                ConversationHistoryManager.Instance.RecordDialogHasChated(currentDialog.parentDialog);
             }
         }
 
@@ -135,8 +123,8 @@ public class DialogManager : MonoBehaviour
 
             if (refuse.isDefaultChat)
             {
-                shouldRefuse = ConversationHistoryManager.instance != null &&
-                               ConversationHistoryManager.instance.HasDialogChated(dialog);
+                shouldRefuse = ConversationHistoryManager.Instance != null &&
+                               ConversationHistoryManager.Instance.HasDialogChated(dialog);
             }
             else
             {
@@ -159,8 +147,8 @@ public class DialogManager : MonoBehaviour
         {
             foreach (var character in refuse.requireCharacters)
             {
-                if (ConversationHistoryManager.instance == null ||
-                    !ConversationHistoryManager.instance.HasChatedWith(character))
+                if (ConversationHistoryManager.Instance == null ||
+                    !ConversationHistoryManager.Instance.HasChatedWith(character))
                 {
                     return false;
                 }
@@ -171,8 +159,8 @@ public class DialogManager : MonoBehaviour
         {
             foreach (var item in refuse.requireItems)
             {
-                if (ItemHistoryManager.instance == null ||
-                    !ItemHistoryManager.instance.HasPickedOverAmount(item.itemSO, item.quantity))
+                if (ItemHistoryManager.Instance == null ||
+                    !ItemHistoryManager.Instance.HasPickedOverAmount(item.itemSO, item.quantity))
                 {
                     return false;
                 }

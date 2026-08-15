@@ -1,12 +1,12 @@
+using System;
 using UnityEngine;
-using UnityEngine.Events;
 
 [CreateAssetMenu(fileName = "InventorySlotsStatsSO", menuName = "Events/InventorySlotsStatsSO", order = 0)]
 public class InventorySlotsStatsSO : ScriptableObject
 {
     //均为双向
-    public UnityAction<ItemSO, int, int> InventoryUpdateRequestEvent;
-    public UnityAction<bool[]> InventoryRespondEvent;
+    public event Action<ItemSO, int, int> InventoryUpdateRequestEvent;
+    public event Action<bool[]> InventoryRespondEvent;
     /// <summary>
     /// 请求更新物品
     /// </summary>

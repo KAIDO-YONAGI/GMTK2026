@@ -18,12 +18,12 @@ public class ESCButton : MonoBehaviour
     }
     private void OnESC()
     {
-        if (UIManager.instance == null)
+        if (UIManager.Instance == null)
         {
             return;
         }
 
-        UIManager.instance.RequestCanvasClose(canvasToESC);
+        UIManager.Instance.RequestCanvasClose(canvasToESC);
     }
 
 

@@ -4,16 +4,10 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 [DefaultExecutionOrder(-101)]
 
-public class AStarNodeManager : MonoBehaviour
+public class AStarNodeManager : YSingleton<AStarNodeManager>
 {
-    public static AStarNodeManager instance;
-
-    private void Awake()
+    protected override void OnSingletonInitialized()
     {
-        if (instance == null)
-            instance = this;
-        else
-            Destroy(gameObject);
         InitMapInfo();
         InitiateNodes();
     }

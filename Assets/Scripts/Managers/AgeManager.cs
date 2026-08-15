@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AgeManager : MonoBehaviour
+public class AgeManager : YSingleton<AgeManager>
 {
-    public static AgeManager instance;
-
     [SerializeField] private float startingAge = 20f;
     [SerializeField] private float maxAge = 100f;
     [SerializeField] private float agePerSecond = 1f;
@@ -19,11 +17,8 @@ public class AgeManager : MonoBehaviour
     public float AgeNormalized => Mathf.Clamp01((currentAge - startingAge) / (maxAge - startingAge));
     public bool IsDead => currentAge >= maxAge;
 
-    private void Awake()
+    protected override void OnSingletonInitialized()
     {
-        if (instance == null) instance = this;
-        else Destroy(gameObject);
-
         currentAge = startingAge;
     }
 
@@ -62,10 +57,10 @@ public class AgeManager : MonoBehaviour
     {
         if (!isInLevel) return;
         if (IsDead) return;
-        if (TimeManager.instance != null && TimeManager.instance.IsGamePaused()) return;
+        if (TimeManager.Instance != null && TimeManager.Instance.IsGamePaused()) return;
 
         // TODO: 后期合并代码后，需判断玩家单例是否存在再计时
-        // if (Player.instance == null) return;
+        // if (Player.Instance == null) return;
 
         currentAge += agePerSecond * Time.deltaTime;
 

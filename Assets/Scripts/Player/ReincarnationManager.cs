@@ -200,7 +200,7 @@ public class ReincarnationManager : RewindableBase
 
     private float CalculateAgeLimitedRewindableSeconds()
     {
-        float agingRate = Mathf.Clamp01(1f - AgeManager.instance.AgeNormalized);
+        float agingRate = Mathf.Clamp01(1f - AgeManager.Instance.AgeNormalized);
         float baseSeconds = Mathf.Lerp(minRewindBaseSeconds, maxRewindBaseSeconds, agingRate);
         return baseSeconds * Mathf.Max(0f, rewindWindowMultiplier);
     }
@@ -209,10 +209,10 @@ public class ReincarnationManager : RewindableBase
     {
         if (Instance != this || subscribedSceneLoadedEvent != null)
             return;
-        if (SceneChanger.instance == null || SceneChanger.instance.sceneLoadedEvent == null)
+        if (SceneChanger.Instance == null || SceneChanger.Instance.sceneLoadedEvent == null)
             return;
 
-        subscribedSceneLoadedEvent = SceneChanger.instance.sceneLoadedEvent;
+        subscribedSceneLoadedEvent = SceneChanger.Instance.sceneLoadedEvent;
         subscribedSceneLoadedEvent.VoidEvent += OnSceneLoaded;
     }
 

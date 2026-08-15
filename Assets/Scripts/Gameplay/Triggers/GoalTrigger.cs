@@ -14,9 +14,8 @@ using System.Collections.Generic;
 /// → 场景加载完成触发 sceneLoadedEvent → 本脚本 OnSceneLoaded 发 endingToggleEventSO
 /// → EndingManager（此时已在 StartingMenu 里订阅好）收到事件显示 Ending 面板。
 /// </summary>
-public class GoalTrigger : MonoBehaviour
+public class GoalTrigger : YSingleton<GoalTrigger>
 {
-    public static GoalTrigger Instance { get; private set; }
 
     /// <summary>通关标记的 PlayerPrefs 键名；StartingMenuController 读它决定是否显示 "Again and Again..."。</summary>
     public const string CompletedPrefKey = "GameCompleted";

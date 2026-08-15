@@ -17,7 +17,7 @@ public class MovementController : MonoBehaviour
 
     private float GetCellSize()
     {
-        return AStarNodeManager.instance.GetCellSize();
+        return AStarNodeManager.Instance.GetCellSize();
     }
 
     public Vector3 GetPosToGo(Vector3 optPos, Vector3 startPos, Vector3 endPos)
@@ -61,24 +61,24 @@ public class MovementController : MonoBehaviour
     }
     public float GetThreshold()
     {
-        if (AStarNodeManager.instance == null)
+        if (AStarNodeManager.Instance == null)
         {
 #if UNITY_EDITOR
-            Debug.LogWarning("AStarNodeManager.instance is NULL!");
+            Debug.LogWarning("AStarNodeManager.Instance is NULL!");
 #endif
 
             return 0f;
         }
 
-        return threshold * AStarNodeManager.instance.GetCellSize();
+        return threshold * AStarNodeManager.Instance.GetCellSize();
     }
     private bool FindWay(Vector3 optPos, Vector3 startPos, Vector3 endPos)
     {
         this.startPos = startPos;
         this.endPos = endPos;
 
-        if (AStarPathFinder.instance != null)
-            path = AStarPathFinder.instance.FindPath(optPos, startPos, endPos);
+        if (AStarPathFinder.Instance != null)
+            path = AStarPathFinder.Instance.FindPath(optPos, startPos, endPos);
 
         hasValidPath = path != null && path.Count > 0;
         if (!hasValidPath)
@@ -93,7 +93,7 @@ public class MovementController : MonoBehaviour
 
     private void ReFindWay(Vector3 optPos, Vector3 startPos, Vector3 endPos)
     {
-        if (AStarPathFinder.instance == null)
+        if (AStarPathFinder.Instance == null)
         {
             path = null;
             hasValidPath = false;
@@ -102,7 +102,7 @@ public class MovementController : MonoBehaviour
 
         PathFinderDetails[] currentPath = path.ToArray();
 
-        Stack<PathFinderDetails> newPath = AStarPathFinder.instance.FindPath(optPos, startPos, endPos);
+        Stack<PathFinderDetails> newPath = AStarPathFinder.Instance.FindPath(optPos, startPos, endPos);
 
         if (newPath == null || newPath.Count == 0)
         {
@@ -172,13 +172,13 @@ public class MovementController : MonoBehaviour
 
     private (int x, int y) WorldToCell(Vector3 worldPos)
     {
-        return AStarPathFinder.instance != null ?
-            AStarPathFinder.instance.WorldToCell(worldPos) : (0, 0);
+        return AStarPathFinder.Instance != null ?
+            AStarPathFinder.Instance.WorldToCell(worldPos) : (0, 0);
     }
     private Vector3 CellToWorld(int cx, int cy)
     {
-        return AStarPathFinder.instance != null ?
-            AStarPathFinder.instance.CellToWorld(cx, cy) : Vector3.zero;
+        return AStarPathFinder.Instance != null ?
+            AStarPathFinder.Instance.CellToWorld(cx, cy) : Vector3.zero;
     }
 
 }

@@ -2,10 +2,8 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class AudioManager : MonoBehaviour
+public class AudioManager : YSingleton<AudioManager>
 {
-    public static AudioManager Instance { get; private set; }
-
     [Header("Config")]
     [SerializeField] private AudioConfigSO config;
     [SerializeField] private int maxPoolSize = 16;
@@ -24,14 +22,8 @@ public class AudioManager : MonoBehaviour
     private MyEnums.BGMType _currentBGM;
     private Coroutine _crossfadeCoroutine;
 
-    private void Awake()
+    protected override void OnSingletonInitialized()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
         DontDestroyOnLoad(gameObject);
 
         _bgmSource = gameObject.AddComponent<AudioSource>();
@@ -64,12 +56,6 @@ public class AudioManager : MonoBehaviour
             _pool.Enqueue(p);
             _totalCreated++;
         }
-    }
-
-    private void OnDestroy()
-    {
-        if (Instance == this)
-            Instance = null;
     }
 
     /// <summary>根据音效枚举播放</summary>

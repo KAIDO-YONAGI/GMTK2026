@@ -90,7 +90,9 @@ public class ObjectPool<T> where T : Component
         while (_pool.Count > 0)
         {
             var obj = _pool.Dequeue();
-            Object.Destroy(obj.gameObject);
+            //场景卸载可能已把池内对象销毁，跳过已销毁的避免 MissingReferenceException
+            if (obj != null)
+                Object.Destroy(obj.gameObject);
         }
         TotalCreated = 0;
     }

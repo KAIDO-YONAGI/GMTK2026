@@ -1,7 +1,12 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using MyEnums;
+
+/// <summary>
+/// 通用场景切换按钮：隐藏自身画布并请求加载 sceneToLoad 场景组。
+/// retry 语义已解离到 RetryButton（由 PersistentScene 上的 RetryManager 统一监听），
+/// 本按钮不再承载 retry 分支与场景内匹配逻辑（对齐 ARPG 提交 491c88e）。
+/// </summary>
 public class ButtonSceneToggler : MonoBehaviour
 {
     public SceneLoadEventSO loadEventSO;
@@ -9,25 +14,20 @@ public class ButtonSceneToggler : MonoBehaviour
     public CanvasGroup ButtonCanvas;
     public Vector3 newPosition;
     public bool isToFade = true;
-    [Header("Retry Event")]
-    public VoidEventSO retryEventSO;//需要在每个场景内配置retrymanager配合使用
-    //不挂就是
+
     public void HandleSceneToggle()//editor内由button组件绑定
     {
         ButtonCanvas.alpha = 0;
         ButtonCanvas.interactable = false;
         ButtonCanvas.blocksRaycasts = false;
 
-        if (sceneToLoad != null && sceneToLoad.Count > 0 &&
-            sceneToLoad[0] != null && sceneToLoad[0].sceneType != MyEnums.SceneType.Retry)
+        if (sceneToLoad != null && sceneToLoad.Count > 0 && sceneToLoad[0] != null)
         {
             loadEventSO.RaiseLoadRequestEvent(sceneToLoad, newPosition, isToFade);
         }
         else
         {
-            TimeManager.instance.ForceResumeGame();
-            retryEventSO.OnEventRaised();//事件引用位于每个场景内RetryManager
+            Debug.LogWarning("[ButtonSceneToggler] sceneToLoad 未配置。重试按钮请改用 RetryButton 组件。", this);
         }
     }
-
 }

@@ -3,16 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ConversationHistoryManager : MonoBehaviour
-{
-    public static ConversationHistoryManager instance;
-    private void Awake()
-    {
-        if (instance == null)
-            instance = this;
-        else Destroy(gameObject);
-    }
-    private HashSet<CharacterSO> charactersHasChated = new();
+public class ConversationHistoryManager : YSingleton<ConversationHistoryManager>
+{    private HashSet<CharacterSO> charactersHasChated = new();
 
     private HashSet<int> dialogsHasChated = new();
 

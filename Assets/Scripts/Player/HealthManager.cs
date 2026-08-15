@@ -3,11 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HealthManager : MonoBehaviour
+public class HealthManager : YSingleton<HealthManager>
 {
-    // 单例：玩家生命值全局唯一，方便外部访问
-    public static HealthManager Instance { get; private set; }
-
     [Header("Health")]
     [SerializeField] private int maxHealth = 3;
 
@@ -50,16 +47,8 @@ public class HealthManager : MonoBehaviour
     public bool IsDying => isDying;
     public bool IsDead => isDead;
 
-    private void Awake()
+    protected override void OnSingletonInitialized()
     {
-        // 单例设置：重复实例时销毁自身，保证全局唯一
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-
         currentHealth = maxHealth;
         SetupHurtParticlePool();
     }
@@ -105,7 +94,7 @@ public class HealthManager : MonoBehaviour
             SceneLoadedEvent.VoidEvent += OnSceneLoaded;
         }
     }
-    
+
     private void OnDisable()
     {
         if (SceneLoadedEvent != null)
@@ -116,12 +105,6 @@ public class HealthManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        // 防止被销毁的单例指针悬挂
-        if (Instance == this)
-        {
-            Instance = null;
-        }
-
         hurtParticlePool?.Clear();
     }
 
@@ -218,6 +201,9 @@ public class HealthManager : MonoBehaviour
 
     private void OnSceneLoaded()
     {
+        //每次换场景回满血（订阅 sceneLoadedEvent；retry 重载场景时同样生效），并清除死亡/濒死状态
+        ResetHealth();
+
         StopAllCoroutines();
         for (int i = activeHurtParticles.Count - 1; i >= 0; i--)
         {

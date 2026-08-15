@@ -2,11 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WearableManager : MonoBehaviour
+public class WearableManager : YSingleton<WearableManager>
 {
-    // 单例：装备管理器全局唯一，方便外部访问
-    public static WearableManager Instance { get; private set; }
-
     // 暴露自身 transform 引用，方便外部读取装备挂点位置等
     public Transform SelfTransform { get; private set; }
 
@@ -14,16 +11,8 @@ public class WearableManager : MonoBehaviour
     [Tooltip("场景加载完成事件。每次切场景后销毁玩家身上装备的可拾取尖刺，避免上一场景的装备带到新场景。")]
     [SerializeField] private VoidEventSO sceneLoadedEvent;
 
-    private void Awake()
+    protected override void OnSingletonInitialized()
     {
-        // 单例设置：重复实例时销毁自身，保证全局唯一
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-
         SelfTransform = transform;
     }
 
@@ -38,15 +27,6 @@ public class WearableManager : MonoBehaviour
     {
         if (sceneLoadedEvent != null)
             sceneLoadedEvent.VoidEvent -= OnSceneLoaded;
-    }
-
-    private void OnDestroy()
-    {
-        // 防止被销毁的单例指针悬挂
-        if (Instance == this)
-        {
-            Instance = null;
-        }
     }
 
     /// <summary>

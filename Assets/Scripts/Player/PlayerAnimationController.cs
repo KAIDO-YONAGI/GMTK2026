@@ -39,7 +39,7 @@ public class PlayerAnimationController : MonoBehaviour
     {
         get
         {
-            float t = AgeManager.instance.AgeNormalized;
+            float t = AgeManager.Instance.AgeNormalized;
             if (t < 0.25f) return PlayerAgeStage.Youth;
             if (t < 0.5f) return PlayerAgeStage.Adult;
             if (t < 0.75f) return PlayerAgeStage.Elder;

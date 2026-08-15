@@ -24,7 +24,7 @@ public class UIDrag : MonoBehaviour, IDragHandler, IPointerDownHandler
     public void OnDrag(PointerEventData eventData)
     {
         dragTarget.anchoredPosition = eventData.position + offset;
-        // UIManager.instance.HandleFocus(dragCanvasType);
+        // UIManager.Instance.HandleFocus(dragCanvasType);
     }
 
     private void LateUpdate()

@@ -3,10 +3,8 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 [RequireComponent(typeof(Volume))]
-public class VolumeManager : MonoBehaviour
+public class VolumeManager : YSingleton<VolumeManager>
 {
-    public static VolumeManager instance;
-
     [SerializeField, Min(0f)] private float maxVignetteIntensity = 0.5f;
 
     private Volume volume;
@@ -17,20 +15,17 @@ public class VolumeManager : MonoBehaviour
     private DepthOfField depthOfField;
     private Tonemapping tonemapping;
 
-    private void Awake()
+    protected override void OnSingletonInitialized()
     {
-        if (instance == null) instance = this;
-        else Destroy(gameObject);
-
         volume = GetComponent<Volume>();
         CacheComponents();
     }
 
     private void Update()
     {
-        if (vignette == null || AgeManager.instance == null) return;
+        if (vignette == null || AgeManager.Instance == null) return;
 
-        float t = AgeManager.instance.AgeNormalized;
+        float t = AgeManager.Instance.AgeNormalized;
         vignette.intensity.overrideState = true;
         vignette.intensity.value = Mathf.Lerp(0f, maxVignetteIntensity, Mathf.Pow(t, 0.5f));
     }

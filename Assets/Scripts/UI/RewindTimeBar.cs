@@ -64,9 +64,9 @@ public class RewindTimeBar : MonoBehaviour
     
     private void Update()
     {
-        if (AgeManager.instance == null || ReincarnationManager.Instance == null) return;
+        if (AgeManager.Instance == null || ReincarnationManager.Instance == null) return;
 
-        float agingRate = 1f - AgeManager.instance.AgeNormalized;
+        float agingRate = 1f - AgeManager.Instance.AgeNormalized;
         float rewindableSeconds = ReincarnationManager.Instance.AgeLimitedRewindableSeconds;
         float fillAmount = agingRate;
 
@@ -74,7 +74,7 @@ public class RewindTimeBar : MonoBehaviour
         float fillImageWidth = fullWidth * fillAmount;
         size.x = fillImageWidth;
         fillRect.sizeDelta = size;
-        fillImage.color = colorGradient.Evaluate(AgeManager.instance.AgeNormalized);
+        fillImage.color = colorGradient.Evaluate(AgeManager.Instance.AgeNormalized);
 
         float storedSeconds = ReincarnationManager.Instance.CurrentStoredSeconds;
         float storeFactor = storedSeconds > 0f && rewindableSeconds > 0f

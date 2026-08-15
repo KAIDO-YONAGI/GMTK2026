@@ -261,7 +261,7 @@ public class PlayerMovement : MonoBehaviour
             PlayLandParticle();
         wasGrounded = isGrounded;
 
-        agingRate = 1f - AgeManager.instance.AgeNormalized;
+        agingRate = 1f - AgeManager.Instance.AgeNormalized;
         agingRate = Mathf.Max(0.4f, Mathf.Sqrt(agingRate));
         
         float horizontal = Input.GetAxisRaw("Horizontal");
