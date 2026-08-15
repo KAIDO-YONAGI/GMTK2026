@@ -122,11 +122,11 @@ Unity MCP 每次调用都会返回大量结构化 JSON，容易快速消耗额�
   - `ProjectSettings/GraphicsSettings.asset` 的 `m_CustomRenderPipeline` 指向 `Assets/URPAssets/New Universal Render Pipeline Asset.asset`（GUID `70dcfc058211a7045b83134a5d1c3e5d`）。
   - `Packages/manifest.json` 安装 `com.unity.render-pipelines.universal` 14.0.12，`com.unity.feature.2d` 为 2.0.1。
   - `PersistentScene` Hierarchy 中新增 `Global Volume Manager` 对象，挂 `Volume + VolumeManager` 组件，用于全局后处理。
-- **代码与资源目录**：
-  - 核心脚本：`Assets/Scripts/`
-  - 预制件：`Assets/Prefabs/`
-  - ScriptableObject：`Assets/SO/`
-  - 美术资源主要位于：`Assets/ArtRes/`、`Assets/Sprites/`、`Assets/TextMesh Pro/`
+- **代码与资源目录**（2026-08-15 功能域重组后，详见附录"目录功能域重组"小节）：
+  - 核心脚本：`Assets/Scripts/`（Core / Managers / Player / Rewind / Characters / Pathfinding / Gameplay / Systems / UI / SO 十个功能域）
+  - 自研框架：`Assets/FrameWork/`（YSingleton、UIManager、SceneChanger、TimeManager、通用事件 SO 等，2026-08 上旬由 Scripts 迁入）
+  - 预制件：`Assets/Prefabs/`；ScriptableObject 资产：`Assets/SOs/`；材质：`Assets/Materials/`（原名 Metarials，已改正拼写）
+  - 美术资源主要位于：`Assets/Sprites/`、`Assets/Animations/`、`Assets/AudioRes/`、`Assets/TextMesh Pro/`
 - **Unity MCP**：CoplayDev `com.coplaydev.unity-mcp` v10.0.0
   - 全局配置：`~/.zcode/cli/config.json` → `mcp.servers.unity`（HTTP 127.0.0.1:8080/mcp）
   - 本地 Python server 源：`D:\MCP\unity-mcp-local\unity-mcp-10.0.0\Server`
@@ -243,6 +243,39 @@ Global Volume Manager [Volume + VolumeManager] ← URP 全局后处理
 - **验证时状态**：编辑器未编译、未运行 Play Mode；控制台未发现 C# error，仅有 Unity MCP WebSocket/批处理提示。`IceBlock.cs` 的脚本诊断为 0 errors、2 warnings，属于工具启发式提示，后续测试时仍需关注。
 - **相关说明**：`Docs/场景加载与面板系统使用说明.md`。本附录的场景清单以本次 Unity MCP 实测为准。
 
+### 目录功能域重组（2026-08-15 执行）
+
+> 依据按功能逐项审查（92 个 .cs 全部审读）的区分度评估结论执行 B 档重组。全程 `AssetDatabase.MoveAsset`（36 个 .cs + Metarials→Materials 目录改名 + Files→Docs 收纳），移动前后 meta GUID 逐一比对 **36/36 一致**，场景/Prefab/SO 引用零断裂；重组后编译 0 error。提交：回滚点 `e89d8aa` → 重组 `039a015`（87 项 R100 纯 rename，代码内容零改动）。
+
+**重组要点**：
+- **Rewind 三处合一** → `Scripts/Rewind/`：RewindableBase + 2 接口（←Systems/Rewind/）、ReincarnationManager / PlayerRewindTarget / PlayerRewindHistory（←Player/）、Ghosts/ 四件（PlayerGhost + 原 Player/Rewind/Ghosts/ 三件）。
+- **Manager 统一口径** → `Scripts/Managers/`：+HealthManager（←Player/，被 7 文件引用的全局单例）、+GoalTrigger（←Gameplay/Triggers/，YSingleton 通关流程，类名未改）。
+- **Player/ 只留本体**：PlayerMovement、PlayerAnimationController、PlayerAnimationConfigSO、WearableManager。
+- **UI 四分**：CanvasManagers/（+DyingHintManager、StartingMenuController ←根级，口径=ICanvasManager 面板）、Dialog/（原 DialogScripts，History/ 原名 HistoryManager/）、HUD/（HealthHeartUI、RewindTimeBar）、Widgets/（Joystick、UIDrag、UIFlicker、ScrollbarFix + SpikeLauncherRingInput ←Gameplay/Spikes/）。
+- **SO 按域三分**：Events/（+DeathEventSO_ ←根级）、Dialog/（CharacterSO、DialogSO、RefuseDialogSO、ItemSO、GuidSO）、Scene/（DifficultySettingsSO、SceneArtAssetsSO）。
+- **单文件/名不副实目录撤销**：Platforms/（仅 1 个编辑辅助脚本，PlatformConfigurator 提到 Gameplay/ 根）、Systems/Scene/（SceneArtAssetsTrigger 归 Systems/Audio/，场景切换逻辑实际在 FrameWork）。
+- **其他**：MyEnums.cs 归 `Scripts/Core/`；删空目录 9 个（UI/Buttons、UI/Menu、Systems/Rewind、Systems/Scene、Gameplay/Platforms、UI/DialogScripts 树、Player/Rewind 树）；`Assets/Files/GJBrainStorm_1.md → Docs/`。
+- **不动**：FrameWork/ 整体、Characters/、Pathfinding/（确认为通用算法保留顶层）、Gameplay 六个机关子目录、Systems 其余四个子目录、Prefabs/SOs/Sprites 等资产目录内部。
+
+**本文档历史小节的旧路径映射**：
+| 旧路径（上文引用） | 现路径 |
+|---|---|
+| `Scripts/Characters/Player/PlayerMovement.cs` 等 | `Scripts/Player/…` |
+| `Scripts/Characters/Player/ReincarnationManager.cs` | `Scripts/Rewind/ReincarnationManager.cs` |
+| `Scripts/Systems/Rewind/RewindableBase.cs` | `Scripts/Rewind/RewindableBase.cs` |
+| `Scripts/Core/Definitions/MyEnums.cs` | `Scripts/Core/MyEnums.cs` |
+| `Scripts/UI/DyingHintManager.cs` | `Scripts/UI/CanvasManagers/DyingHintManager.cs` |
+| `Scripts/Systems/Scene/InitialLoad.cs`、`SceneChanger.cs` | `FrameWork/Scripts/Scene/…`（FrameWork 重构迁入，非本次） |
+| `Scripts/UI/CanvasManagers/ESCMenuManager.cs`、`UIManager` | `FrameWork/Scripts/UI/…`（同上） |
+
+**死代码/零资产清单（2026-08-15 审查确认，本次只移不删，留待单独清理）**：
+- 半成品/断线：EnemyCombat（攻击逻辑全注释）、EnemyHealth（OnDefeated 事件无订阅者）
+- 空占位/孤儿类：VisitedHistoryManager（空类）、InventorySlotsStatsSO（无资产无引用）
+- 无消费者：Joystick（移动端预留）
+- MyEnums 死枚举（0 引用）：PlayerState、PersistentType、QuestState、SaveType、SaveLoadPanelType
+- 零资产实例 SO 类：DialogSO、CharacterSO、RefuseDialogSO、ItemSO、GuidSO、InventorySlotsStatsSO（对话/物品系统只写了代码未配数据）
+- 重复实现（代码层问题，非目录）：AudioManager 自建 AudioPlayer 池未复用 Systems/Pooling/ObjectPool；WaterFlowTrigger 与 WaterFreezeTrigger 代码 95% 重复
+
 ---
 
 ## GJ 复盘归因（2026-07-27，供后续项目复用）
@@ -282,3 +315,4 @@ Global Volume Manager [Volume + VolumeManager] ← URP 全局后处理
 | 2026-07-26 | 新增"音效系统"小节：`AudioConfigSO` / `AudioManager`（单例+池）/ `AudioPlayer` 三件套，16 个 SFXType 枚举与 mp3 资源；新增"粒子预制件"小节：`LuoDi`/`IceParticle`/`ShootingParticle`/`HurtParticle`/`RunParticle` 五个 prefab 及触发脚本；新增"濒死提示面板"小节：`DyingHintManager`（血量归零自救面板 + Give Up 按钮） |
 | 2026-07-26 | 新增"玩家动画与 loaded 状态修复"小节：`PlayerAnimationController` 改用 `UnityAnimatorPlayer` 直播 AnimationClip（非 Animator 参数）；`OnSceneLoaded` 回调修复弹簧死亡 retry 后状态残留（`PlayerMovement.cs:192-228`）；死亡禁止移动在 `PlayerMovement` 三处入口加闸（`:249-255/315-321/340-346`）；标注死后 AD 反转 bug 未解决（`a44ffb3` 失败） |
 | 2026-07-27 | 新增"GJ 复盘归因"小节：归因一（单点过载+沟通乏力，流程层，附 git 数据佐证与"环形讨论"对策）；归因二（解谜引导盲区，设计层，附 4 份外部资料查证结论与对策）。详见桌面评估报告第九章 |
+| 2026-08-15 | 执行目录功能域重组（B 档）：合并 Rewind 三处、统一 Managers 口径、UI 细分四子目录、SO 按域三分、Metarials→Materials、Files→Docs、删 9 个空目录；36 个移动脚本 GUID 前后一致零断链、编译 0 error（提交 e89d8aa→039a015）；新增旧路径映射表与死代码/零资产清单备查 |
