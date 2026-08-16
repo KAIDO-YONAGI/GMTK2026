@@ -1,5 +1,7 @@
 # Time Machine
 
+**简体中文** | [English](README_EN.md)
+
 > **GMTK Game Jam 2026** 作品 — 主题：Count Down
 > 开发周期：2026-07-23 ~ 2026-07-26（4 天）
 
