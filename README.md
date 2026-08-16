@@ -176,12 +176,12 @@ itch.io 评分（GMTK Game Jam 2026）：
 
 | 素材包 | 作者 | 本项目用途 | 许可协议 | 获取地址 |
 |--------|------|-----------|----------|----------|
-| [Pixel Platformer](https://kenney.nl/assets/pixel-platformer) | Kenney (kenney.nl) | 水动画（Anim_GroupA / Anim_GroupB） | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)（公有领域：可商用、可修改、无需署名） | https://kenney.nl/assets/pixel-platformer |
-| [Physics Assets](https://kenney.nl/assets/physics-assets) | Kenney (kenney.nl) | 金属及其破裂纹理（elementMetal 系列） | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)（同上） | https://kenney.nl/assets/physics-assets |
-| [SimpleKeys - Animated Pixel Keyboard Keys](https://beamedeighth.itch.io/simplekeys-animated-pixel-keyboard-keys) | beamedeighth | 按键 R 动画（R.png + R_Press） | 作者声明：免费用于任何个人或商业项目，署名非必需但受欢迎；禁止转售素材本身 | https://beamedeighth.itch.io/simplekeys-animated-pixel-keyboard-keys |
-| [小森平的免费下载音效](https://taira-komori.net/freesoundcn.html) | 小森平（Taira Komori） | 全部游戏音效（SFX） | 免费可用于任何项目（含游戏、商用、无需报备）；禁止转售、盗链或以自己名义再发布音效文件 | https://taira-komori.net/freesoundcn.html |
-| [NBShader（NB 特效框架）](https://zhuanlan.zhihu.com/p/1914718313197573768) | 唐雨轩（轩轩） | 粒子特效所用材质与后处理功能 | 按作者发布页说明使用（作者声明可打包进发布作品）；发布页未附标准开源许可证 | https://zhuanlan.zhihu.com/p/1914718313197573768 |
-| [NoiseShader](https://github.com/keijiro/NoiseShader) | Keijiro Takahashi | NB_FX 内置的噪声函数库（HLSL） | [MIT](https://opensource.org/licenses/MIT)（已随包附带上游 LICENSE 文件） | https://github.com/keijiro/NoiseShader |
+| [Pixel Platformer](https://kenney.nl/assets/pixel-platformer) | Kenney (kenney.nl) | 水动画（Anim_GroupA / Anim_GroupB） | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | https://kenney.nl/assets/pixel-platformer |
+| [Physics Assets](https://kenney.nl/assets/physics-assets) | Kenney (kenney.nl) | 金属及其破裂纹理（elementMetal 系列） | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | https://kenney.nl/assets/physics-assets |
+| [SimpleKeys - Animated Pixel Keyboard Keys](https://beamedeighth.itch.io/simplekeys-animated-pixel-keyboard-keys) | beamedeighth | 按键 R 动画（R.png + R_Press） | 免费商用 | https://beamedeighth.itch.io/simplekeys-animated-pixel-keyboard-keys |
+| [小森平的免费下载音效](https://taira-komori.net/freesoundcn.html) | 小森平（Taira Komori） | 全部游戏音效（SFX） | 免费商用 | https://taira-komori.net/freesoundcn.html |
+| [NBShader（NB 特效框架）](https://zhuanlan.zhihu.com/p/1914718313197573768) | 唐雨轩（轩轩） | 粒子特效所用材质与后处理功能 | 见作者发布页 | https://zhuanlan.zhihu.com/p/1914718313197573768 |
+| [NoiseShader](https://github.com/keijiro/NoiseShader) | Keijiro Takahashi | NB_FX 内置的噪声函数库（HLSL） | [MIT](https://opensource.org/licenses/MIT) | https://github.com/keijiro/NoiseShader |
 
 > 对应本地路径：`Assets/Sprites/kenney_pixel-platformer/`、`Assets/Sprites/kenney_physics-assets/`、`Assets/Sprites/SimpleKeys/`、`Assets/AudioRes/SFX/`、`Packages/NB_FX/`。
 
