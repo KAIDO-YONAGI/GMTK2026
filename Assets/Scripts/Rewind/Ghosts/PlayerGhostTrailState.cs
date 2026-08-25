@@ -31,5 +31,11 @@ internal sealed class PlayerGhostTrailEntry
     public Color SourceColor;
     public PlayerGhost Ghost;
 
+    // 残影创建时记录的世界位形；残影挂在会移动的 ReincarnationManager 下，
+    // 每帧用这些值把残影钉回原位，保证拖尾视觉与挂在场景根时一致。
+    public Vector3 WorldPosition;
+    public Quaternion WorldRotation;
+    public Vector3 WorldScale;
+
     public SpriteRenderer Renderer => Ghost != null ? Ghost.Renderer : null;
 }

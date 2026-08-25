@@ -1982,13 +1982,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfc3f3087ef923e45ace36e4af392440, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerMovement: {fileID: 5311739168720231636}
   animatorPlayer: {fileID: 4143983784750560493}
   animationConfig: {fileID: 11400000, guid: 65a02fed97456924c897b36f9ec22905, type: 2}
-  jumpDelay: 0.18
-  sceneLoadedEvent: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
-  reincarnationBegEvent: {fileID: 11400000, guid: f37a074e87627f8498ef5a4e37f6d6ee, type: 2}
-  reincarnationEndEvent: {fileID: 11400000, guid: 92fba088eb8a33d448de9ab09aa82b8e, type: 2}
   walkStepInterval: 0.52
   runStepInterval: 0.4
 --- !u!1 &1600124931
@@ -2892,7 +2887,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 1.33, y: -0.08, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1.0110849, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5765105557023698653}
@@ -7883,24 +7878,15 @@ MonoBehaviour:
   moveSpeed: 5
   jumpForce: 12
   rb: {fileID: 7256126448858807712}
-  runParticleSystem: {fileID: 2771282227294636600}
-  landParticlePrefab: {fileID: 7505165592076352477, guid: aebe0b4269ffc6a4fb6167d4b81ffb78, type: 3}
-  landParticlePrewarmCount: 3
-  startInputEvent: {fileID: 11400000, guid: d1be32208aed32d47bbf516fc6248eb6, type: 2}
-  stopInputEvent: {fileID: 11400000, guid: b0c54761287e6b94da400ffc4d5c9c46, type: 2}
-  sceneLoadedEvent: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
-  reincarnationEndEvent: {fileID: 11400000, guid: 92fba088eb8a33d448de9ab09aa82b8e, type: 2}
-  rewindSpeedMultiplier: 1.5
-  rewindSpeedBoostDuration: 2
-  speedUpFeedbackGroup: {fileID: 4498163278176043957}
-  speedUpFadeInDuration: 0.2
-  speedUpFadeOutDuration: 0.4
-  spriteRenderer: {fileID: 3974886592906940017}
   groundLayer:
     serializedVersion: 2
     m_Bits: 1536
   groundCheck: {fileID: 8190085970140939342}
   groundCheckRadius: 0.1
+  sceneLoadedEvent: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
+  reincarnationEndEvent: {fileID: 11400000, guid: 92fba088eb8a33d448de9ab09aa82b8e, type: 2}
+  rewindSpeedMultiplier: 1.5
+  rewindSpeedBoostDuration: 2
 --- !u!225 &5428931986669227324
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -7940,7 +7926,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8693088212026143281}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -8206,6 +8192,8 @@ GameObject:
   m_Component:
   - component: {fileID: 5631538060222291830}
   - component: {fileID: 5311739168720231636}
+  - component: {fileID: 8693088212026143283}
+  - component: {fileID: 8693088212026143282}
   m_Layer: 8
   m_Name: MovementManager
   m_TagString: Untagged
@@ -8213,6 +8201,46 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &8693088212026143282
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8693088212026143281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb99c43499df894ba14c94647fa4d70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerMovement: {fileID: 5311739168720231636}
+  spriteRenderer: {fileID: 3974886592906940017}
+  runParticleSystem: {fileID: 2771282227294636600}
+  landParticlePrefab: {fileID: 7505165592076352477, guid: aebe0b4269ffc6a4fb6167d4b81ffb78, type: 3}
+  landParticlePrewarmCount: 3
+  speedUpFeedbackGroup: {fileID: 4498163278176043957}
+  speedUpFadeInDuration: 0.2
+  speedUpFadeOutDuration: 0.4
+--- !u!114 &8693088212026143283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8693088212026143281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 399e38c4c75df3542ac59a7fc3f5d13d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerMovement: {fileID: 5311739168720231636}
+  animationController: {fileID: 1506073771}
+  jumpDelay: 0.18
+  startInputEvent: {fileID: 11400000, guid: d1be32208aed32d47bbf516fc6248eb6, type: 2}
+  stopInputEvent: {fileID: 11400000, guid: b0c54761287e6b94da400ffc4d5c9c46, type: 2}
+  sceneLoadedEvent: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
+  reincarnationBegEvent: {fileID: 11400000, guid: f37a074e87627f8498ef5a4e37f6d6ee, type: 2}
+  reincarnationEndEvent: {fileID: 11400000, guid: 92fba088eb8a33d448de9ab09aa82b8e, type: 2}
 --- !u!1 &8856759800068591191
 GameObject:
   m_ObjectHideFlags: 0

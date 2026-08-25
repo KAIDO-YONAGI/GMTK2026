@@ -65,6 +65,10 @@ internal sealed class PlayerGhostTrailController
 
     public void Update(bool pauseFade, float fadeDuration)
     {
+        // 残影现在是 ReincarnationManager 的子对象，父级会随玩家移动；
+        // 无论是否暂停淡出（回溯中同样需要），都先钉回记录的世界位形。
+        PinGhostWorldPose();
+
         if (pauseFade)
         {
             lastFadeTime = Time.time;
@@ -105,6 +109,36 @@ internal sealed class PlayerGhostTrailController
                 entry.SourceColor.a * remainingAlpha * remainingAlpha;
             ghostRenderer.color = color;
         }
+    }
+
+    /// <summary>
+    /// 把所有残影钉回创建时记录的世界位形。
+    /// 残影收纳在 ReincarnationManager 层级下，而该父级会随玩家移动（含待机呼吸缩放），
+    /// 不每帧校正的话拖尾会跟着玩家跑。
+    /// </summary>
+    private void PinGhostWorldPose()
+    {
+        for (int i = 0; i < ghosts.Count; i++)
+        {
+            PlayerGhostTrailEntry entry = ghosts[i];
+            if (entry.Ghost == null)
+                continue;
+
+            Transform ghostTransform = entry.Ghost.transform;
+            ghostTransform.position = entry.WorldPosition;
+            ghostTransform.rotation = entry.WorldRotation;
+            SetWorldScale(ghostTransform, entry.WorldScale);
+        }
+    }
+
+    /// <summary>按世界缩放写入 localScale：除以父级 lossyScale，逐轴防除零。</summary>
+    private void SetWorldScale(Transform target, Vector3 worldScale)
+    {
+        Vector3 parentScale = ownerTransform.lossyScale;
+        target.localScale = new Vector3(
+            worldScale.x / Mathf.Max(Mathf.Abs(parentScale.x), 1e-05f),
+            worldScale.y / Mathf.Max(Mathf.Abs(parentScale.y), 1e-05f),
+            worldScale.z / Mathf.Max(Mathf.Abs(parentScale.z), 1e-05f));
     }
 
     public void Reset()
@@ -189,10 +223,12 @@ internal sealed class PlayerGhostTrailController
             return;
 
         Transform ghostTransform = ghost.transform;
-        ghostTransform.SetParent(null);
+        // 残影统一收纳在 ReincarnationManager 下，不再散落到场景根；
+        // 父级会随玩家移动/缩放，世界位形由 PinGhostWorldPose 每帧钉住。
+        ghostTransform.SetParent(ownerTransform);
         ghostTransform.position = visualState.Position;
         ghostTransform.rotation = visualState.Rotation;
-        ghostTransform.localScale = visualState.Scale;
+        SetWorldScale(ghostTransform, visualState.Scale);
 
         SpriteRenderer ghostRenderer = ghost.Renderer;
         ghostRenderer.sprite = visualState.Sprite;
@@ -212,6 +248,9 @@ internal sealed class PlayerGhostTrailController
         {
             SnapshotTime = snapshotTime,
             SourceColor = visualState.Color,
+            WorldPosition = visualState.Position,
+            WorldRotation = visualState.Rotation,
+            WorldScale = visualState.Scale,
             Ghost = ghost
         });
     }

@@ -1,401 +1,212 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 /// <summary>
-/// 玩家平台跳跃移动脚本。
-/// 左右移动使用 Input.GetAxisRaw("Horizontal")，跳跃使用 Input.GetButtonDown("Jump")（Unity 默认输入轴，绑定空格、W 和上方向键）。
-/// 物理使用动态 Rigidbody2D，通过速度控制水平移动，同时保留 y 轴速度以免覆盖跳跃。
+/// 玩家物理执行组件。
+/// 只负责水平速度、跳跃冲量、地面检测与衰老修正；输入采样在 PlayerActionController，
+/// 朝向与粒子等表现在 PlayerMovementFeedback。
 /// </summary>
-public class PlayerMovement : MonoBehaviour
+[DisallowMultipleComponent]
+public sealed class PlayerMovement : MonoBehaviour
 {
-    [Header("移动")]
-    public float moveSpeed = 5f;
-    public float jumpForce = 12f;
-    // 刚体通过 Inspector 拖拽引用，允许移动脚本挂在 Player 的子物体上。
+    [Header("Movement")]
+    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float jumpForce = 12f;
     [SerializeField] private Rigidbody2D rb;
-    [SerializeField] private ParticleSystem runParticleSystem;
 
-    [Header("落地粒子效果")]
-    [SerializeField] private ParticleSystem landParticlePrefab;
-    [SerializeField] private int landParticlePrewarmCount = 3;
-    private ObjectPool<ParticleSystem> landParticlePool;
-    private readonly List<ParticleSystem> activeLandParticles = new();
+    [Header("Ground Check")]
+    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private float groundCheckRadius = 0.1f;
 
-    [Header("输入事件")]
-    [SerializeField] private VoidEventSO startInputEvent;
-    [SerializeField] private VoidEventSO stopInputEvent;
-
-    [Header("场景加载")]
-    [Tooltip("场景加载完成事件。每次切场景后清空刚体速度，避免上一场景的残留速度带到新场景。")]
+    [Header("Events")]
     [SerializeField] private VoidEventSO sceneLoadedEvent;
-
-    [Header("回溯加速")]
     [SerializeField] private VoidEventSO reincarnationEndEvent;
-    [Tooltip("回溯后的速度倍率。1.5 表示正常速度的 150%。")]
-    [SerializeField, Min(1f)] private float rewindSpeedMultiplier = 1.5f;
-    [Tooltip("回溯后速度提升持续时间（秒）。")]
-    [SerializeField, Min(0f)] private float rewindSpeedBoostDuration = 2f;
 
-    [Header("加速反馈")]
-    [SerializeField] private CanvasGroup speedUpFeedbackGroup;
-    [SerializeField, Min(0f)] private float speedUpFadeInDuration = 0.2f;
-    [SerializeField, Min(0f)] private float speedUpFadeOutDuration = 0.4f;
+    [Header("Rewind Speed Boost")]
+    [SerializeField] private float rewindSpeedMultiplier = 1.5f;
+    [SerializeField] private float rewindSpeedBoostDuration = 2f;
 
-    [Header("精灵图")]
-    [SerializeField] private SpriteRenderer spriteRenderer;
+    // 由 PlayerActionController 每帧写入的缓存输入，物理与表现组件统一读这一份。
+    private float horizontalInput;
+    // 衰老速度系数：年龄越大移动与跳跃越弱，下限 0.4 防止彻底动不了。
+    private float agingRate;
+    private bool isGrounded;
+    private bool wasGrounded;
+    // 输入总开关：回溯冻结时关闭；死亡闸门见 CanMove。
+    private bool inputEnabled = true;
+    // 回溯结束后的加速 buff 截止时间。
+    private float speedBoostEndTime;
 
-    [Header("地面检测")]
-    public LayerMask groundLayer;            // 地面 Layer（Ground/Platform 等）
-    public Transform groundCheck;            // 脚下检测点（Player 底部）
-    public float groundCheckRadius = 0.1f;   // 检测圆半径
-    private float agingRate = 1f;
-    
-    bool isGrounded;
-    bool wasGrounded = true;
+    public event Action Landed;
+    public event Action SpeedBoostStarted;
+    public event Action StateReset;
+
     public bool IsGrounded => isGrounded;
-    public float HorizontalInput => Input.GetAxisRaw("Horizontal");
-    private bool pendingJump;
-    public bool TryConsumeJump()
-    {
-        if (!pendingJump) return false;
-        pendingJump = false;
-        return true;
-    }
-    bool isInputEnabled = true;
-    float speedBoostEndTime = float.NegativeInfinity;
-    Coroutine speedUpFeedbackRoutine;
-
-    /// <summary>
-    /// 回溯加速增益当前是否生效。
-    /// 这是增益状态的单一判断入口：所有读取增益是否激活的地方都走这里，
-    /// 不要再用「倍率 &gt; 1」之类的反推条件，避免判定标准分裂。
-    /// </summary>
+    public float HorizontalInput => horizontalInput;
+    public bool IsInputEnabled => inputEnabled;
+    public float AgingRate => agingRate;
+    public float SpeedBoostEndTime => speedBoostEndTime;
+    public float SpeedBoostRemaining => Mathf.Max(0f, speedBoostEndTime - Time.time);
     public bool IsSpeedBoostActive => Time.time < speedBoostEndTime;
+    // 死亡与回溯冻结共用这道闸：移动、跳跃、朝向跟随都要先过它。
+    public bool CanMove => inputEnabled && !IsPlayerDead();
+    public Vector3 GroundPosition => groundCheck != null ? groundCheck.position : transform.position;
+    public float CurrentMoveSpeed => moveSpeed * GetAgeSpeedMultiplier() *
+                                     (IsSpeedBoostActive ? Mathf.Max(1f, rewindSpeedMultiplier) : 1f) *
+                                     GetDyingMultiplier();
 
-    /// <summary>
-    /// 当前水平移动速度，包含衰老减速、回溯加速倍率和濒死减速。
-    /// </summary>
-    public float CurrentMoveSpeed
+    private void Awake()
     {
-        get => moveSpeed * agingRate * GetSpeedMultiplier() * GetDyingMultiplier();
-    }
-
-    /// <summary>
-    /// 濒死状态下的移动/跳跃倍率。读 HealthManager.IsDying，
-    /// 作为衰老减速和加速增益之外的独立倍率，在 agingRate 的 0.3 下限钳制之后生效。
-    /// </summary>
-    float GetDyingMultiplier()
-    {
-        return HealthManager.Instance != null && HealthManager.Instance.IsDying ? 0.1f : 1f;
-    }
-
-    void Awake()
-    {
-        // 反馈画布始终保持激活，只通过 CanvasGroup 控制可见性。
-        // 这样不会因为 SetActive 影响反馈协程或其他 UI 组件。
-        if (speedUpFeedbackGroup != null)
+        if (rb == null)
         {
-            speedUpFeedbackGroup.alpha = 0f;
-            speedUpFeedbackGroup.interactable = false;
-            speedUpFeedbackGroup.blocksRaycasts = false;
+            rb = GetComponentInParent<Rigidbody2D>();
         }
-        SetupLandingParticlePool();
+
+        RefreshGroundedState();
+        wasGrounded = isGrounded;
     }
 
-    private void SetupLandingParticlePool()
+    private void OnEnable()
     {
-        if (landParticlePrefab == null) return;
-
-        var main = landParticlePrefab.main;
-        main.useUnscaledTime = true;
-
-        landParticlePool = new ObjectPool<ParticleSystem>(landParticlePrefab, landParticlePrewarmCount, transform);
-    }
-
-    void OnEnable()
-    {
-        // 回溯系统和输入系统通过 VoidEventSO 通知移动脚本状态变化。
-        if (startInputEvent != null)
-            startInputEvent.VoidEvent += OnStartInput;
-        if (stopInputEvent != null)
-            stopInputEvent.VoidEvent += OnStopInput;
-        if (reincarnationEndEvent != null)
-            reincarnationEndEvent.VoidEvent += OnReincarnationEnd;
-        // 监听场景加载完成事件：每次切场景清空刚体速度，防止残留位移。
         if (sceneLoadedEvent != null)
             sceneLoadedEvent.VoidEvent += OnSceneLoaded;
+
+        if (reincarnationEndEvent != null)
+            reincarnationEndEvent.VoidEvent += OnReincarnationEnded;
     }
 
-    void OnDisable()
+    private void OnDisable()
     {
-        // 组件禁用时解除所有事件订阅，避免事件资产继续调用已禁用对象。
-        if (startInputEvent != null)
-            startInputEvent.VoidEvent -= OnStartInput;
-        if (stopInputEvent != null)
-            stopInputEvent.VoidEvent -= OnStopInput;
-        if (reincarnationEndEvent != null)
-            reincarnationEndEvent.VoidEvent -= OnReincarnationEnd;
         if (sceneLoadedEvent != null)
             sceneLoadedEvent.VoidEvent -= OnSceneLoaded;
 
-        // 离开场景或禁用组件时，清除加速状态和反馈显示。
-        speedBoostEndTime = float.NegativeInfinity;
-        speedUpFeedbackRoutine = null;
+        if (reincarnationEndEvent != null)
+            reincarnationEndEvent.VoidEvent -= OnReincarnationEnded;
 
-        if (speedUpFeedbackGroup != null)
-            speedUpFeedbackGroup.alpha = 0f;
+        horizontalInput = 0f;
+        StateReset?.Invoke();
     }
 
-    void OnStartInput()
+    /// <summary>每帧刷新地面状态与衰老系数，并用接地边沿触发落地事件。</summary>
+    private void Update()
     {
-        // 回溯结束后由事件恢复玩家输入。
-        pendingJump = false;
         RefreshGroundedState();
+        float ageNormalized = AgeManager.Instance != null ? AgeManager.Instance.AgeNormalized : 0f;
+        agingRate = Mathf.Max(0.4f, Mathf.Sqrt(1f - ageNormalized));
+
+        // 用上一帧接地状态做边沿判断，只在"离地→落地"瞬间触发一次。
+        if (CanMove && isGrounded && !wasGrounded)
+        {
+            Landed?.Invoke();
+        }
+
         wasGrounded = isGrounded;
-        isInputEnabled = true;
     }
 
-    void OnStopInput()
+    /// <summary>物理帧只写水平速度并保留垂直速度，跳跃/下落完全交给重力。</summary>
+    private void FixedUpdate()
     {
-        // 回溯开始时停止读取输入，但保留竖直方向的物理速度。
-        isInputEnabled = false;
-        pendingJump = false;
-
-        // 清除最后一次水平输入留下的速度，竖直方向继续交给物理系统。
-        if (rb != null)
-            rb.velocity = new Vector2(0f, rb.velocity.y);
-
-        if (runParticleSystem != null)
-            runParticleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-    }
-
-    void OnReincarnationEnd()
-    {
-        // 加速增益生效期间不重复触发，避免多次回溯结束导致增益时间不断被刷新或延长。
-        if (IsSpeedBoostActive)
-            return;
-
-        // 加速时间从回溯结束这一刻开始计算。
-        speedBoostEndTime = Time.time + rewindSpeedBoostDuration;
-
-        if (speedUpFeedbackGroup == null)
-            return;
-
-        // 如果上一次反馈还没结束，先停止它，再从淡入重新播放。
-        if (speedUpFeedbackRoutine != null)
-            StopCoroutine(speedUpFeedbackRoutine);
-
-        speedUpFeedbackRoutine = StartCoroutine(PlaySpeedUpFeedback());
-    }
-
-    void OnSceneLoaded()
-    {
-        // 每次切场景加载完成后清空上一场景残留的移动状态。
-        isInputEnabled = true;
-        pendingJump = false;
-        RefreshGroundedState();
-        wasGrounded = isGrounded;
-        agingRate = 1f;
-        speedBoostEndTime = float.NegativeInfinity;
-
-        if (rb != null)
-            rb.velocity = Vector2.zero;
-
-        if (runParticleSystem != null)
-            runParticleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-
-        StopAllCoroutines();
-        speedUpFeedbackRoutine = null;
-
-        if (speedUpFeedbackGroup != null)
+        if (rb == null)
         {
-            speedUpFeedbackGroup.alpha = 0f;
-            speedUpFeedbackGroup.interactable = false;
-            speedUpFeedbackGroup.blocksRaycasts = false;
-        }
-
-        for (int i = activeLandParticles.Count - 1; i >= 0; i--)
-        {
-            var ps = activeLandParticles[i];
-            if (ps != null)
-            {
-                ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                landParticlePool?.Return(ps);
-            }
-        }
-        activeLandParticles.Clear();
-    }
-
-    void Update()
-    {
-        if (!isInputEnabled) return;
-
-        // Update 负责读取输入和刷新移动状态，不直接写入刚体速度。
-        UpdateMovementState();
-        HandleJumpInput();
-    }
-
-    void FixedUpdate()
-    {
-        if (!isInputEnabled) return;
-
-        // 刚体速度只在物理帧中写入，避免和物理系统在同一帧竞争。
-        ApplyMovementVelocity();
-    }
-
-    void UpdateMovementState()
-    {
-        if (HealthManager.Instance.IsDead && HealthManager.Instance.CurrentHealth <= 0f)
-        {
-            // 死亡时不再处理移动状态，避免残留速度。
-            if (rb != null)
-                rb.velocity = Vector2.zero;
             return;
         }
-        
-        // 地面检测：未配置 groundCheck 时假设始终在地面（demo 模式，玩家可空中跳）
-        RefreshGroundedState();
 
-        if (!wasGrounded && isGrounded)
-            PlayLandParticle();
-        wasGrounded = isGrounded;
+        float targetVelocityX = CanMove ? horizontalInput * CurrentMoveSpeed : 0f;
+        rb.velocity = new Vector2(targetVelocityX, rb.velocity.y);
+    }
 
-        agingRate = 1f - AgeManager.Instance.AgeNormalized;
-        agingRate = Mathf.Max(0.4f, Mathf.Sqrt(agingRate));
-        
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        if (spriteRenderer != null && horizontal != 0f)
-            spriteRenderer.flipX = horizontal < 0f;
+    /// <summary>接收外部采样的水平输入；不可移动时一律钳为 0，防止残留输入驱动角色。</summary>
+    public void SetHorizontalInput(float value)
+    {
+        horizontalInput = CanMove ? Mathf.Clamp(value, -1f, 1f) : 0f;
+    }
 
-        if(isGrounded && horizontal != 0)
+    /// <summary>输入开关（回溯冻结/解冻用）；关闭时同步清空缓存输入。</summary>
+    public void SetInputEnabled(bool enabled)
+    {
+        inputEnabled = enabled;
+        if (!enabled)
         {
-            if(!runParticleSystem.isPlaying)
-                runParticleSystem.Play();
+            horizontalInput = 0f;
         }
-        else
+    }
+
+    /// <summary>施加跳跃冲量。跳跃力随衰老与濒死衰减；失败（死亡/离地）返回 false 交由调用方回退。</summary>
+    public bool ExecuteJump()
+    {
+        if (rb == null || !CanMove || !isGrounded)
         {
-            if(runParticleSystem.isPlaying)
-                runParticleSystem.Stop();
+            return false;
         }
-
-    }
-
-    private void RefreshGroundedState()
-    {
-        isGrounded = groundCheck != null
-            ? Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer)
-            : true;
-    }
-
-    private void PlayLandParticle()
-    {
-        if (landParticlePool == null) return;
-        ParticleSystem ps = landParticlePool.Get();
-        if (ps == null) return;
-
-        ps.transform.SetParent(null);
-        ps.transform.position = groundCheck != null ? groundCheck.position : transform.position;
-        ps.Play();
-        activeLandParticles.Add(ps);
-        StartCoroutine(ReturnLandParticleWhenDone(ps));
-    }
-
-    private IEnumerator ReturnLandParticleWhenDone(ParticleSystem ps)
-    {
-        while (ps.isPlaying)
-            yield return null;
-
-        landParticlePool.Return(ps);
-        activeLandParticles.Remove(ps);
-    }
-
-    void HandleJumpInput()
-    {
-        if (HealthManager.Instance.IsDead && HealthManager.Instance.CurrentHealth <= 0f)
-        {
-            // 死亡时不再处理移动状态，避免残留速度。
-            if (rb != null)
-                rb.velocity = Vector2.zero;
-            return;
-        }
-        
-        if (rb == null || !Input.GetButtonDown("Jump") || !isGrounded)
-            return;
-
-        pendingJump = true;
-    }
-
-    public void ExecuteJump()
-    {
-        if (rb == null) return;
 
         Vector2 velocity = rb.velocity;
         velocity.y = jumpForce * agingRate * GetDyingMultiplier();
         rb.velocity = velocity;
+        isGrounded = false;
+        return true;
     }
 
-    void ApplyMovementVelocity()
+    /// <summary>以地面检测点为圆心做重叠检测刷新接地状态。</summary>
+    private void RefreshGroundedState()
     {
-        if (HealthManager.Instance.IsDead && HealthManager.Instance.CurrentHealth <= 0f)
+        if (groundCheck == null)
         {
-            // 死亡时不再处理移动状态，避免残留速度。
-            if (rb != null)
-                rb.velocity = Vector2.zero;
+            isGrounded = false;
             return;
         }
-        
-        if (rb == null)
+
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer) != null;
+    }
+
+    /// <summary>年龄对移速的乘数（与跳跃力共用 agingRate）。</summary>
+    private float GetAgeSpeedMultiplier()
+    {
+        return agingRate;
+    }
+
+    /// <summary>濒死（血量归零待自救）时移速与跳跃力骤降。</summary>
+    private static float GetDyingMultiplier()
+    {
+        return HealthManager.Instance != null && HealthManager.Instance.IsDying ? 0.1f : 1f;
+    }
+
+    private static bool IsPlayerDead()
+    {
+        return HealthManager.Instance != null && HealthManager.Instance.IsDead;
+    }
+
+    /// <summary>场景加载完成：清空输入、速度与加速 buff，防止 retry 后残留上一局状态。</summary>
+    private void OnSceneLoaded()
+    {
+        horizontalInput = 0f;
+        speedBoostEndTime = 0f;
+        agingRate = 1f;
+        if (rb != null)
+            rb.velocity = Vector2.zero;
+        RefreshGroundedState();
+        wasGrounded = isGrounded;
+        StateReset?.Invoke();
+    }
+
+    /// <summary>回溯结束后给予一段加速 buff；buff 未结束时重复回溯不叠加。</summary>
+    private void OnReincarnationEnded()
+    {
+        if (IsSpeedBoostActive)
             return;
 
-        // 水平速度由输入、当前年龄减速和回溯加速倍率共同决定。
-        // y 速度交给物理系统保留，避免覆盖重力和跳跃。
-        float x = Input.GetAxisRaw("Horizontal");
-        rb.velocity = new Vector2(x * CurrentMoveSpeed, rb.velocity.y);
+        speedBoostEndTime = Time.time + rewindSpeedBoostDuration;
+        SpeedBoostStarted?.Invoke();
     }
 
-    float GetSpeedMultiplier()
+    private void OnDrawGizmosSelected()
     {
-        // 倍率本身只描述「生效时是几倍」，是否生效交给 IsSpeedBoostActive。
-        return IsSpeedBoostActive
-            ? Mathf.Max(1f, rewindSpeedMultiplier)
-            : 1f;
-    }
-
-    IEnumerator PlaySpeedUpFeedback()
-    {
-        // 文字淡入后保持显示，直到真实速度 Buff 结束，再淡出。
-        speedUpFeedbackGroup.alpha = 0f;
-        yield return FadeSpeedUpFeedback(0f, 1f, speedUpFadeInDuration);
-
-        while (IsSpeedBoostActive)
-            yield return null;
-
-        yield return FadeSpeedUpFeedback(1f, 0f, speedUpFadeOutDuration);
-        speedUpFeedbackRoutine = null;
-    }
-
-    IEnumerator FadeSpeedUpFeedback(float startAlpha, float targetAlpha, float duration)
-    {
-        // 支持时长为 0 的配置，避免除零并允许瞬间切换透明度。
-        if (duration <= 0f)
+        if (groundCheck == null)
         {
-            speedUpFeedbackGroup.alpha = targetAlpha;
-            yield break;
+            return;
         }
 
-        float elapsed = 0f;
-        while (elapsed < duration)
-        {
-            // 使用非缩放时间，让 UI 淡入淡出不受暂停影响。
-            elapsed += Time.unscaledDeltaTime;
-            speedUpFeedbackGroup.alpha = Mathf.Lerp(
-                startAlpha,
-                targetAlpha,
-                Mathf.Clamp01(elapsed / duration));
-            yield return null;
-        }
-
-        speedUpFeedbackGroup.alpha = targetAlpha;
+        Gizmos.color = isGrounded ? Color.green : Color.red;
+        Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
     }
 }
