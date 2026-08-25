@@ -96,10 +96,8 @@ public class SpikeLauncher : MonoBehaviour
     {
         if (spikePrefab == null) return;
 
-        // 尖刺挂到发射器下收纳，避免散落在场景根目录；worldPositionStays=true 保持世界姿态，
-        // 防止继承发射器 (1, 1.4, 1) 的非均匀缩放导致尖刺被拉长
-        FlyingSpike spike = Instantiate(spikePrefab, transform.position, Quaternion.identity);
-        spike.transform.SetParent(transform, true);
+        FlyingSpike spike = Instantiate(spikePrefab, transform.position, Quaternion.identity, transform);
+        spike.transform.SetParent(null);
         
         spike.SetDamage(spikeDamage);
         spike.SetSpeed(spikeSpeed);

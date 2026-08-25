@@ -54,6 +54,9 @@ public sealed class PlayerActionController : MonoBehaviour
     [Tooltip("Delay in seconds between accepting jump input and applying the jump impulse.")]
     [SerializeField, Min(0f)] private float jumpDelay = 0.18f;
 
+    [Tooltip("Max seconds to wait for leaving the ground after the jump impulse; on timeout the state falls back to normal (e.g. bumping head on a low ceiling).")]
+    [SerializeField, Min(0.05f)] private float takeoffTimeout = 0.3f;
+
     [Header("Input Events")]
     [SerializeField] private VoidEventSO startInputEvent;
     [SerializeField] private VoidEventSO stopInputEvent;
@@ -201,6 +204,8 @@ public sealed class PlayerActionController : MonoBehaviour
                 if (playerMovement.ExecuteJump())
                 {
                     AudioManager.Instance?.PlaySFX(MyEnums.SFXType.Jump);
+                    // takeoffTime 在此复用为冲量实际施加时刻，供 WaitingForAirborne 阶段做超时判断。
+                    takeoffTime = Time.time;
                     jumpPhase = JumpPhase.WaitingForAirborne;
                 }
                 else
@@ -218,7 +223,17 @@ public sealed class PlayerActionController : MonoBehaviour
         if (jumpPhase == JumpPhase.WaitingForAirborne)
         {
             if (!playerMovement.IsGrounded)
+            {
                 jumpPhase = JumpPhase.Airborne;
+            }
+            else if (Time.time >= takeoffTime + takeoffTimeout)
+            {
+                // 低矮天花板顶头后被弹回，上升幅度小于地面检测半径导致始终未"离地"，
+                // 超时视为起跳失败，回退常规推导，避免永久卡在起跳状态。
+                jumpPhase = JumpPhase.None;
+                SynchronizeNormalActionState();
+                return false;
+            }
 
             return true;
         }
