@@ -12,9 +12,9 @@ public class SpikeLauncher : MonoBehaviour
     [SerializeField] private VoidEventSO reincarnationBegEvent;
     [SerializeField] private VoidEventSO reincarnationEndEvent;
 
-    [Header("粒子效果")]
-    [Tooltip("发射尖刺时播放的粒子特效。")]
-    [SerializeField] private ParticleSystem shootingParticlePrefab;
+    [Header("粒子事件")]
+    [Tooltip("发射粒子的生成请求事件，由中央粒子管理器统一池化播放。")]
+    [SerializeField] private SpawnParticleEventSO spawnParticleEvent;
     [Tooltip("固定发射粒子位置的变换节点，通常位于发射器头部附近。")]
     [SerializeField] private Transform particlePoint;
     
@@ -96,8 +96,10 @@ public class SpikeLauncher : MonoBehaviour
     {
         if (spikePrefab == null) return;
 
-        FlyingSpike spike = Instantiate(spikePrefab, transform.position, Quaternion.identity, transform);
-        spike.transform.SetParent(null);
+        // 尖刺挂到发射器下收纳，避免散落在场景根目录；worldPositionStays=true 保持世界姿态，
+        // 防止继承发射器 (1, 1.4, 1) 的非均匀缩放导致尖刺被拉长
+        FlyingSpike spike = Instantiate(spikePrefab, transform.position, Quaternion.identity);
+        spike.transform.SetParent(transform, true);
         
         spike.SetDamage(spikeDamage);
         spike.SetSpeed(spikeSpeed);
@@ -108,18 +110,11 @@ public class SpikeLauncher : MonoBehaviour
         AudioManager.Instance?.PlaySFX(MyEnums.SFXType.SpikeLaunch);
     }
 
+    /// <summary>向中央粒子管理器请求在枪口位置播放发射粒子（世界坐标，不跟随发射器）。</summary>
     private void PlayShootingParticle()
     {
-        if (shootingParticlePrefab == null) return;
-
-        Transform parent = particlePoint != null ? particlePoint : transform;
-        ParticleSystem particle = Instantiate(shootingParticlePrefab, parent);
-        particle.transform.localPosition = Vector3.zero;
-        particle.transform.localRotation = shootingParticlePrefab.transform.localRotation;
-        particle.Play(true);
-
-        var main = particle.main;
-        Destroy(particle.gameObject, main.duration + main.startLifetime.constantMax);
+        Vector3 position = particlePoint != null ? particlePoint.position : transform.position;
+        spawnParticleEvent?.RaiseSpawnParticleEvent(position, MyEnums.ParticleType.Shoot);
     }
 
     public void FireAnim()

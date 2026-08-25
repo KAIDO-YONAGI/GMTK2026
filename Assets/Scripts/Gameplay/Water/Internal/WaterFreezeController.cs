@@ -14,7 +14,7 @@ internal sealed class WaterFreezeController
     private readonly Func<bool> isOperationLocked;
     private readonly Action recordSnapshot;
     private readonly float freezeDelay;
-    private readonly ParticleSystem iceParticlePrefab;
+    private readonly Action<Vector3> playIceParticle;
 
     public WaterFreezeController(
         WaterSource owner,
@@ -22,14 +22,14 @@ internal sealed class WaterFreezeController
         Func<bool> isOperationLocked,
         Action recordSnapshot,
         float freezeDelay,
-        ParticleSystem iceParticlePrefab)
+        Action<Vector3> playIceParticle)
     {
         this.owner = owner;
         this.state = state;
         this.isOperationLocked = isOperationLocked;
         this.recordSnapshot = recordSnapshot;
         this.freezeDelay = freezeDelay;
-        this.iceParticlePrefab = iceParticlePrefab;
+        this.playIceParticle = playIceParticle;
     }
 
     public bool IsFrozen()
@@ -97,21 +97,10 @@ internal sealed class WaterFreezeController
         StopForRewind();
     }
 
+    /// <summary>冰粒子已收归中央管理器，这里只转发位置请求。</summary>
     public void PlayIceParticle(Vector3 position)
     {
-        if (iceParticlePrefab == null)
-            return;
-
-        ParticleSystem particle = UnityEngine.Object.Instantiate(
-            iceParticlePrefab,
-            position,
-            iceParticlePrefab.transform.rotation);
-        particle.Play(true);
-
-        ParticleSystem.MainModule main = particle.main;
-        UnityEngine.Object.Destroy(
-            particle.gameObject,
-            main.duration + main.startLifetime.constantMax);
+        playIceParticle?.Invoke(position);
     }
 
     private bool HasStage2Units()

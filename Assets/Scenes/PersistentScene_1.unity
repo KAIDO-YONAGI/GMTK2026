@@ -539,10 +539,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1137429068}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 1920, y: 1080}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &319105569
 MonoBehaviour:
@@ -1456,6 +1456,7 @@ Transform:
   - {fileID: 1260483790}
   - {fileID: 908379116}
   - {fileID: 1611935819}
+  - {fileID: 881798638}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &845991360
@@ -1504,8 +1505,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameOverToggleEventSO: {fileID: 11400000, guid: 421b13ff016780149b1e6e053f295712, type: 2}
   gameOverGroup: {fileID: 845991361}
-  sceneLoadedEvent: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
   deathText: {fileID: 1460269273}
+  sceneLoadedEvent: {fileID: 11400000, guid: 9b097c1a1cc740a48a5e90c4e0e548b0, type: 2}
   peacefulDeathMessage: 'You Died
 
     A peaceful end'
@@ -1698,6 +1699,69 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 876843489}
   m_CullTransparentMesh: 1
+--- !u!1 &881798637
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 881798638}
+  - component: {fileID: 881798639}
+  m_Layer: 0
+  m_Name: ParticlesManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &881798638
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881798637}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 761750251}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &881798639
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881798637}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0f3aebaf3af55a4e8c3bf4db1b9145b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnParticleEvent: {fileID: 11400000, guid: a93f3de6b2f4d96488b37d9f889ed3b5, type: 2}
+  loadEventSO: {fileID: 11400000, guid: 5c1f674bf4d9e674bba723f807716ff3, type: 2}
+  entries:
+  - type: 0
+    prefab: {fileID: 7505165592076352477, guid: aebe0b4269ffc6a4fb6167d4b81ffb78, type: 3}
+    prewarmCount: 3
+    useUnscaledTime: 1
+  - type: 1
+    prefab: {fileID: 16004080204727980, guid: cfd46150a35662b489e3d0ccd049900b, type: 3}
+    prewarmCount: 3
+    useUnscaledTime: 1
+  - type: 2
+    prefab: {fileID: 2378960507229653462, guid: d74c1355619498a47b9711276bcb25eb, type: 3}
+    prewarmCount: 8
+    useUnscaledTime: 0
+  - type: 3
+    prefab: {fileID: 4571828757543620981, guid: 1c9b68e297613a146a2d22b1fc409d43, type: 3}
+    prewarmCount: 2
+    useUnscaledTime: 0
 --- !u!1 &908379114
 GameObject:
   m_ObjectHideFlags: 0

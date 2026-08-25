@@ -29,8 +29,8 @@ public class WaterSource : RewindableBase
     [Tooltip("触发冻结后，进入冻结状态前的延迟秒数。现有及后续成熟的水流单元都会结冰。")]
     [SerializeField] private float freezeDelay = 2f;
 
-    [Tooltip("水流单元冻结或破碎时播放的粒子特效。")]
-    [SerializeField] private ParticleSystem iceParticlePrefab;
+    [Tooltip("冰粒子生成请求事件，由中央粒子管理器统一池化播放。")]
+    [SerializeField] private SpawnParticleEventSO spawnParticleEvent;
 
     [Header("碰撞检测")]
     [Tooltip("地面检测层，命中后停止向下生成。默认应包含地面和平台图层。")]
@@ -83,7 +83,7 @@ public class WaterSource : RewindableBase
             () => IsRewindOperationLocked,
             RecordSnapshot,
             freezeDelay,
-            iceParticlePrefab);
+            PlayIceParticleEvent);
         flowController = new WaterFlowController(
             this,
             runtimeState,
@@ -189,6 +189,12 @@ public class WaterSource : RewindableBase
         runtimeState.ClearCoroutineReferences();
         flowController.ResumeAfterRewind();
         freezeController.ResumeAfterRewind();
+    }
+
+    /// <summary>把冰粒子请求转发给中央粒子管理器。</summary>
+    private void PlayIceParticleEvent(Vector3 position)
+    {
+        spawnParticleEvent?.RaiseSpawnParticleEvent(position, MyEnums.ParticleType.Ice);
     }
 
     private void OnSnapshotApplied(float snapshotTime)

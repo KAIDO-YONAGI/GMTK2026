@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class HealthManager : YSingleton<HealthManager>
@@ -20,8 +18,8 @@ public class HealthManager : YSingleton<HealthManager>
     [SerializeField] private IntEventSO healthChangedEvent;
     
     [Header("受伤粒子")]
-    [SerializeField] private ParticleSystem hurtParticlePrefab;
-    [SerializeField] private int hurtParticlePrewarmCount = 3;
+    [Tooltip("受击粒子的生成请求事件，由中央粒子管理器统一池化播放。")]
+    [SerializeField] private SpawnParticleEventSO spawnParticleEvent;
 
     [Header("震动事件")]
     [SerializeField] private ShakeEventSO shakeEvent;
@@ -33,9 +31,6 @@ public class HealthManager : YSingleton<HealthManager>
     };
     
     
-
-    private ObjectPool<ParticleSystem> hurtParticlePool;
-    private readonly List<ParticleSystem> activeHurtParticles = new();
 
     // 当前生命值只读访问（外部查询用，修改请走 ChangeHealth）
     public int CurrentHealth => currentHealth;
@@ -50,41 +45,12 @@ public class HealthManager : YSingleton<HealthManager>
     protected override void OnSingletonInitialized()
     {
         currentHealth = maxHealth;
-        SetupHurtParticlePool();
     }
 
-    private void SetupHurtParticlePool()
-    {
-        if (hurtParticlePrefab == null) return;
-
-        // 令预制体各实例使用不受缩放影响的时间，保证暂停时仍能正常播放。
-        var main = hurtParticlePrefab.main;
-        main.useUnscaledTime = true;
-
-        hurtParticlePool = new ObjectPool<ParticleSystem>(hurtParticlePrefab, hurtParticlePrewarmCount, transform);
-    }
-
+    /// <summary>受击时向中央粒子管理器请求在自身位置播放受击粒子。</summary>
     private void PlayHurtParticle()
     {
-        if (hurtParticlePool == null) return;
-        ParticleSystem ps = hurtParticlePool.Get();
-        if (ps == null) return;
-
-        ps.transform.SetParent(null);
-        ps.transform.position = transform.position;
-        ps.Play();
-        activeHurtParticles.Add(ps);
-        StartCoroutine(ReturnParticleWhenDone(ps));
-    }
-
-    private IEnumerator ReturnParticleWhenDone(ParticleSystem ps)
-    {
-        // 等待粒子播放完成
-        while (ps.isPlaying)
-            yield return null;
-
-        hurtParticlePool.Return(ps);
-        activeHurtParticles.Remove(ps);
+        spawnParticleEvent?.RaiseSpawnParticleEvent(transform.position, MyEnums.ParticleType.Hurt);
     }
 
     private void OnEnable()
@@ -101,11 +67,6 @@ public class HealthManager : YSingleton<HealthManager>
         {
             SceneLoadedEvent.VoidEvent -= OnSceneLoaded;
         }
-    }
-
-    private void OnDestroy()
-    {
-        hurtParticlePool?.Clear();
     }
 
     /// <summary>
@@ -202,18 +163,7 @@ public class HealthManager : YSingleton<HealthManager>
     private void OnSceneLoaded()
     {
         // 每次换场景回满血（订阅 sceneLoadedEvent；重试重载场景时同样生效），并清除死亡和濒死状态。
+        // 活跃粒子的回收由 ParticlesManager 订阅场景加载请求统一处理，这里不再管粒子。
         ResetHealth();
-
-        StopAllCoroutines();
-        for (int i = activeHurtParticles.Count - 1; i >= 0; i--)
-        {
-            var ps = activeHurtParticles[i];
-            if (ps != null)
-            {
-                ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                hurtParticlePool.Return(ps);
-            }
-        }
-        activeHurtParticles.Clear();
     }
 }

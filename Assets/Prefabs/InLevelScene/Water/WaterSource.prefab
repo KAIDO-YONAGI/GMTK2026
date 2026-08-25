@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7469646473646674123}
-  - component: {fileID: 8061449396540786333}
   m_Layer: 0
   m_Name: WaterGrid
   m_TagString: Untagged
@@ -32,18 +31,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5964988899062064222}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8061449396540786333
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1101521990722534996}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b12ea9cd3ce48c5438f9de8838ccb73d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &3617698977976753871
 GameObject:
   m_ObjectHideFlags: 0
@@ -290,7 +277,7 @@ MonoBehaviour:
   flowInterval: 0.2
   stage1ToStage2Seconds: 0.1
   freezeDelay: 0.31
-  iceParticlePrefab: {fileID: 2378960507229653462, guid: d74c1355619498a47b9711276bcb25eb, type: 3}
+  spawnParticleEvent: {fileID: 0}
   groundMask:
     serializedVersion: 2
     m_Bits: 1536

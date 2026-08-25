@@ -11,15 +11,16 @@ public sealed class PlayerRewindTarget : MonoBehaviour
     [SerializeField] private VoidEventSO movementBegEvent;
     [SerializeField] private VoidEventSO movementEndEvent;
 
-    // 玩家组件分布在子层级（MovementManager 等），引用丢失时在抓取/恢复前懒重查找。
-    private Transform playerTransform;
-    private Rigidbody2D playerRigidbody;
-    private PlayerActionController playerActionController;
-    private PlayerMovementFeedback playerMovementFeedback;
+    // 玩家组件引用全部由 Inspector 接线；不做运行时层级查找，也不假设本组件挂在玩家层级下。
+    [Header("Player References")]
+    [SerializeField] private Transform playerTransform;
+    [SerializeField] private Rigidbody2D playerRigidbody;
+    [SerializeField] private PlayerActionController playerActionController;
+    [SerializeField] private PlayerMovementFeedback playerMovementFeedback;
 
     private RigidbodyType2D bodyTypeBeforeRewind;
     private bool isFrozen;
-    // 组件查找失败的警告只报一次，避免每帧快照刷屏。
+    // 引用未接线的警告只报一次，避免刷屏。
     private bool warnedMissingActionController;
     private bool warnedMissingFeedback;
 
@@ -27,7 +28,7 @@ public sealed class PlayerRewindTarget : MonoBehaviour
 
     private void Awake()
     {
-        ResolvePlayerComponents();
+        WarnIfReferencesMissing();
     }
 
     private void OnDisable()
@@ -37,12 +38,10 @@ public sealed class PlayerRewindTarget : MonoBehaviour
 
     /// <summary>
     /// 抓取一帧回溯快照：位置、血量、动作状态与朝向。
-    /// 动作/朝向组件缺失时降级为 None/朝右（见 ResolvePlayerComponents 的警告）。
+    /// 动作/朝向引用未接线时降级为 None/朝右（见 WarnIfReferencesMissing 的警告）。
     /// </summary>
     public PlayerRewindSnapshot CaptureSnapshot(float time)
     {
-        ResolvePlayerComponents();
-
         return new PlayerRewindSnapshot
         {
             time = time,
@@ -59,8 +58,6 @@ public sealed class PlayerRewindTarget : MonoBehaviour
     /// <summary>恢复快照：位置经刚体写入避免与物理竞争；动作状态与朝向只恢复表现，不触发物理。</summary>
     public void ApplySnapshot(PlayerRewindSnapshot snapshot)
     {
-        ResolvePlayerComponents();
-
         if (playerRigidbody != null)
             playerRigidbody.position = new Vector2(snapshot.position.x, snapshot.position.y);
         else
@@ -79,7 +76,6 @@ public sealed class PlayerRewindTarget : MonoBehaviour
         if (isFrozen)
             return;
 
-        ResolvePlayerComponents();
         isFrozen = true;
         movementBegEvent?.OnEventRaised();
 
@@ -110,31 +106,19 @@ public sealed class PlayerRewindTarget : MonoBehaviour
         movementEndEvent?.OnEventRaised();
     }
 
-    /// <summary>
-    /// 懒解析玩家根上的组件。动作/朝向组件缺失会让快照静默降级（永远 None/朝右），
-    /// 因此补一次性警告方便排查漏挂组件的实例。
-    /// </summary>
-    private void ResolvePlayerComponents()
+    /// <summary>引用未接线时快照会静默降级（动作恒 None、朝向恒右），启动时一次性警告便于排查。</summary>
+    private void WarnIfReferencesMissing()
     {
-        if (playerTransform == null)
-            playerTransform = transform.root;
-        if (playerRigidbody == null && playerTransform != null)
-            playerRigidbody = playerTransform.GetComponent<Rigidbody2D>();
-        if (playerActionController == null && playerTransform != null)
-            playerActionController = playerTransform.GetComponentInChildren<PlayerActionController>(true);
-        if (playerMovementFeedback == null && playerTransform != null)
-            playerMovementFeedback = playerTransform.GetComponentInChildren<PlayerMovementFeedback>(true);
-
         if (playerActionController == null && !warnedMissingActionController)
         {
             warnedMissingActionController = true;
-            Debug.LogWarning("[PlayerRewindTarget] Player hierarchy is missing PlayerActionController; snapshots will not record action state.");
+            Debug.LogWarning("[PlayerRewindTarget] PlayerActionController reference is not assigned; snapshots will not record action state.");
         }
 
         if (playerMovementFeedback == null && !warnedMissingFeedback)
         {
             warnedMissingFeedback = true;
-            Debug.LogWarning("[PlayerRewindTarget] Player hierarchy is missing PlayerMovementFeedback; snapshots will not record facing.");
+            Debug.LogWarning("[PlayerRewindTarget] PlayerMovementFeedback reference is not assigned; snapshots will not record facing.");
         }
     }
 }

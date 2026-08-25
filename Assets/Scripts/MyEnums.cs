@@ -85,4 +85,11 @@ namespace MyEnums
          // Default 没有功能性索引，建议在此之前添加新的枚举。
         Default
     }
+    public enum ParticleType
+    {
+        Land,
+        Hurt,
+        Ice,
+        Shoot
+    }
 }

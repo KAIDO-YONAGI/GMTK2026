@@ -75,15 +75,8 @@ public sealed class PlayerActionController : MonoBehaviour
     public PlayerActionState CurrentActionState => currentActionState;
     public bool IsRewinding => isRewinding;
 
-    private void Awake()
-    {
-        ResolveComponents();
-    }
-
     private void OnEnable()
     {
-        ResolveComponents();
-
         if (animationController != null)
             animationController.ActionCompleted += OnAnimationActionCompleted;
         if (playerMovement != null)
@@ -415,16 +408,5 @@ public sealed class PlayerActionController : MonoBehaviour
         jumpPhase = JumpPhase.None;
         takeoffTime = 0f;
         isWaitingForActionCompletion = false;
-    }
-
-    /// <summary>兜底解析组件：Inspector 引用丢失时按玩家层级重新查找。</summary>
-    private void ResolveComponents()
-    {
-        if (playerMovement == null)
-            playerMovement = GetComponent<PlayerMovement>();
-        if (playerMovement == null)
-            playerMovement = transform.root.GetComponentInChildren<PlayerMovement>(true);
-        if (animationController == null)
-            animationController = transform.root.GetComponentInChildren<PlayerAnimationController>(true);
     }
 }

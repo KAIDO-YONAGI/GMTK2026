@@ -21,9 +21,9 @@ public class IceBlock : RewindableBase
     [Tooltip("碎裂冰块的精灵渲染器，完整时隐藏。可不配置；未配置时碎裂只隐藏完整贴图。")]
     [SerializeField] private SpriteRenderer brokenRenderer;
 
-    [Header("粒子效果")]
-    [Tooltip("冰块冻结或破碎时播放的粒子特效。")]
-    [SerializeField] private ParticleSystem iceParticlePrefab;
+    [Header("粒子事件")]
+    [Tooltip("冰粒子的生成请求事件，由中央粒子管理器统一池化播放。")]
+    [SerializeField] private SpawnParticleEventSO spawnParticleEvent;
 
     [Header("回溯")]
     [Tooltip("回溯播放倍速。1 = 1:1 实时倒放。")]
@@ -117,18 +117,10 @@ public class IceBlock : RewindableBase
         if (brokenRenderer != null) brokenRenderer.gameObject.SetActive(broken);
     }
 
+    /// <summary>向中央粒子管理器请求在本冰块位置播放冰粒子。</summary>
     private void PlayIceParticle()
     {
-        if (iceParticlePrefab == null) return;
-
-        ParticleSystem particle = Instantiate(
-            iceParticlePrefab,
-            transform.position,
-            iceParticlePrefab.transform.rotation);
-        particle.Play(true);
-
-        var main = particle.main;
-        Destroy(particle.gameObject, main.duration + main.startLifetime.constantMax);
+        spawnParticleEvent?.RaiseSpawnParticleEvent(transform.position, MyEnums.ParticleType.Ice);
     }
 
     // ===== 事件 =====

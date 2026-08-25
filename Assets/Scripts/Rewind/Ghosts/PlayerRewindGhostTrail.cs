@@ -30,8 +30,6 @@ public sealed class PlayerRewindGhostTrail : MonoBehaviour
     private void Awake()
     {
         rewindSource = GetComponent<ReincarnationManager>();
-        if (sourceRenderer == null)
-            sourceRenderer = transform.root.GetComponent<SpriteRenderer>();
 
         trailController = new PlayerGhostTrailController(
             transform,

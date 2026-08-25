@@ -28,15 +28,6 @@ public sealed class PlayerAnimationController : MonoBehaviour
     public PlayerActionState DisplayedActionState => displayedActionState;
     public bool IsPlaying => animatorPlayer != null && animatorPlayer.IsPlaying;
 
-    private void Awake()
-    {
-        // AnimationPlayerBase（UnityAnimatorPlayer）挂在玩家根上，与 Animator 同级，向上兜底查找。
-        if (animatorPlayer == null)
-        {
-            animatorPlayer = GetComponentInParent<AnimationPlayerBase>();
-        }
-    }
-
     private void Update()
     {
         UpdateFootsteps();

@@ -58,11 +58,6 @@ public sealed class PlayerMovement : MonoBehaviour
 
     private void Awake()
     {
-        if (rb == null)
-        {
-            rb = GetComponentInParent<Rigidbody2D>();
-        }
-
         RefreshGroundedState();
         wasGrounded = isGrounded;
     }

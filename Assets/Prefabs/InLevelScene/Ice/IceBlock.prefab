@@ -243,7 +243,7 @@ MonoBehaviour:
   isRewindCoolingDown: 0
   intactRenderer: {fileID: 1917010493467858511}
   brokenRenderer: {fileID: 0}
-  iceParticlePrefab: {fileID: 2378960507229653462, guid: d74c1355619498a47b9711276bcb25eb, type: 3}
+  spawnParticleEvent: {fileID: 11400000, guid: a93f3de6b2f4d96488b37d9f889ed3b5, type: 2}
   rewindSpeed: 1
   rewindCooldownSeconds: 1
   reincarnationBegEvent: {fileID: 11400000, guid: f37a074e87627f8498ef5a4e37f6d6ee, type: 2}

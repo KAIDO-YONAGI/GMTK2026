@@ -230,10 +230,10 @@ Global Volume Manager [Volume + VolumeManager] ← URP 全局后处理
 ### UI 与验证
 
 - **面板系统**：`UIManager` 事件驱动；当前实际 Canvas 名称是 `ESCCanvas`、`GuideCanvas`、`GameOverCanvas`、`HUDCanvas` 和 `FadeCanvas`，不再以 `ESCPanel` 作为场景对象名记录。
-- **ESCCanvas 按钮**（`Assets/Scenes/PersistentScene.unity`，2026-07-25 核实）：现有三个按钮，垂直顺序自上而下 `ResumeButton`(y=0) → `MenuButton`(y=-80) → `RetryButton`(y=-160)。三者 OnClick 都绑到 ESCCanvas 上的 `ESCMenuManager` 组件：
-  - `OnResumeButton`：仅关闭 ESC 面板（`UIManager.RequestCanvasClose(ESC)`）。
-  - `OnReturnToMenuButton`：关闭面板 + 用 `SceneChanger.loadEventSO` 加载 `initScene`（返回主菜单）。
-  - `OnRetryButton`（新增）：关闭面板 + `TimeManager.ForceResumeGame()` + `retryEventSO.OnEventRaised()`；`ESCMenuManager.retryEventSO` 引用 `Assets/SOs/Events/RetryEvent.asset`（GUID `4088e814...`，与 GameOver 面板的 `ButtonSceneToggler.retryEventSO` 共用同一 SO），由每场景的 `RetryManager` 监听后执行 `HealthManager.ResetHealth()` + 重载当前场景。**行为完全对齐 GameOver 的 Retry**。
+- **ESCCanvas 按钮**（`Assets/Scenes/PersistentScene.unity`，2026-08-25 核实更新）：现有四个按钮，垂直顺序自上而下 `ContinueButton`(y=0) → `MenuButton`(y=-80) → `RetryButton`(y=-160) → `QuitButton`(y=-240)，样式统一（无 sprite Image、300×60、Label TMP 字号 36）。OnClick 绑定：
+  - `ContinueButton` / `MenuButton` 绑到 ESCCanvas 上的 `ESCMenuManager` 组件：`OnContinueButton` 仅关闭 ESC 面板（`UIManager.RequestCanvasClose(ESC)`）；`OnReturnToMenuButton` 关闭面板 + 用 `SceneChanger.loadEventSO` 加载主菜单。
+  - `RetryButton` 绑到同一 GameObject 上的独立 `RetryButton` 组件 `HandleRetry`：`retryEventSO` 引用 `Assets/SOs/Events/RetryEvent.asset`（GUID `4088e814...`，与 GameOver 面板共用同一 SO），由每场景的 `RetryManager` 监听后执行 `HealthManager.ResetHealth()` + 重载当前场景。**行为完全对齐 GameOver 的 Retry**。
+  - `QuitButton`（2026-08-25 新增）：OnClick 持久化直绑 ESCCanvas 上新挂的 `ExitManager` 组件 `QuitGame()`（`Assets/FrameWork/Scripts/UI/ExitManager.cs`，编辑器内停止播放、构建版 `Application.Quit()`），零代码新增。
 - **GameOverCanvas 死亡提示词**（`Assets/Scenes/PersistentScene_1.unity`，2026-07-25 核实）：`GameOverManager.OnGameOver(true)` 根据 `DeathManager.LastDeathType` 动态设置 `DeathText`(TMP_Text) 的文本：
   - `OldDead`（老死）→ `peacefulDeathMessage` = `"Rest in peace..."`（你死得很安详~）。
   - `UnnormalDead`（被打死/暴毙）→ `brutalDeathMessage` = `"Slaughtered without mercy!"`（你暴毙而亡！）。
@@ -317,3 +317,4 @@ Global Volume Manager [Volume + VolumeManager] ← URP 全局后处理
 | 2026-07-26 | 新增"玩家动画与 loaded 状态修复"小节：`PlayerAnimationController` 改用 `UnityAnimatorPlayer` 直播 AnimationClip（非 Animator 参数）；`OnSceneLoaded` 回调修复弹簧死亡 retry 后状态残留（`PlayerMovement.cs:192-228`）；死亡禁止移动在 `PlayerMovement` 三处入口加闸（`:249-255/315-321/340-346`）；标注死后 AD 反转 bug 未解决（`a44ffb3` 失败） |
 | 2026-07-27 | 新增"GJ 复盘归因"小节：归因一（单点过载+沟通乏力，流程层，附 git 数据佐证与"环形讨论"对策）；归因二（解谜引导盲区，设计层，附 4 份外部资料查证结论与对策）。详见桌面评估报告第九章 |
 | 2026-08-15 | 执行目录功能域重组（B 档）：合并 Rewind 三处、统一 Managers 口径、UI 细分四子目录、SO 按域三分、Metarials→Materials、Files→Docs、删 9 个空目录；36 个移动脚本 GUID 前后一致零断链、编译 0 error（提交 e89d8aa→039a015）；新增旧路径映射表与死代码/零资产清单备查 |
+| 2026-08-25 | ESCCanvas 新增 `QuitButton`(y=-240)：复用既有 `ExitManager.QuitGame()`（组件新挂到 ESCCanvas），OnClick 持久化直绑，零代码新增；同日核实按钮实际名为 `ContinueButton`、Retry 绑独立 `RetryButton` 组件而非 `ESCMenuManager.OnRetryButton`，据此更新附录 |
