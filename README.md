@@ -118,8 +118,8 @@ itch.io 评分（GMTK Game Jam 2026）：
 | 美术 | #4647 | 3.042 | 3.167 |
 | 乐趣 | #7228 | 2.402 | 2.500 |
 
-评审记录：[Time Machine - itch.io](https://itch.io/jam/gmtk-jam-2026/rate/4819494)
-综合排名约前4700~5000名（共10,500个作品,前45%）
+- 评审记录：[Time Machine - itch.io](https://itch.io/jam/gmtk-jam-2026/rate/4819494)
+- 综合排名约前4700~5000名（共10,500个作品,前45%）
 ---
 
 ## 技术栈
