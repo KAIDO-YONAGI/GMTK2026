@@ -1,172 +1,84 @@
 # Time Machine
 
+![Unity](https://img.shields.io/badge/Unity-2022.3.62f3c1-222222?logo=unity&logoColor=white) ![C#](https://img.shields.io/badge/C%23-239120?logo=csharp&logoColor=white) ![URP](https://img.shields.io/badge/URP-14.0.12-555555)
+
 [简体中文](README.md) | **English**
 
-> **GMTK Game Jam 2026** entry — Theme: *Count Down*
-> Development window: 2026-07-23 – 2026-07-26 (4 days)
+A 2D side-scrolling puzzle platformer built with Unity and C#, centered on time rewind and continuous aging. Rewinding changes the character's position and mechanism states, while aging weakens movement and jumping, turning each level into a puzzle against a limited lifetime.
 
-Play online: [Time Machine - itch.io](https://retraumend.itch.io/time-machine)
+Created for the **Count Down** theme at GMTK Game Jam 2026, during July 23–26, 2026. Two time rules run together: rewinding changes the past while aging consumes the future.
 
----
+Play online: [Time Machine — itch.io](https://retraumend.itch.io/time-machine)
 
-## Controls
+## Project Features
 
-| Key | Action |
-|-----|--------|
-| A / D or ← / → | Move left / right |
-| Space | Jump |
-| Hold R | Time rewind |
-| ESC | Pause menu |
-| Left Mouse | Drag certain mechanisms |
+| Feature | Content |
+|---|---|
+| Aging and survival | Age increases continuously and weakens movement and jumping, with different death messages for aging and damage |
+| Time rewind | Restores character and mechanism states; its available window shrinks with age while aging continues |
+| Interactive mechanisms | Flowing water and freezing, breakable ice, aimable spike launchers, pickup spikes, pressure plates and springs |
+| Puzzle progression | A tutorial and two main levels that progress from character-state rewinds to combined mechanisms and cascading triggers |
+| Feedback and UI | A rewind meter, health hearts, a dying-state prompt, an aging vignette, particles and screen shake |
 
----
+### Aging and Time Rewind
 
-## Core Concept
+Each level has a configurable age range and aging rate. Age affects movement speed, jumping and the rewind window. Rewinding rolls scene states back several seconds while aging continues in real time, spending the character's remaining lifetime as the past changes.
 
-`Time Machine` is a Unity 2D side-scrolling puzzle platformer built around one cruel idea:
+Rewind includes a drain rate, cooldown and a brief movement boost afterward. Water, ice and fired spikes participate in state rollback, while pooled silhouette afterimages trace the character's movement during rewinds.
 
-**Your body is the countdown itself — and the consumable you spend to escape the loop of a chaotic timeline.**
+### Mechanisms and Level Progression
 
-The core theme: **rewind the past, while the future burns away as you age.**
+Water spreads downward cell by cell and freezes on a timer. Ice blocks passage and can be shattered or rewound; triggering it after a break restarts the freezing timer. Spike launchers use an aiming ring and support continuous or single-shot firing. Fired spikes can be rewound, and pickup spikes can break ice.
 
-> *You can change the past and reach a better future, but your body won't stop counting down. No matter how bright what lies ahead, you will fade away in the flow of time…*
+Pressure-plate events connect water flows, doors and other mechanisms. Springs provide vertical movement, while trap spikes and death zones add survival pressure. Levels progress from rewinding the character to water–ice transitions, spike recall and cascading mechanism triggers after a rewind.
 
----
+### Survival Feedback and Presentation
 
-## Core Mechanics
+The HUD displays health as hearts, with particles and screen shake accompanying damage. At zero health, the character enters a dying state and can rewind to recover or give up and restart. Reaching the age limit triggers death from aging; restarting a level resets age.
 
-### Aging
+URP provides 2D rendering, and Cinemachine handles camera boundaries and screen shake. Layered background art, frame-by-frame character animation, original background music and selected sound effects establish the atmosphere. The vignette deepens with age.
 
-- Age increases in real time; range and speed are configurable per level
-- Aging is irreversible and keeps running even during rewinds
-- Movement speed and jump power decay as you age, with a sharp slowdown near death
-- A screen vignette gradually deepens with aging progress for a sense of pressure
-- Reaching the age limit dies of old age (`OldDead`); dying from damage is a violent death (`UnnormalDead`) — each with its own death message
-- Death restarts the current level with age reset
-
-### Time Rewind
-
-- Hold the rewind key to rewind continuously, rolling the scene back several seconds
-- The rewind window shrinks linearly with age: longest when young, shortest when old
-- Rewinding has a drain rate and cooldown; a brief speed boost follows each rewind
-- Interactive mechanisms rewind in sync: water, ice, spikes and more can all be rolled back
-- Silhouette afterimages trail behind you while rewinding (object-pooled)
-
-### Health & Survival
-
-- Health shown as HUD hearts; damage triggers particles and screen shake
-- At zero health you enter a dying state — rewind to save yourself, or stagger toward one last chance
-- Giving up restarts the current level
-
-### HUD
-
-- Rewind time bar (remaining amount + color gradient)
-- Health hearts
-- Dying hint panel
-
----
-
-## Level Mechanisms
-
-| Mechanism | Description |
-|-----------|-------------|
-| **Water & Ice** | A trigger starts the water flow or freezing; water spreads downward cell by cell and freezes on a timer. Ice can be shattered and rewound; after breaking, triggering again restarts the freezing timer. Ice blocks passage; water does not |
-| **Spike Launcher** | Rotate the aiming ring to set the firing direction; supports continuous and single-shot modes. Fired spikes can be rewound back |
-| **Pickup Spike** | Pick it up and use it to shatter ice |
-| **Trap Spikes** | Deal damage on contact |
-| **Spring** | Vertical bounce |
-| **Pressure Plate** | Triggers bound events when stepped on (e.g. start water flow, open doors) |
-| **Triggers** | Death zones, level goals, guide zones |
-
----
-
-## Level Design
-
-3 finished levels + 2 test scenes:
-
-- **Teaching Level**: rewind tutorial, passing through obstacles
-- **Normal Level 1**: puzzle-solving under death pressure
-- **Normal Level 2**: flowing-water freezing mechanism combos
-
-Puzzle difficulty progresses in three tiers:
-
-1. Rewind **your own** position and state
-2. Rewind **mechanism** states (water ↔ ice, spike recall)
-3. **Cascading mechanism triggers** after a rewind
-
----
-
-## Team
-
-| Member | Role |
-|--------|------|
-| **ReTraumenD** | Gameplay design, requirement management, core mechanic design, rewind code, mechanism implementation, testing and level design |
-| **Smdj** | Character controller and animation state machine, mechanism implementation, art pipeline integration; contributed gameplay and level design ideas |
-| **Cola** | Side-scrolling background art (multi-layer PSD with parallax), 2D character frame-by-frame animation, particle effects, original BGM, SFX selection |
-
----
-
-## Jam Results
-
-itch.io ratings (GMTK Game Jam 2026):
+### Jam Results
 
 | Category | Rank | Score | Raw Score |
-|----------|------|-------|-----------|
+|---|---|---|---|
 | Audio | #3249 | 3.042 | 3.167 |
 | Narrative | #3935 | 2.562 | 2.667 |
 | Creativity | #4482 | 3.283 | 3.417 |
 | Art | #4647 | 3.042 | 3.167 |
 | Fun | #7228 | 2.402 | 2.500 |
 
----
+The game placed approximately 4,700–5,000 out of about 10,500 entries, around the top 45%. Ratings are listed on the [itch.io jam page](https://itch.io/jam/gmtk-jam-2026/rate/4819494).
 
-## Tech Stack
+## Getting Started
 
-- **Engine**: Unity 2022.3.62f3c1 LTS
-- **Render pipeline**: Universal Render Pipeline (URP) 14.0.12
-- **Camera**: Cinemachine (Virtual Camera + Confiner2D + Camera Shake)
-- **Target platform**: Standalone Windows 64-bit
-- **2D feature set**: com.unity.feature.2d 2.0.1
-- **UI**: TextMesh Pro + Canvas (ScaleWithScreenSize, 1920×1080)
+The game is playable on [itch.io](https://retraumend.itch.io/time-machine). Controls are `A / D` or the arrow keys to move, Space to jump and hold `R` to rewind. Full controls, dependencies and Windows build instructions are in the [setup and build guide](Docs/项目上手与构建.md), in Chinese.
 
----
+## Documentation
 
-## Project Structure
+| Document | Content |
+|---|---|
+| [Documentation index](Docs/README.md) | Setup, building and development references |
+| [Scene loading and panels](Docs/场景加载与面板系统使用说明.md) | Development reference for scene transitions, event connections and panel management |
+| [Team conventions](Docs/团队协作规范.md) | Team responsibilities and collaboration conventions |
 
-```
-Assets/
-├── Scripts/          # C# scripts
-│   ├── Characters/   # Player character (movement, animation, rewind, health)
-│   ├── Gameplay/     # Level mechanisms (ice, spikes, springs, pressure plates, water, etc.)
-│   ├── Systems/      # Systems (rewind framework, audio, scene management, time management)
-│   ├── UI/           # UI controllers (ESC panel, Game Over, HUD, guide canvas)
-│   ├── Managers/     # Global managers
-│   └── SO/           # ScriptableObject definitions
-├── Scenes/           # Scene files
-│   ├── InitialScene.unity        # Entry scene
-│   ├── PersistentScene.unity      # Persistent scene (managers, camera, player, canvases)
-│   ├── StartingMenu.unity        # Main menu
-│   └── LevelScenes/              # Level scenes
-│       ├── TeachingLevel01       # Teaching level
-│       ├── NormalLevel01         # Normal level 1
-│       └── NormalLevel02         # Normal level 2
-├── Prefabs/          # Prefabs (mechanisms, particles, UI components)
-├── SOs/              # ScriptableObject assets (animation config, audio config, event channels)
-├── Sprites/          # Sprites and tilesets
-├── AudioRes/         # Audio resources (BGM / SFX)
-├── Animations/       # Animation clips
-├── Particles04/      # Particle effect assets
-├── URPAssets/        # URP pipeline assets
-└── Shaders/          # Custom shaders
-```
+The reference documents above are in Chinese.
 
----
+Documentation routing and concurrent agent work use [Y_MultipleAgentWorkflow](https://github.com/KAIDO-YONAGI/Y_MultipleAgentWorkflow), a workflow I developed and maintain.
 
-## License & Asset Notice
+## Credits and License
+
+### Team
+
+| Member | Role |
+|---|---|
+| ReTraumenD | Gameplay, requirements and core-mechanic design, rewind code, mechanisms, testing and level design |
+| Smdj | Character controller and animation state machine, mechanisms and art pipeline integration; contributed gameplay and level design |
+| Cola | Layered background art, frame-by-frame character animation, particle effects, original background music and sound-effect selection |
 
 ### Code
 
-The code of this project is licensed under the [GNU General Public License v3.0](LICENSE).
+Project code is licensed under the [GNU General Public License v3.0](LICENSE).
 
 ### Art & Audio Assets
 
