@@ -9,21 +9,21 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class PlayerMovement : MonoBehaviour
 {
-    [Header("Movement")]
+    [Header("移动")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpForce = 12f;
     [SerializeField] private Rigidbody2D rb;
 
-    [Header("Ground Check")]
+    [Header("地面检测")]
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.1f;
 
-    [Header("Events")]
+    [Header("事件")]
     [SerializeField] private VoidEventSO sceneLoadedEvent;
     [SerializeField] private VoidEventSO reincarnationEndEvent;
 
-    [Header("Rewind Speed Boost")]
+    [Header("回溯加速")]
     [SerializeField] private float rewindSpeedMultiplier = 1.5f;
     [SerializeField] private float rewindSpeedBoostDuration = 2f;
 

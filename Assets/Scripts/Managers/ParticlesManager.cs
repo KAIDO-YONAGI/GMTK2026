@@ -13,10 +13,10 @@ public class ParticlesManager : YSingleton<ParticlesManager>
     [System.Serializable]
     public class ParticleEntry
     {
-        [Tooltip("Particle type this entry provides.")] public MyEnums.ParticleType type;
-        [Tooltip("Particle prefab pooled for this type.")] public ParticleSystem prefab;
-        [Tooltip("Instances created when pools are set up.")] public int prewarmCount = 3;
-        [Tooltip("If true, particles keep playing while the game is paused.")] public bool useUnscaledTime;
+        [Tooltip("该条目服务的粒子类型。")] public MyEnums.ParticleType type;
+        [Tooltip("该类型对象池使用的粒子预制件。")] public ParticleSystem prefab;
+        [Tooltip("初始化对象池时预创建的实例数量。")] public int prewarmCount = 3;
+        [Tooltip("勾选后，游戏暂停时粒子仍继续播放。")] public bool useUnscaledTime;
     }
 
     /// <summary>类型到“配置 + 池”的运行时索引。</summary>
@@ -26,14 +26,14 @@ public class ParticlesManager : YSingleton<ParticlesManager>
         public ObjectPool<ParticleSystem> pool;
     }
 
-    [Header("Events")]
-    [Tooltip("Spawn request channel: world position + particle type.")]
+    [Header("事件")]
+    [Tooltip("生成请求通道：世界坐标 + 粒子类型。")]
     [SerializeField] private SpawnParticleEventSO spawnParticleEvent;
 
-    [Tooltip("Fired before the old scene unloads; active particles are recycled here.")]
+    [Tooltip("旧场景卸载前触发；在此回收全部活跃粒子。")]
     [SerializeField] private SceneLoadEventSO loadEventSO;
 
-    [Header("Particle Entries")]
+    [Header("粒子条目")]
     [SerializeField] private ParticleEntry[] entries;
 
     private readonly Dictionary<MyEnums.ParticleType, ParticlePool> pools =

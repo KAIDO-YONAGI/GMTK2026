@@ -17,7 +17,7 @@ public struct PlayerAnimationEntry
 [CreateAssetMenu(fileName = "PlayerAnimationConfig", menuName = "Player/AnimationConfig", order = 0)]
 public class PlayerAnimationConfigSO : ScriptableObject
 {
-    [Header("Idle")]
+    [Header("待机")]
     [FormerlySerializedAs("idle")]
     public PlayerAnimationEntry idleYouth;
     public PlayerAnimationEntry idleAdult;
@@ -25,7 +25,7 @@ public class PlayerAnimationConfigSO : ScriptableObject
     [FormerlySerializedAs("idle拄拐")]
     public PlayerAnimationEntry idleFrail;
 
-    [Header("Movement")]
+    [Header("移动")]
     public PlayerAnimationEntry walk;
     [FormerlySerializedAs("walk驼背")]
     public PlayerAnimationEntry walkHunched;
@@ -33,7 +33,7 @@ public class PlayerAnimationConfigSO : ScriptableObject
     public PlayerAnimationEntry walkFrail;
     public PlayerAnimationEntry run;
 
-    [Header("Actions")]
+    [Header("动作")]
     public PlayerAnimationEntry jump;
     public PlayerAnimationEntry land;
     public PlayerAnimationEntry hurt;

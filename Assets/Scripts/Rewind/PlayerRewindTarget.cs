@@ -12,7 +12,7 @@ public sealed class PlayerRewindTarget : MonoBehaviour
     [SerializeField] private VoidEventSO movementEndEvent;
 
     // 玩家组件引用全部由 Inspector 接线；不做运行时层级查找，也不假设本组件挂在玩家层级下。
-    [Header("Player References")]
+    [Header("玩家引用")]
     [SerializeField] private Transform playerTransform;
     [SerializeField] private Rigidbody2D playerRigidbody;
     [SerializeField] private PlayerActionController playerActionController;

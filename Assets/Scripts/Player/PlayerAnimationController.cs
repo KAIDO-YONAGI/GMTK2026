@@ -9,11 +9,11 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class PlayerAnimationController : MonoBehaviour
 {
-    [Header("Animation")]
+    [Header("动画")]
     [SerializeField] private AnimationPlayerBase animatorPlayer;
     [SerializeField] private PlayerAnimationConfigSO animationConfig;
 
-    [Header("Footsteps")]
+    [Header("脚步声")]
     [SerializeField] private float walkStepInterval = 0.52f;
     [SerializeField] private float runStepInterval = 0.4f;
 

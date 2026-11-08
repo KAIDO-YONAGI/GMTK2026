@@ -24,6 +24,13 @@ public class ReincarnationManager : RewindableBase
     [Tooltip("每次应用玩家快照后发出。")]
     [SerializeField] private FloatEventSO snapshotAppliedEvent;
 
+    [Header("长按回溯")]
+    [Tooltip("开启长按激活。关闭时，按下 R 立即开始回溯。")]
+    [SerializeField] private bool enableHoldToRewind = true;
+
+    [Tooltip("开始回溯前必须按住 R 的秒数；更短的点击会被忽略。")]
+    [SerializeField, Min(0f)] private float rewindHoldSeconds = 0.3f;
+
     [Header("回溯时间窗口")]
     [Tooltip("玩家处于最年轻状态时的最大可回溯秒数。")]
     [SerializeField] private float maxRewindBaseSeconds = 8f;
@@ -47,6 +54,11 @@ public class ReincarnationManager : RewindableBase
     private PlayerRewindTarget rewindTarget;
     private float rewindLimitForCurrentOperation;
     private VoidEventSO subscribedSceneLoadedEvent;
+
+    // 本次按住 R 已蓄力的秒数；松开立即清零。
+    private float rewindHoldTimer;
+    // 本次按住是否已经触发过回溯，避免按住不放连续触发。
+    private bool rewindHoldTriggered;
 
     /// <summary>记录快照后广播：快照时间戳、当时的保留窗口。</summary>
     public event Action<float, float> SnapshotRecorded;
@@ -111,14 +123,64 @@ public class ReincarnationManager : RewindableBase
 
     private void Update()
     {
-        if (IsRewindOperationLocked)
+        UpdateRewindInput();
+    }
+
+    /// <summary>
+    /// R 输入：开启长按检测时必须连续按住 rewindHoldSeconds 秒才启动回溯，快速点按无效；
+    /// 关闭长按检测时保持原本的“按下即触发”。
+    /// 触发过或处于回溯/冷却期间都必须先松开再重新按压，避免按住不放连续触发。
+    /// </summary>
+    private void UpdateRewindInput()
+    {
+        // 关闭长按检测：维持原有行为，按下立即触发。
+        if (!enableHoldToRewind)
+        {
+            if (Input.GetKeyDown(KeyCode.R) && !IsRewindOperationLocked)
+                StartRewindByInput();
+
+            return;
+        }
+
+        // 松开 R 立即清空蓄力，保证下一次按压必须重新按满。
+        if (Input.GetKeyUp(KeyCode.R))
+        {
+            rewindHoldTimer = 0f;
+            rewindHoldTriggered = false;
+        }
+
+        if (IsRewindOperationLocked || rewindHoldTriggered)
             return;
 
-        if (Input.GetKeyDown(KeyCode.R) && reincarnationEvent != null)
+        if (!Input.GetKey(KeyCode.R))
         {
-            reincarnationEvent.OnEventRaised();
-            StartRewind();
+            rewindHoldTimer = 0f;
+            return;
         }
+
+        rewindHoldTimer += Time.deltaTime;
+        if (rewindHoldTimer < rewindHoldSeconds)
+            return;
+
+        rewindHoldTriggered = true;
+        StartRewindByInput();
+    }
+
+    /// <summary>发出回溯输入事件并尝试启动回溯。</summary>
+    private void StartRewindByInput()
+    {
+        if (reincarnationEvent == null)
+            return;
+
+        reincarnationEvent.OnEventRaised();
+        StartRewind();
+    }
+
+    /// <summary>改开关或秒数时清空蓄力状态，避免切换检测模式后残留旧状态。</summary>
+    private void OnValidate()
+    {
+        rewindHoldTimer = 0f;
+        rewindHoldTriggered = false;
     }
 
     private void FixedUpdate()
@@ -233,6 +295,10 @@ public class ReincarnationManager : RewindableBase
         isRewinding = false;
         isRewindCoolingDown = false;
         currentRewoundGameTime = 0f;
+
+        // 场景切换/禁用后清空长按蓄力，避免跨场景残留“按住即触发”。
+        rewindHoldTimer = 0f;
+        rewindHoldTriggered = false;
     }
 
     private void ClearTimeline()

@@ -1623,6 +1623,7 @@ Transform:
   m_Children:
   - {fileID: 1471093296}
   - {fileID: 1946034692}
+  - {fileID: 8634628012897873993}
   - {fileID: 1600124932}
   - {fileID: 770467901}
   - {fileID: 670484952}
@@ -2315,7 +2316,7 @@ MonoBehaviour:
   initialPosition: {x: 0, y: 0, z: 0}
   player: {fileID: 7583857174778898416}
   firstSceneToLoad:
-  - {fileID: 11400000, guid: e76f057f942010e418b9d660a649c6c1, type: 2}
+  - {fileID: 11400000, guid: 9e84c9f0601cf7c4393ede8ba310dadf, type: 2}
   objectsToUnableWhileGameReset:
   - {fileID: 7583857174778898416}
   fadeDuration: 1
@@ -3176,7 +3177,6 @@ Transform:
   - {fileID: 4323487750804556136}
   - {fileID: 4325582214496667455}
   - {fileID: 5631538060222291830}
-  - {fileID: 8634628012897873993}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!198 &2771282227294636600
@@ -7973,6 +7973,8 @@ MonoBehaviour:
   reincarnationBegEvent: {fileID: 11400000, guid: f37a074e87627f8498ef5a4e37f6d6ee, type: 2}
   reincarnationEndEvent: {fileID: 11400000, guid: 92fba088eb8a33d448de9ab09aa82b8e, type: 2}
   snapshotAppliedEvent: {fileID: 11400000, guid: 3ae4240a4cb67964c9246f0c3e832efb, type: 2}
+  enableHoldToRewind: 1
+  rewindHoldSeconds: 0.3
   maxRewindBaseSeconds: 8
   minRewindBaseSeconds: 1
   rewindWindowMultiplier: 1
@@ -8460,11 +8462,11 @@ Transform:
   m_GameObject: {fileID: 1054217383234807787}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 1.33, y: -0.08, z: 0}
+  m_LocalScale: {x: 1, y: 1.0110849, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2521088569748519973}
+  m_Father: {fileID: 952237001}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8693088212026143281
 GameObject:
@@ -8518,7 +8520,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerMovement: {fileID: 5311739168720231636}
   animationController: {fileID: 1506073771}
-  jumpDelay: 0.18
+  jumpDelay: 0.1
   takeoffTimeout: 0.3
   startInputEvent: {fileID: 11400000, guid: d1be32208aed32d47bbf516fc6248eb6, type: 2}
   stopInputEvent: {fileID: 11400000, guid: b0c54761287e6b94da400ffc4d5c9c46, type: 2}

@@ -46,22 +46,25 @@ public sealed class PlayerActionController : MonoBehaviour
         Airborne
     }
 
-    [Header("Components")]
+    [Header("组件引用")]
     [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private PlayerAnimationController animationController;
 
-    [Header("Jump")]
-    [Tooltip("Delay in seconds between accepting jump input and applying the jump impulse.")]
-    [SerializeField, Min(0f)] private float jumpDelay = 0.18f;
+    [Header("跳跃")]
+    [Tooltip("接受跳跃输入到实际施加跳跃冲量之间的延迟秒数。")]
+    [SerializeField, Min(0f)] private float jumpDelay = 0.05f;
 
-    [Tooltip("Max seconds to wait for leaving the ground after the jump impulse; on timeout the state falls back to normal (e.g. bumping head on a low ceiling).")]
+    [Tooltip("施加跳跃冲量后等待离地的最长秒数；超时则回退到常规状态（例如顶到低矮天花板）。")]
     [SerializeField, Min(0.05f)] private float takeoffTimeout = 0.3f;
 
-    [Header("Input Events")]
+    // 跳跃额外接受的按键：W、数字小键盘的“上”键（8）与方向键 ↑；Jump 轴（空格）始终有效。
+    private static readonly KeyCode[] extraJumpKeys = { KeyCode.W, KeyCode.Keypad8, KeyCode.UpArrow };
+
+    [Header("输入事件")]
     [SerializeField] private VoidEventSO startInputEvent;
     [SerializeField] private VoidEventSO stopInputEvent;
 
-    [Header("Lifecycle Events")]
+    [Header("生命周期事件")]
     [SerializeField] private VoidEventSO sceneLoadedEvent;
     [SerializeField] private VoidEventSO reincarnationBegEvent;
     [SerializeField] private VoidEventSO reincarnationEndEvent;
@@ -155,7 +158,7 @@ public sealed class PlayerActionController : MonoBehaviour
         if (isWaitingForActionCompletion)
             return;
 
-        if (Input.GetButtonDown("Jump") && playerMovement.IsGrounded)
+        if (IsJumpPressed() && playerMovement.IsGrounded)
         {
             BeginJump();
             return;
@@ -178,6 +181,21 @@ public sealed class PlayerActionController : MonoBehaviour
     {
         currentActionState = state;
         animationController?.PlayActionState(state, true);
+    }
+
+    /// <summary>跳跃按下检测：Jump 轴（空格）或 W / 小键盘 8 任一按下。</summary>
+    private static bool IsJumpPressed()
+    {
+        if (Input.GetButtonDown("Jump"))
+            return true;
+
+        foreach (KeyCode key in extraJumpKeys)
+        {
+            if (Input.GetKeyDown(key))
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>接受跳跃输入：先切 Jump 状态播放起跳动画，延迟 jumpDelay 后才施加物理冲量。</summary>

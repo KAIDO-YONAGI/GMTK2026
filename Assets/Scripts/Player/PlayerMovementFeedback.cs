@@ -9,16 +9,16 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class PlayerMovementFeedback : MonoBehaviour
 {
-    [Header("Components")]
+    [Header("组件引用")]
     [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private ParticleSystem runParticleSystem;
 
-    [Header("Landing Particles")]
-    [Tooltip("Landing dust spawn request channel, handled by ParticlesManager.")]
+    [Header("落地粒子")]
+    [Tooltip("落地尘土的生成请求通道，由 ParticlesManager 统一处理。")]
     [SerializeField] private SpawnParticleEventSO spawnParticleEvent;
 
-    [Header("Speed Boost Feedback")]
+    [Header("加速反馈")]
     [SerializeField] private CanvasGroup speedUpFeedbackGroup;
     [SerializeField, Min(0f)] private float speedUpFadeInDuration = 0.2f;
     [SerializeField, Min(0f)] private float speedUpFadeOutDuration = 0.4f;
