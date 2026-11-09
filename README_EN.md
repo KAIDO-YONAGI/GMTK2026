@@ -1,6 +1,6 @@
 # Time Machine
 
-![Unity](https://img.shields.io/badge/Unity-2022.3.62f3c1-222222?logo=unity&logoColor=white) ![C#](https://img.shields.io/badge/C%23-239120?logo=csharp&logoColor=white) ![URP](https://img.shields.io/badge/URP-14.0.12-555555)
+![Unity](https://img.shields.io/badge/Unity-2022.3.62f3-222222?logo=unity&logoColor=white) ![C#](https://img.shields.io/badge/C%23-239120?logo=csharp&logoColor=white) ![URP](https://img.shields.io/badge/URP-14.0.12-555555)
 
 [简体中文](README.md) | **English**
 
